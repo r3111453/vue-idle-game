@@ -31,7 +31,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install   # 改为 npm install
 
       - name: Build Project
         run: NODE_OPTIONS="--max_old_space_size=4096" npm run build
