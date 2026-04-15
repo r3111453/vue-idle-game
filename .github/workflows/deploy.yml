@@ -28,10 +28,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '16'
-          cache: 'npm'
+          # cache: 'npm'   # 暂时移除，因为 lock 文件不存在
 
       - name: Install Dependencies
-        run: npm install   # 改为 npm install
+        run: npm install
 
       - name: Build Project
         run: NODE_OPTIONS="--max_old_space_size=4096" npm run build
