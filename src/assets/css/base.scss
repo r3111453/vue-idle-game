@@ -1,0 +1,468 @@
+/**
+ * 基础样式
+ * @author couy（couy69@gmail.com）
+ */
+
+* {
+  padding: 0;
+  margin: 0;
+  outline: 0;
+  box-sizing: border-box !important;
+}
+
+li {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+i {
+  font-style: normal;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  font-size: 14px;
+}
+
+/*声明 WebFont*/
+// @font-face {
+//   font-family: 'MaShanZheng';
+//   src:
+//     url('../fonts/MaShanZheng-Regular.ttf') format('truetype');
+//   font-weight: normal;
+//   font-style: normal;
+// }
+// @font-face {
+//   font-family: 'NotoSansSC';
+//   src:
+//     url('../fonts/NotoSansSC-Regular.otf') format('truetype');
+//   font-weight: normal;
+//   font-style: normal;
+// }
+@font-face {
+  font-family: 'sarasa';
+  src:
+    url('../fonts/sarasa-ui-cl-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'JetBrainsMono';
+  src:
+    url('../fonts/JetBrainsMono-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+#app {
+  font-family: 'NotoSansSC','Noto Sans','Source Sans Pro','Avenir', Helvetica, Arial, sans-serif !important;
+}
+div,button,span,p,h1,h2,h3,h4,h5,b,input,textarea{
+  font-family:'sarasa','JetBrainsMono','NotoSansSC','Noto Sans','Source Sans Pro','Avenir', Helvetica, Arial, sans-serif !important;
+}
+
+input,textarea{
+  border:1px solid #ccc;
+  border-radius: 4px;
+  padding: .06rem;
+  font-size: .13rem;
+  background-color: #e0e8ea;
+}
+
+/*使用选择器指定字体*/
+.panel-title {
+    font-family: 'MaShanZheng' !important;
+    display: flex;
+    align-items: center !important;
+    justify-content: center;
+    font-size: .22rem;
+    padding: .2rem .1rem;
+    color:#efb96e
+}
+
+
+/* 滚动条 */
+::-webkit-scrollbar-thumb:horizontal {
+  /*水平滚动条的样式*/
+  width: 5px;
+  background-color: #999;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track-piece {
+  background-color: transparent;
+  /*滚动条的背景颜色*/
+  border-radius: 0;
+  /*滚动条的圆角宽度*/
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  /*滚动条的宽度*/
+  height: 8px;
+  /*滚动条的高度*/
+}
+
+::-webkit-scrollbar-thumb:vertical {
+  /*垂直滚动条的样式*/
+  height: 20px;
+  background-color: #999;
+  border-radius: 4px;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  border: 2px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  /*滚动条的hover样式*/
+  height: 20px;
+  background-color: #9f9f9f;
+  border-radius: 4px;
+}
+
+.button {
+  padding: 0.08rem 0.17rem;
+  margin: 0 .06rem;
+  cursor: pointer;
+  color: #fff;
+  background: #000;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  width: fit-content;
+  &:hover {
+    // background: #222;
+    border: 1px solid #ccc;
+    text-shadow: 1px 1px 3px #ccc;
+  }
+}
+
+.unique {
+  background: linear-gradient(125deg, #c90e0d36, #5656d647, 40%, #867d1033, #2c846f4d) !important;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: 0.3s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  transform: translateX(100%);
+}
+.icon {
+  display: inline-block;
+  width: 0.25rem;
+  height: 0.25rem;
+  background-repeat: no-repeat;
+  background-size: contain;
+  padding: 2px;
+  background-position: center;
+}
+.icon-setting {
+  background-image: url(../icons/menu/setting.png);
+}
+
+.red-flash.icon{
+  background-image: url(../icons/red.gif) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+}
+
+@media screen and (max-width:768px){
+  
+}
+
+@media screen and (max-width:768px) {
+
+  .body,
+  html,
+  #app {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    
+  }
+  *{
+    user-select: text !important;
+  }
+  #app {
+    -webkit-tap-highlight-color: transparent;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+
+    .main {
+      .user-status {
+        width: calc(50% - .12rem);
+        height: calc(25% - .02rem);
+        padding: .05rem;
+
+        .hp {
+          padding-left: .08rem;
+          border:none;
+          height:.25rem;
+          img {
+            width: .35rem;
+            height: .35rem;
+          }
+
+          .value {
+            font-size: .18rem;
+          }
+        }
+        .lv {
+          padding-left: .08rem;
+          border:none;
+          height:.25rem;
+          
+          img {
+            width: .35rem;
+            height: .35rem;
+          }
+
+          .value {
+            font-size: .18rem;
+            justify-content: space-between;
+            padding-right: .1rem;
+          }
+        }
+
+        .other {
+          margin-top: .02rem;
+          padding: .04rem;
+          border: 1px solid #ccc;
+          &>div {
+            padding-top: 0.02rem;
+          }
+
+          img {
+            width: .3rem;
+            height: .3rem;
+          }
+
+          .value {
+            font-size: .18rem;
+            margin-top: .04rem;
+            span {
+              font-size: .12rem !important;
+              transform: scale(0.8);
+              margin-top: -.02rem;
+            }
+          }
+        }
+      }
+
+      .user-item {
+        margin-top: .12rem;
+        width: calc(50% - .12rem);
+        height: calc(25% - .02rem);
+        top: 25%;
+        left: 0.1rem;
+        padding: 0;
+
+        &>div {
+          height: 25%;
+          width: 100%;
+
+          .title {
+            padding: 0 0.1rem;
+            display: flex;
+            align-items: center;
+
+            .icon {
+              width: .4rem;
+              height: .4rem;
+
+              img {
+                width: .35rem;
+                height: .35rem;
+              }
+            }
+
+            .name {
+              font-size: .18rem;
+            }
+          }
+        }
+
+        .uii {
+          display: flex;
+          flex-direction: column;
+
+          .gold {
+            width: 100%;
+            height: 50% !important;
+            height: auto;
+            margin: 0;
+            font-size: .12rem;
+            padding-right: .12rem;
+
+            span {
+              padding: 0;
+              font-size: .16rem !important;
+            }
+          }
+        }
+      }
+
+      .sys-info {
+        width: calc(50% - .12rem);
+        height: 50%;
+        bottom: auto;
+        right: 0.1rem;
+        top: 0.1rem;
+        left: auto;
+        padding: .05rem;
+        font-size: .12rem;
+
+        .info {
+          i {
+            display: none;
+          }
+        }
+
+        .clear {
+          top: auto;
+          bottom: .1rem;
+          right: .1rem;
+          background: #000;
+          border: 1px solid #ccc;
+          border-radius: .06rem;
+          padding: .02rem .04rem;
+        }
+      }
+
+      .map {
+        height: calc(50% - .24rem);
+        right: 0.8rem;
+        left: 0.1rem;
+        top: auto;
+        bottom: 0.1rem;
+
+        .plan {
+          height: .6rem
+        }
+
+        .dungeons {
+          img {
+            width: .35rem;
+            height: .35rem;
+          }
+        }
+
+        .event-icon {
+          width: .35rem;
+          height: .35rem;
+          background-size: 100%;
+
+          span {
+            font-size: .13rem
+          }
+        }
+      }
+
+      .menu {
+        display: flex;
+        flex-direction: column;
+        left: auto;
+        right: .1rem;
+        top: 52%;
+
+        &>div {
+          margin: 0.03rem;
+
+          img {
+            width: .35rem;
+            height: .35rem;
+          }
+
+          span {
+            font-size: .22rem;
+          }
+        }
+      }
+    }
+
+    .dialog-backpackPanel {
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+
+    .dialog {
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%);
+
+      .item-close {
+        display: block;
+      }
+
+      .weapon,
+      .armor,
+      .ring,.neck {
+        &>div {
+          width: 2.2rem;
+          font-size: .13rem;
+
+          .icon {
+            width: .45rem;
+            height: .45rem;
+
+            img {
+              width: .40rem;
+              height: .40rem;
+            }
+          }
+        }
+
+        padding: .06rem;
+      }
+    }
+
+  }
+
+  .drawer-update{
+    width: 100% !important;
+  }
+  .qa{
+    left: 1.5rem;
+    width: 0.45rem;
+    height: 0.50rem;
+    span{
+      font-size: .12rem !important;
+    }
+    img{
+      width: 0.25rem;
+      height: 0.25rem;
+    }
+  }
+  .extras{
+    left:.8rem;width: 0.45rem;
+    height: 0.50rem;
+    span{
+      font-size: .12rem !important;
+    }
+    img{
+      width: 0.25rem;
+      height: 0.25rem;
+    }
+  }
+  .setting{
+    left:.1rem;width: 0.45rem;
+    height: 0.50rem;
+    span{
+      font-size: .12rem !important;
+    }
+    img{
+      width: 0.25rem;
+      height: 0.25rem;
+    }
+  }
+}
