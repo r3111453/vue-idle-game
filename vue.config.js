@@ -1,5 +1,5 @@
 const CompressionPlugin = require("compression-webpack-plugin")
-odule.exports = {
+module.exports = {
   publicPath: process.env.NODE_ENV === 'production' ? '/vue-idle-game/' : '/',
   productionSourceMap: false,
   configureWebpack: config => {
