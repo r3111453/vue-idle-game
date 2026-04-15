@@ -29,6 +29,8 @@ jobs:
           node-version: '16'
           cache: 'npm'
       - name: Install Dependencies
+      - name: Clean Cache
+  run: npm cache clean --force
         run: npm ci
       - name: Build Project
   run: NODE_OPTIONS="--max_old_space_size=4096" npm run build
