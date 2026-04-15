@@ -29,11 +29,17 @@ jobs:
         with:
           node-version: '16'
 
+      - name: Override package-lock.json and install sass
+        run: |
+          rm -f package-lock.json
+          npm install --package-lock-only
+          npm install sass@1.32.0 --save-dev
+
       - name: Install dependencies
         run: npm install
 
       - name: Build project
-        run: npm run build
+        run: NODE_OPTIONS="--max_old_space_size=4096" npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
