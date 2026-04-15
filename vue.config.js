@@ -1,7 +1,7 @@
 const CompressionPlugin = require("compression-webpack-plugin")
 module.exports = {
   // 选项...
-  publicPath: '',
+  publicPath: '/vue-idle-game/',
   productionSourceMap: false,
   configureWebpack: config => {
     if (process.env.NODE_ENV === 'production') {
