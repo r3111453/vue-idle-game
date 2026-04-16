@@ -3,7 +3,7 @@
     <!-- <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game"></a> -->
     <div class="update-info" @click="drawerOpen" type="primary">
       <img src="../../assets/icons/menu/extras.png" alt="">
-      <span>更新日志</span>
+      <span>留言板</span>
       <i class="new" v-if="!checkedUpdateInfo"></i>
     </div>
     <transition name="fade">
@@ -237,9 +237,12 @@ export default {
       }
     },
     drawerOpen() {
-      this.showExtrasInfo = true
-      this.checkedUpdateInfo = true
-      localStorage.setItem('version', '1.2.2')
+      // 直接打开留言板，不再打开抽屉
+      window.open('https://r3111453.github.io/Giscus/index.html', '_blank');
+      // 下面的代码可以保留，不影响跳转
+      this.checkedUpdateInfo = true;
+      localStorage.setItem('version', '1.2.2');
+      // 注意：不再设置 showExtrasInfo = true，所以抽屉不会弹出
     },
     closePanel() {
       localStorage.setItem('version', '1.2.2')
