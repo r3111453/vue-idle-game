@@ -1,0 +1,32 @@
+name: Generate Sitemap
+
+on:
+  schedule:
+    # 定时任务，例如每天 UTC 时间 0 点运行
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    # 允许你手动触发工作流
+
+jobs:
+  sitemap_job:
+    runs-on: ubuntu-latest
+    name: Generate sitemap
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+      - name: Generate sitemap
+        id: sitemap
+        uses: cicirello/generate-sitemap@v1
+        with:
+          base-url-path: 'https://r3111453.github.io/vue-idle-game/'
+      - name: Output stats
+        run: |
+          echo "Generated sitemap with ${{ steps.sitemap.outputs.url-count }} URLs"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: 'Automated sitemap update'
+          body: 'This is an auto-generated PR to update the sitemap.xml.'
+          commit-message: 'chore: update sitemap.xml'
+          branch: 'sitemap-update'
+          delete-branch: true
