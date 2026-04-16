@@ -25,7 +25,7 @@
 
         <div class="footer">
           <div class="footer-github">
-            <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game">
+            <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/r3111453/vue-idle-game">
             </a>
             <span>创作不易，给个star？</span>
 
