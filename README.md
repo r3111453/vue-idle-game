@@ -4,9 +4,9 @@
 
 # 游戏截图
 
-![游戏截图1](https://raw.githubusercontent.com/Couy69/assets/master/Snipaste_2020-11-03_13-05-23.png)
-![游戏截图2](https://raw.githubusercontent.com/Couy69/assets/master/Snipaste_2020-11-09_13-01-54.png)
-![游戏截图3](https://raw.githubusercontent.com/Couy69/assets/master/Snipaste_2020-11-09_13-01-30.png)
+![游戏截图1](https://raw.githubusercontent.com/r3111453/r3111453.github.io/fe10f09e0d60ad7b06aac2532328e38f5ad435d7/Snipaste_2020-11-03_13-05-23.png)
+![游戏截图2](https://raw.githubusercontent.com/r3111453/r3111453.github.io/refs/heads/main/Snipaste_2020-11-09_13-01-54.png)
+![游戏截图3](https://raw.githubusercontent.com/r3111453/r3111453.github.io/refs/heads/main/Snipaste_2020-11-09_13-01-30.png)
 
 # 游戏设计
 
