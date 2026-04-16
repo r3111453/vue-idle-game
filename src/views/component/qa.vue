@@ -1,27 +1,21 @@
 <template>
   <div class="qa">
-    <!-- <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game"></a> -->
     <div class="update-info" @click="drawerOpen" type="primary">
       <img src="../../assets/icons/menu/Q&A.png" alt="">
-      <span>Q&A</span>
+      <span>聊天室</span>
       <i class="new" v-if="!checkedUpdateInfo"></i>
     </div>
     <transition name="fade">
       <div class="drawer-update" v-if="showExtrasInfo">
         <i class="close" @click="closePanel"></i>
-        <h1>Q&A</h1>
-        <p>这里是之前玩家提的一些问题</p>
-        <p>收到了很多反馈我就不一一放出来了，不过提的建议我都会在更新时将你的名字po出来</p>
-        <div class="scroll">
-          <div class="info" v-for="(item,index) in update" :key="index">
-            <h1>{{item.name}}<span>({{GMTToStr(item.created_at)}})</span>:</h1>
-            <p v-if="item.suggest"> {{item.suggest}}</p>
-            <p style="padding-left:0"><img src="../../assets/img/35017881.jpg" alt="">:<span>{{item.standby1}}</span> </p>
-          </div>
-        </div>
+        <iframe 
+          src="https://tlk.io/547f05" 
+          frameborder="0" 
+          class="chat-iframe"
+          allow="fullscreen"
+        ></iframe>
       </div>
     </transition>
-
   </div>
 </template>
 <script>
