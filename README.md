@@ -1,6 +1,6 @@
 # 挂机放置类小游戏
 
-> 一个全随机的刷装备刷词条小游戏,游戏链接：[couy.xyz](http://couy.xyz)
+> 一个全随机的刷装备刷词条小游戏,游戏链接：[r3111453.github.io/vue-idle-game](https://r3111453.github.io/vue-idle-game/#/)
 
 # 游戏截图
 
