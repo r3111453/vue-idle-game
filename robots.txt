@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://r3111453.github.io/vue-idle-game/sitemap.xml
