@@ -66,10 +66,10 @@ export default {
           title: '历史版本',
           vision: [{
             vision: '测试服',
-            href: 'http://couy.xyz/rpg'
+            href: 'https://r3111453.github.io/vue-idle-game/#/'
           }, {
             vision: '1.2.2',
-            href: 'http://couy.xyz/v1.2.2'
+            href: 'https://r3111453.github.io/vue-idle-game/#/'
           }],
           desc: '- 这里保留了历史版本，你仍然可以导入存档到旧版本游玩,测试服版本不保证可玩性',
         },
