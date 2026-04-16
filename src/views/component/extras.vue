@@ -248,48 +248,21 @@ export default {
     navToGithub() {
       window.open('https://github.com/r3111453/vue-idle-game', '_blank');
     },
-    async submitSuggest() {
-      if (this.disabled) {
-        return
-      }
-      try {
-        let data = await this.$api.post(
-          "v1/Suggest/add",
-          {
-            name: this.name,
-            suggest: this.suggest,
-          }
-        );
-        console.log(data)
-        if (data.data.error_code == 20000) {
-          this.$store.commit("set_sys_info", {
-            msg: `
-              你的建议已经提交了哦，十分感谢😘
-            `,
-            type: 'win'
-          });
-          this.name = ''
-          this.suggest = ''
-        } else {
-          this.$store.commit("set_sys_info", {
-            msg: `
-              提交失败：${data.data.msg}
-            `,
-            type: 'win'
-          });
-        }
-      } catch (error) {
-        console.log(error);
-      }
-      this.disabled = true
-      setTimeout(() => {
-        this.disabled = false
-      }, 1000)
+    // 修改后的提交方法：跳转到 Giscus 留言板
+    submitSuggest() {
+      // 打开留言板页面（新窗口）
+      window.open('https://r3111453.github.io/Giscus/index.html', '_blank');
+      // 可选提示
+      this.$store.commit("set_sys_info", {
+        msg: `请在新打开的留言板页面中提交你的建议～`,
+        type: 'win'
+      });
+      // 清空输入框（可选）
+      this.suggest = '';
+      this.name = '';
     }
   }
 };
-
-
 </script>
 <style lang="scss" scoped>
 .extras {
