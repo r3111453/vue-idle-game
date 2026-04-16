@@ -1,5 +1,6 @@
 <template>
   <div class="qa">
+    <!-- 点击按钮时，调用 openChatRoom 方法在新窗口打开 Discord 邀请链接 -->
     <div class="chat-button" @click="openChatRoom">
       <img src="../../assets/icons/menu/Q&A.png" alt="">
       <span>聊天室</span>
@@ -12,7 +13,8 @@ export default {
   name: "qa",
   methods: {
     openChatRoom() {
-      window.open('https://tlk.io/547f05', '_blank');
+      // 用 window.open 在浏览器新标签页中打开你指定的 Discord 邀请链接
+      window.open('https://discord.gg/FMKBGXFJ', '_blank');
     }
   }
 };
