@@ -122,8 +122,8 @@ export default {
       items.sort((a, b) => {
         const typeDiff = (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5);
         if (typeDiff !== 0) return typeDiff;
-        const qualityA = qualityOrder[a.quality.name] ?? 0;
-        const qualityB = qualityOrder[b.quality.name] ?? 0;
+        const qualityA = qualityOrder[a.quality.name] || 0;
+        const qualityB = qualityOrder[b.quality.name] || 0;
         return qualityB - qualityA;
       });
       
