@@ -263,7 +263,8 @@ export default {
     },
     navToGithub() {
       //window.open('https://github.com/Couy69/vue-idle-game', '_blank');
-      window.open('https://github.com/XiaofengdiZhu/vue-idle-game-mod', '_blank');
+      //window.open('https://github.com/XiaofengdiZhu/vue-idle-game-mod', '_blank');
+      window.open('https://github.com/r3111453/vue-idle-game', '_blank');
     },
     async submitSuggest() {
       if (this.disabled) {
