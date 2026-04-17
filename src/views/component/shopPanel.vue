@@ -15,7 +15,7 @@
         <span>免费刷新剩余次数：{{ freeRefreshCount }} / 100</span>
         <span>金币刷新：100金币</span>
       </div>
-      <div class="button" @click="goldRefreshShopItems()" :disabled="goldRefreshLock">100金币刷新</div>
+      <div class="button" @click="startAutoSeekUnique()" :disabled="goldRefreshLock || autoSeeking">100金币刷新（寻独特）</div>
       <div class="button" :disabled="freeRefreshCount <= 0 || freeRefreshLock" @click="freeRefreshHandler()">免费刷新</div>
     </div>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
@@ -48,6 +48,8 @@ export default {
       // 防连点锁
       goldRefreshLock: false,
       freeRefreshLock: false,
+      // 自动寻独特模式标志
+      autoSeeking: false,
     };
   },
   mixins: [assist],
@@ -157,7 +159,66 @@ export default {
         this.createShopItem(lv);
       }
     },
+    // 自动寻独特：持续刷新直到出现独特装备
+    startAutoSeekUnique() {
+      if (this.autoSeeking) return;
+      if (this.goldRefreshLock) return;
+      this.autoSeeking = true;
+      this.seekUniqueStep();
+    },
+    seekUniqueStep() {
+      // 检查金币是否足够
+      if (this.$store.state.playerAttribute.GOLD < 100) {
+        this.$store.commit("set_sys_info", { msg: `金币不足，无法继续刷新。`, type: "warning" });
+        this.autoSeeking = false;
+        return;
+      }
+      // 加锁，防止重复点击
+      this.goldRefreshLock = true;
+      // 扣除金币
+      this.$store.commit("set_player_gold", -100);
+      // 刷新商店（生成新商品）
+      this.grid = new Array(5).fill({});
+      for (let i = 0; i < 5; i++) {
+        const lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        this.createShopItem(lv);
+      }
+      // 检查是否有独特装备
+      const hasUnique = this.grid.some(item => item.quality && item.quality.name === '独特');
+      if (hasUnique) {
+        // 找到独特装备，停止自动刷新，弹出提示
+        this.goldRefreshLock = false;
+        this.autoSeeking = false;
+        this.tipsFlagComfirm = true;
+        this.$message({
+          message: '已刷出独特装备，是否继续寻找下一件？',
+          closeBtnText: '看看（停止）',
+          confirmBtnText: '继续寻找',
+          onCancle: () => {
+            // 点击“看看（停止）”：关闭弹窗，不继续
+            this.tipsFlagComfirm = false;
+          },
+          onClose: () => {
+            // 点击“继续寻找”：关闭弹窗，继续自动刷新
+            this.tipsFlagComfirm = false;
+            // 延迟一小段时间再开始下一步，避免过快
+            setTimeout(() => {
+              this.seekUniqueStep();
+            }, 100);
+          }
+        });
+      } else {
+        // 没有独特装备，解锁后继续下一步
+        this.goldRefreshLock = false;
+        // 延迟一下再继续，避免死循环和界面卡顿
+        setTimeout(() => {
+          this.seekUniqueStep();
+        }, 50);
+      }
+    },
     goldRefreshShopItems(constraint) {
+      // 原金币刷新方法保留，但按钮不再直接调用，改为 startAutoSeekUnique
+      // 这里保留以兼容其他调用（如果有）
       if (this.goldRefreshLock) return;
       if (this.tipsFlagComfirm) return;
       const hasUnique = !constraint && this.grid.some(item => item.quality && item.quality.name === '独特');
@@ -181,7 +242,6 @@ export default {
         this.$store.commit("set_sys_info", { msg: `钱不够啊，想啥呢。`, type: "warning" });
         return;
       }
-      // 执行刷新（加锁）
       this.goldRefreshLock = true;
       this.$store.commit("set_player_gold", -100);
       this.grid = new Array(5).fill({});
