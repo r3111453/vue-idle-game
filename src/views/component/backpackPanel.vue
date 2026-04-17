@@ -157,17 +157,20 @@ export default {
     },
     // 整理
     neaten() {
-      var tem = new Array(32).fill({}),
-        temIndex = 0
-      this.grid.map((item, index) => {
-        if (JSON.stringify(item) != '{}') {
-          tem[temIndex] = item
-          temIndex++
-        }
-      })
-      this.grid = this.$deepCopy(tem)
-      tem = []
-    },
+  // 1. 先过滤出所有非空的装备
+  const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
+  
+  // 2. 按类型顺序排序：武器 → 防具 → 戒指 → 项链
+  const typeOrder = { weapon: 1, armor: 2, ring: 3, neck: 4 };
+  items.sort((a, b) => (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5));
+  
+  // 3. 将排序后的装备放入新数组，其余位置用空对象填充
+  const tem = new Array(32).fill({});
+  for (let i = 0; i < items.length; i++) {
+    tem[i] = items[i];
+  }
+  this.grid = this.$deepCopy(tem);
+},
     clear(){
       this.grid = new Array(32).fill({});
     },
