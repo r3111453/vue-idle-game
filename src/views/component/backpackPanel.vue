@@ -101,7 +101,7 @@ export default {
     setAutoSell(index){
       this.$set(this.autoSell,index,!this.autoSell[index])
     },
-    // 整理背包：按武器 → 防具 → 戒指 → 项链的顺序排列
+    // 整理背包：先按类型（武器、防具、戒指、项链），同类型内按品质（独特>史诗>神器>普通>破旧）
     neaten() {
       // 1. 过滤出所有非空装备
       const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
@@ -109,16 +109,31 @@ export default {
       // 2. 定义类型优先级
       const typeOrder = { weapon: 1, armor: 2, ring: 3, neck: 4 };
       
-      // 3. 按优先级排序（同类型保持原顺序）
-      items.sort((a, b) => (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5));
+      // 3. 定义品质优先级
+      const qualityOrder = {
+        '独特': 4,
+        '史诗': 3,
+        '神器': 2,
+        '普通': 1,
+        '破旧': 0
+      };
       
-      // 4. 创建新数组并填充排序后的装备
+      // 4. 排序：先按类型，类型相同按品质降序
+      items.sort((a, b) => {
+        const typeDiff = (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5);
+        if (typeDiff !== 0) return typeDiff;
+        const qualityA = qualityOrder[a.quality.name] ?? 0;
+        const qualityB = qualityOrder[b.quality.name] ?? 0;
+        return qualityB - qualityA;
+      });
+      
+      // 5. 创建新数组（容量 this.capacity），将排序后的装备放进去
       const newGrid = new Array(this.capacity).fill({});
       for (let i = 0; i < items.length; i++) {
         newGrid[i] = items[i];
       }
       
-      // 5. 更新背包
+      // 6. 更新背包
       this.grid = this.$deepCopy(newGrid);
     },
     clear(){
