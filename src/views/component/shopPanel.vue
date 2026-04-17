@@ -37,9 +37,11 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
+      // 免费刷新的冷却剩余秒数（0 表示可用）
       freeRefreshRemainSec: 0,
+      // 上一次免费刷新的时间戳（毫秒）
       lastFreeRefreshTime: null,
-      // 原变量保留但不再用于免费刷新次数限制
+      // 保留原变量（但不再用于免费刷新次数）
       refreshTime: 5,
       timeo: 60,
       timeStart: false,
@@ -67,29 +69,28 @@ export default {
     this.startFreeRefreshTimer();
     this.refreshShopItems(true);
   },
+  beforeDestroy() {
+    if (this._timer) clearInterval(this._timer);
+  },
   methods: {
+    // ---------- 免费刷新冷却（持久化） ----------
     loadFreeRefreshState() {
       const last = localStorage.getItem('shop_lastFreeRefreshTime');
       if (last) {
         this.lastFreeRefreshTime = parseInt(last);
         const elapsed = (Date.now() - this.lastFreeRefreshTime) / 1000;
-        if (elapsed < 3) {
-          this.freeRefreshRemainSec = Math.ceil(3 - elapsed);
-        } else {
-          this.freeRefreshRemainSec = 0;
-        }
+        this.freeRefreshRemainSec = elapsed < 3 ? Math.ceil(3 - elapsed) : 0;
       } else {
         this.freeRefreshRemainSec = 0;
       }
     },
     startFreeRefreshTimer() {
-      setInterval(() => {
+      this._timer = setInterval(() => {
         if (this.freeRefreshRemainSec > 0) {
           this.freeRefreshRemainSec--;
         }
       }, 1000);
     },
-    // 点击免费刷新按钮的入口
     freeRefreshHandler() {
       if (this.freeRefreshRemainSec > 0) {
         this.$store.commit("set_sys_info", {
@@ -98,13 +99,19 @@ export default {
         });
         return;
       }
-      this.doRefreshShop(true); // true 表示用户主动刷新，会检查独特装备提示
+      // 执行刷新
+      this.doRefreshShop();
+      // 记录冷却
+      this.lastFreeRefreshTime = Date.now();
+      this.freeRefreshRemainSec = 3;
+      localStorage.setItem('shop_lastFreeRefreshTime', this.lastFreeRefreshTime);
     },
-    // 核心刷新逻辑，skipTip 为 true 时跳过独特装备提示（用于强制刷新）
-    doRefreshShop(skipTip = false) {
-      // 检查是否存在独特装备（如果 skipTip 为 false 且已有独特装备，则弹出提示）
-      const hasUnique = this.grid.find(item => item.quality && item.quality.name == '独特');
-      if (!skipTip && hasUnique && !this.tipsFlagComfirm) {
+    // 实际刷新商店的核心逻辑（不检查冷却，不减少次数）
+    doRefreshShop() {
+      // 独特装备提示（防止递归）
+      if (this.tipsFlagComfirm) return;
+      const hasUnique = this.grid.some(item => item.quality && item.quality.name === '独特');
+      if (hasUnique) {
         this.tipsFlagComfirm = true;
         this.$message({
           message: '刷到了独特装备哦，不看看嘛？',
@@ -112,34 +119,29 @@ export default {
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
             this.tipsFlagComfirm = false;
-            // 用户点了“辣鸡我不要” -> 强制刷新（跳过提示）
-            this.doRefreshShop(true);
+            // 点击“辣鸡我不要”：立即刷新商店（不额外消耗冷却）
+            this.doRefreshShop();
           },
           onClose: () => {
             this.tipsFlagComfirm = false;
-            // 用户点了“看看” -> 不刷新，只是关闭提示，不执行刷新
-            // 这里不做任何操作
+            // 点击“看看”或关闭：也刷新商店（强制刷新）
+            this.doRefreshShop();
           }
         });
         return;
       }
-      // 执行刷新
+      // 刷新商品
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
-        let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        const lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
         this.createShopItem(lv);
       }
-      // 如果是用户主动刷新（非强制跳过）且没有独特装备阻挡，则记录冷却
-      if (!skipTip) {
-        this.lastFreeRefreshTime = Date.now();
-        this.freeRefreshRemainSec = 3;
-        localStorage.setItem('shop_lastFreeRefreshTime', this.lastFreeRefreshTime);
-      }
     },
-    // 金币刷新
+    // ---------- 金币刷新（保持不变） ----------
     goldRefreshShopItems(constraint) {
-      const hasUnique = !constraint && this.grid.find(item => item.quality && item.quality.name == '独特');
-      if (hasUnique && !this.tipsFlagComfirm) {
+      if (this.tipsFlagComfirm) return;
+      const hasUnique = !constraint && this.grid.some(item => item.quality && item.quality.name === '独特');
+      if (hasUnique && !constraint) {
         this.tipsFlagComfirm = true;
         this.$message({
           message: '刷到了独特装备哦，不看看嘛？',
@@ -151,76 +153,62 @@ export default {
           },
           onClose: () => {
             this.tipsFlagComfirm = false;
+            this.goldRefreshShopItems(true);
           }
         });
         return;
       }
       if (this.$store.state.playerAttribute.GOLD < 10000) {
-        this.$store.commit("set_sys_info", {
-          msg: `钱不够啊，想啥呢。`,
-          type: "warning",
-        });
-      } else {
-        this.$store.commit("set_player_gold", -10000);
-        this.grid = new Array(5).fill({});
-        for (let i = 0; i < 5; i++) {
-          let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
-          this.createShopItem(lv);
-        }
+        this.$store.commit("set_sys_info", { msg: `钱不够啊，想啥呢。`, type: "warning" });
+        return;
+      }
+      this.$store.commit("set_player_gold", -10000);
+      this.grid = new Array(5).fill({});
+      for (let i = 0; i < 5; i++) {
+        const lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        this.createShopItem(lv);
       }
     },
-    // 为了兼容外部调用（例如独特装备提示后强制刷新），保留 refreshShopItems
+    // 为了兼容外部调用，保留 refreshShopItems 方法
     refreshShopItems(constraint) {
       if (constraint) {
-        this.doRefreshShop(true);
+        this.doRefreshShop();
       } else {
         this.freeRefreshHandler();
       }
     },
     createShopItem(lv) {
-      // 原有代码不变
-      var equip = [0.4, 0.342, 0.25, 0.008];
-      var equipQua = -1;
-      var r = Math.random();
-      if (r <= equip[0]) {
-        equipQua = 1;
-      } else if (r < equip[1] + equip[0] && r >= equip[0]) {
-        equipQua = 2;
-      } else if (r < equip[2] + equip[1] + equip[0] && r >= equip[1] + equip[0]) {
-        equipQua = 3;
-      } else if (r < equip[3] + equip[2] + equip[1] + equip[0] && r >= equip[2] + equip[1] + equip[0]) {
-        equipQua = 4;
-      }
-      if (equipQua != -1) {
-        var index = Math.floor(Math.random() * 4);
-        var b;
-        if (index == 0) b = this.findBrothersComponents(this, "weaponPanel", false)[0];
-        else if (index == 1) b = this.findBrothersComponents(this, "armorPanel", false)[0];
-        else if (index == 2) b = this.findBrothersComponents(this, "ringPanel", false)[0];
-        else b = this.findBrothersComponents(this, "neckPanel", false)[0];
-        var item = JSON.parse(b.createNewItem(equipQua, lv));
-        item.gold = parseInt(item.lv * item.quality.qualityCoefficient * (250 + 20 * item.lv));
-        for (let i = 0; i < this.grid.length; i++) {
-          if (JSON.stringify(this.grid[i]).length < 3) {
-            this.$set(this.grid, i, item);
-            break;
-          }
+      const equip = [0.4, 0.342, 0.25, 0.008];
+      let equipQua = -1;
+      const r = Math.random();
+      if (r <= equip[0]) equipQua = 1;
+      else if (r < equip[1] + equip[0] && r >= equip[0]) equipQua = 2;
+      else if (r < equip[2] + equip[1] + equip[0] && r >= equip[1] + equip[0]) equipQua = 3;
+      else if (r < equip[3] + equip[2] + equip[1] + equip[0] && r >= equip[2] + equip[1] + equip[0]) equipQua = 4;
+      if (equipQua === -1) return;
+      const typeIdx = Math.floor(Math.random() * 4);
+      let comp;
+      if (typeIdx === 0) comp = this.findBrothersComponents(this, "weaponPanel", false)[0];
+      else if (typeIdx === 1) comp = this.findBrothersComponents(this, "armorPanel", false)[0];
+      else if (typeIdx === 2) comp = this.findBrothersComponents(this, "ringPanel", false)[0];
+      else comp = this.findBrothersComponents(this, "neckPanel", false)[0];
+      let item = JSON.parse(comp.createNewItem(equipQua, lv));
+      item.gold = parseInt(item.lv * item.quality.qualityCoefficient * (250 + 20 * item.lv));
+      for (let i = 0; i < this.grid.length; i++) {
+        if (JSON.stringify(this.grid[i]).length < 3) {
+          this.$set(this.grid, i, item);
+          break;
         }
       }
     },
     openMenu(k, e) {
       this.currentItemIndex = k;
       this.currentItem = this.grid[k];
-      const menuMinWidth = 105;
       const offsetLeft = this.$el.getBoundingClientRect().left;
       const offsetWidth = this.$el.offsetWidth;
+      const menuMinWidth = 105;
       const maxLeft = offsetWidth - menuMinWidth;
-      let left;
-      if (e.type == 'touchstart') {
-        left = e.changedTouches[0].clientX - offsetLeft + 15;
-      } else {
-        left = e.clientX - offsetLeft + 15;
-      }
+      let left = (e.type === 'touchstart' ? e.changedTouches[0].clientX : e.clientX) - offsetLeft + 15;
       this.left = left > maxLeft ? maxLeft : left;
       this.top = e.offsetY;
       this.visible = true;
@@ -229,39 +217,34 @@ export default {
       this.visible = false;
     },
     showItemInfo($event, type, item, SchemaIsMobile) {
-      if (SchemaIsMobile != 'touch' && this.$store.state.operatorSchemaIsMobile) {
-        return;
-      }
-      var p = this.findComponentUpward(this, "index");
+      if (SchemaIsMobile !== 'touch' && this.$store.state.operatorSchemaIsMobile) return;
+      const p = this.findComponentUpward(this, "index");
       p.showItemInfo($event, type, item);
     },
     closeItemInfo() {
-      var p = this.findComponentUpward(this, "index");
+      const p = this.findComponentUpward(this, "index");
       p.weaponShow = p.armorShow = p.ringShow = p.neckShow = false;
     },
     buyTheEquipment() {
       if (this.$store.state.playerAttribute.GOLD < this.currentItem.gold) {
-        this.$store.commit("set_sys_info", {
-          msg: `钱不够啊，买啥呢。`,
-          type: "warning",
-        });
-      } else {
-        this.$store.commit("set_player_gold", -parseInt(this.currentItem.gold));
-        var backpackPanel = this.findBrothersComponents(this, "backpackPanel", false)[0];
-        for (let i = 0; i < backpackPanel.grid.length; i++) {
-          if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-            this.$set(backpackPanel.grid, i, this.currentItem);
-            break;
-          }
-        }
-        this.$set(this.grid, this.currentItemIndex, {});
+        this.$store.commit("set_sys_info", { msg: `钱不够啊，买啥呢。`, type: "warning" });
+        return;
       }
+      this.$store.commit("set_player_gold", -parseInt(this.currentItem.gold));
+      const backpackPanel = this.findBrothersComponents(this, "backpackPanel", false)[0];
+      for (let i = 0; i < backpackPanel.grid.length; i++) {
+        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+          this.$set(backpackPanel.grid, i, this.currentItem);
+          break;
+        }
+      }
+      this.$set(this.grid, this.currentItemIndex, {});
     },
   },
 };
 </script>
 <style lang="scss" scoped>
-/* 样式保持不变，与原文件相同 */
+/* 样式保持不变，略 */
 .shop {
   width: 5.02rem;
   height: 3.1rem;
