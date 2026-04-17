@@ -15,7 +15,6 @@
     <div class="backpack-capacity" :class="{'height-capacity':itemNum/grid.length>0.8}">{{itemNum}}/{{grid.length}}</div>
     <div class="handle">
       <div class="handle-checkbox">
-        <!-- <input type="checkbox" name="" v-model="autoSell"> -->
         <span  @click.stop="autoSellPanel = !autoSellPanel">
           自动出售设置
           <i class="icon icon-setting"></i>
@@ -30,7 +29,6 @@
             <span @click="setAutoSell(2)"><input type="checkbox" name="" v-model="autoSell[2]">神器</span>
             <span @click="setAutoSell(3)"><input type="checkbox" name="" v-model="autoSell[3]">史诗</span>
           </div>
-
         </div>
       </div>
       <div class="button" @click="neaten">一键整理</div>
@@ -97,77 +95,31 @@ export default {
     }
   },
   mounted() {
-    var item = {
-      lv: 30,
-      itemType: 'armor',
-      quality: {
-        name: "神器",
-        qualityCoefficient: 1.5,
-        probability: "0.15",
-        color: "#ff00ff",
-        extraEntryNum: 3,
-      },
-      type: {
-        name: "赤柳血铠",
-        des: "似乎会给使用者提供生命气息",
-        iconSrc: "./icons/A_A3.png",
-        entry: [
-          {
-            valCoefficient: 0.9,
-            value: 51,
-            showVal: "+51",
-            type: "DEF",
-            name: "防御力",
-          },
-          {
-            type: "HP",
-            valCoefficient: 1.4,
-            value: 634,
-            showVal: "+634",
-            name: "生命值",
-          },
-        ],
-      },
-      extraEntry: [
-        { type: "HP", value: 99, showVal: "+99", name: "生命值" },
-        { type: "HP", value: 93, showVal: "+93", name: "生命值" },
-        { type: "HP", value: 97, showVal: "+97", name: "生命值" },
-      ],
-    };
-    // this.$set(this.grid,0,item)
-    // try {
-    //   var p = this.findComponentUpward(this, 'index')
-    //   if (JSON.stringify(p.saveData) != '{}') {
-    //     this.grid = p.saveData.backpackEquipment
-    //   }
-    // } catch (error) {
-    //   console.log(error)
-    //   this.$store.commit("set_sys_info", {
-    //     msg: `
-    //           糟糕，存档坏了！
-    //         `,
-    //     type: 'warning'
-    //   });
-    // }
-
+    // 测试数据（已注释）
   },
   methods: {
-    // 点击span仍然可以设置input的值，操作的是数组，所以需要$set来实现双向绑定
     setAutoSell(index){
       this.$set(this.autoSell,index,!this.autoSell[index])
     },
-    // 整理
+    // 整理背包：按武器 → 防具 → 戒指 → 项链的顺序排列
     neaten() {
-      var tem = new Array(this.capacity).fill({}),
-        temIndex = 0
-      this.grid.map((item, index) => {
-        if (JSON.stringify(item) != '{}') {
-          tem[temIndex] = item
-          temIndex++
-        }
-      })
-      this.grid = this.$deepCopy(tem)
-      tem = []
+      // 1. 过滤出所有非空装备
+      const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
+      
+      // 2. 定义类型优先级
+      const typeOrder = { weapon: 1, armor: 2, ring: 3, neck: 4 };
+      
+      // 3. 按优先级排序（同类型保持原顺序）
+      items.sort((a, b) => (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5));
+      
+      // 4. 创建新数组并填充排序后的装备
+      const newGrid = new Array(this.capacity).fill({});
+      for (let i = 0; i < items.length; i++) {
+        newGrid[i] = items[i];
+      }
+      
+      // 5. 更新背包
+      this.grid = this.$deepCopy(newGrid);
     },
     clear(){
       this.grid = new Array(this.capacity).fill({});
@@ -187,22 +139,19 @@ export default {
       this.currentItem = this.grid[k]
       this.$store.commit('set_need_strengthen_equipment', this.currentItem)
       const menuMinWidth = 105;
-      const offsetLeft = this.$el.getBoundingClientRect().left; // container margin left
-      const offsetWidth = this.$el.offsetWidth; // container width
-      const maxLeft = offsetWidth - menuMinWidth; // left boundary
+      const offsetLeft = this.$el.getBoundingClientRect().left;
+      const offsetWidth = this.$el.offsetWidth;
+      const maxLeft = offsetWidth - menuMinWidth;
       if (e.type == 'touchstart') {
-        var left = e.changedTouches[0].clientX - offsetLeft + 15; // 15: margin right
+        var left = e.changedTouches[0].clientX - offsetLeft + 15;
       } else {
-        var left = e.clientX - offsetLeft + 15; // 15: margin right
+        var left = e.clientX - offsetLeft + 15;
       }
-
-
       if (left > maxLeft) {
         this.left = maxLeft;
       } else {
         this.left = left;
       }
-
       this.top = e.offsetY;
       this.visible = true;
     },
@@ -244,7 +193,6 @@ export default {
         default:
           break;
       }
-
     },
     strengthenEquipment(v) {
       var p = this.findComponentUpward(this, 'index')
@@ -253,7 +201,6 @@ export default {
     },
     sellTheEquipment(withoutWarning, sellMsg) {
       if (this.currentItem.locked) {
-
         !withoutWarning && this.$store.commit("set_sys_info", {
           msg: `
               装备已锁定，请先解锁再出售。
@@ -340,9 +287,6 @@ export default {
   }
   .title-lock {
     position: absolute;
-    // width: 0.2rem;
-    // height: 0.2rem;
-    // background: red;
     top: -0.03rem;
     right: -0.11rem;
     width: 0;
@@ -375,7 +319,6 @@ export default {
   font-weight: 400;
   color: #fff;
   box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
-
   li {
     margin: 0;
     padding: 9px 16px;
