@@ -31,11 +31,25 @@
           </div>
         </div>
       </div>
-      <div class="sort-select">
-        <select v-model="sortMode">
-          <option value="none">不排序</option>
-          <option value="typeQualityLevel">按类型+品质+等级</option>
-          <option value="level">按等级</option>
+      <div class="sort-controls">
+        <span>排序优先级：</span>
+        <select v-model="sortLevel1">
+          <option value="none">无</option>
+          <option value="type">类型</option>
+          <option value="quality">品质</option>
+          <option value="level">等级</option>
+        </select>
+        <select v-model="sortLevel2">
+          <option value="none">无</option>
+          <option value="type">类型</option>
+          <option value="quality">品质</option>
+          <option value="level">等级</option>
+        </select>
+        <select v-model="sortLevel3">
+          <option value="none">无</option>
+          <option value="type">类型</option>
+          <option value="quality">品质</option>
+          <option value="level">等级</option>
         </select>
       </div>
       <div class="button" @click="neaten">一键整理</div>
@@ -67,7 +81,9 @@ export default {
       currentItemIndex: '',
       autoSellPanel: false,
       autoSell:[false,false,false,false],
-      sortMode: 'none', // 默认不排序
+      sortLevel1: 'none',
+      sortLevel2: 'none',
+      sortLevel3: 'none',
     };
   },
   mixins: [assist],
@@ -109,43 +125,54 @@ export default {
     setAutoSell(index){
       this.$set(this.autoSell,index,!this.autoSell[index])
     },
-    // 整理背包：根据当前排序模式进行排序，空格子自动移到末尾
+    // 整理背包：根据设定的多级优先级排序
     neaten() {
-      // 1. 过滤出所有非空装备
       const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
       
-      // 2. 根据选择的模式进行排序
-      if (this.sortMode === 'typeQualityLevel') {
-        // 模式1：类型 → 品质 → 等级降序
+      // 定义各属性的比较函数
+      const compareType = (a, b) => {
         const typeOrder = { weapon: 1, armor: 2, ring: 3, neck: 4 };
-        const qualityOrder = {
-          '独特': 4,
-          '史诗': 3,
-          '神器': 2,
-          '普通': 1,
-          '破旧': 0
-        };
-        items.sort((a, b) => {
-          const typeDiff = (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5);
-          if (typeDiff !== 0) return typeDiff;
-          const qualityA = qualityOrder[a.quality.name] || 0;
-          const qualityB = qualityOrder[b.quality.name] || 0;
-          if (qualityA !== qualityB) return qualityB - qualityA;
-          return b.lv - a.lv;
-        });
-      } else if (this.sortMode === 'level') {
-        // 模式2：按等级降序（高等级在前）
-        items.sort((a, b) => b.lv - a.lv);
-      }
-      // 模式 none：不排序，保持原顺序
+        return (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5);
+      };
+      const compareQuality = (a, b) => {
+        const qualityOrder = { '独特': 4, '史诗': 3, '神器': 2, '普通': 1, '破旧': 0 };
+        return (qualityOrder[b.quality.name] || 0) - (qualityOrder[a.quality.name] || 0); // 降序
+      };
+      const compareLevel = (a, b) => b.lv - a.lv;
       
-      // 3. 创建新数组（容量 this.capacity），将排序后的装备放进去
+      // 构建排序函数数组
+      const sorters = [];
+      if (this.sortLevel1 !== 'none') {
+        if (this.sortLevel1 === 'type') sorters.push(compareType);
+        else if (this.sortLevel1 === 'quality') sorters.push(compareQuality);
+        else if (this.sortLevel1 === 'level') sorters.push(compareLevel);
+      }
+      if (this.sortLevel2 !== 'none') {
+        if (this.sortLevel2 === 'type') sorters.push(compareType);
+        else if (this.sortLevel2 === 'quality') sorters.push(compareQuality);
+        else if (this.sortLevel2 === 'level') sorters.push(compareLevel);
+      }
+      if (this.sortLevel3 !== 'none') {
+        if (this.sortLevel3 === 'type') sorters.push(compareType);
+        else if (this.sortLevel3 === 'quality') sorters.push(compareQuality);
+        else if (this.sortLevel3 === 'level') sorters.push(compareLevel);
+      }
+      
+      if (sorters.length > 0) {
+        items.sort((a, b) => {
+          for (const sorter of sorters) {
+            const result = sorter(a, b);
+            if (result !== 0) return result;
+          }
+          return 0;
+        });
+      }
+      // 否则不排序（保持原顺序）
+      
       const newGrid = new Array(this.capacity).fill({});
       for (let i = 0; i < items.length; i++) {
         newGrid[i] = items[i];
       }
-      
-      // 4. 更新背包
       this.grid = this.$deepCopy(newGrid);
     },
     clear(){
@@ -265,9 +292,9 @@ export default {
   justify-content: flex-end;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   width: 100%;
-  height: 0.5rem;
-  gap: 0.2rem;
+  gap: 0.1rem;
   .handle-checkbox {
     display: flex;
     align-items: center;
@@ -284,7 +311,14 @@ export default {
       margin-top: 1px;
     }
   }
-  .sort-select {
+  .sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.05rem;
+    span {
+      font-size: 0.12rem;
+      white-space: nowrap;
+    }
     select {
       background: #333;
       color: #fff;
