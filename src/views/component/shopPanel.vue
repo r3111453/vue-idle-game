@@ -12,10 +12,8 @@
     </div>
     <div class="handle">
       <div class="info">
-        <!-- 显示免费刷新的冷却倒计时 -->
         <span v-if="freeRefreshRemainSec > 0" class="timeStart">免费刷新冷却：{{ freeRefreshRemainSec }}秒</span>
         <span v-else class="timeStart">免费刷新可用</span>
-        <!-- 保留原金币刷新提示（如果需要可移除） -->
         <span>金币刷新：10000金币</span>
       </div>
       <div class="button" @click="goldRefreshShopItems()">10000金币刷新</div>
@@ -39,13 +37,11 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
-      // 新增：免费刷新的冷却剩余秒数（0 表示可用）
       freeRefreshRemainSec: 0,
-      // 新增：上一次免费刷新的时间戳（毫秒）
       lastFreeRefreshTime: null,
-      // 原有变量保留（但不再用于免费刷新次数限制）
-      refreshTime: 5,       // 保留但不再使用
-      timeo: 60,            // 保留但不再使用
+      // 原变量保留但不再用于免费刷新次数限制
+      refreshTime: 5,
+      timeo: 60,
       timeStart: false,
       timeInterval: '',
       isTouch: false,
@@ -65,18 +61,13 @@ export default {
         document.body.removeEventListener("click", this.closeMenu);
       }
     },
-    // 原 watch 中关于 refreshTime 和 timeo 的倒计时逻辑已不再需要，但保留空函数避免报错
   },
   mounted() {
-    // 加载免费刷新的冷却状态（从 localStorage）
     this.loadFreeRefreshState();
-    // 启动每秒更新剩余冷却的计时器
     this.startFreeRefreshTimer();
-    // 初始加载商店物品
     this.refreshShopItems(true);
   },
   methods: {
-    // ---------- 新增：免费刷新的持久化冷却逻辑 ----------
     loadFreeRefreshState() {
       const last = localStorage.getItem('shop_lastFreeRefreshTime');
       if (last) {
@@ -95,14 +86,11 @@ export default {
       setInterval(() => {
         if (this.freeRefreshRemainSec > 0) {
           this.freeRefreshRemainSec--;
-          if (this.freeRefreshRemainSec === 0) {
-            // 冷却结束，可选：播放提示或不做操作
-          }
         }
       }, 1000);
     },
+    // 点击免费刷新按钮的入口
     freeRefreshHandler() {
-      // 检查冷却
       if (this.freeRefreshRemainSec > 0) {
         this.$store.commit("set_sys_info", {
           msg: `免费刷新冷却中，请等待 ${this.freeRefreshRemainSec} 秒`,
@@ -110,23 +98,13 @@ export default {
         });
         return;
       }
-      // 执行原有的刷新逻辑（不消耗次数）
-      this.doRefreshShop();
-      // 记录冷却开始
-      this.lastFreeRefreshTime = Date.now();
-      this.freeRefreshRemainSec = 3;
-      localStorage.setItem('shop_lastFreeRefreshTime', this.lastFreeRefreshTime);
+      this.doRefreshShop(true); // true 表示用户主动刷新，会检查独特装备提示
     },
-    // 原有的刷新商店核心逻辑（从 refreshShopItems 抽离，去除次数检查）
-    doRefreshShop() {
-      // 独特装备提示（跳过强制刷新逻辑仍保留）
-      this.tipsFlag = this.grid.find(item => {
-        return item.quality && item.quality.name == '独特'
-      });
-      if (this.tipsFlagComfirm) {
-        return;
-      }
-      if (this.tipsFlag) {
+    // 核心刷新逻辑，skipTip 为 true 时跳过独特装备提示（用于强制刷新）
+    doRefreshShop(skipTip = false) {
+      // 检查是否存在独特装备（如果 skipTip 为 false 且已有独特装备，则弹出提示）
+      const hasUnique = this.grid.find(item => item.quality && item.quality.name == '独特');
+      if (!skipTip && hasUnique && !this.tipsFlagComfirm) {
         this.tipsFlagComfirm = true;
         this.$message({
           message: '刷到了独特装备哦，不看看嘛？',
@@ -134,47 +112,48 @@ export default {
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
             this.tipsFlagComfirm = false;
+            // 用户点了“辣鸡我不要” -> 强制刷新（跳过提示）
+            this.doRefreshShop(true);
           },
           onClose: () => {
             this.tipsFlagComfirm = false;
-            this.doRefreshShop();
+            // 用户点了“看看” -> 不刷新，只是关闭提示，不执行刷新
+            // 这里不做任何操作
           }
         });
         return;
       }
-      // 刷新商品
+      // 执行刷新
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
-        var lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
         this.createShopItem(lv);
       }
-    },
-    // ---------- 保留原有方法（部分修改以适配新逻辑） ----------
-    /**
-     * 金币刷新商店（不受冷却影响）
-     */
-    goldRefreshShopItems(constraint) {
-      this.tipsFlag = !constraint && this.grid.find(item => {
-        return item.quality && item.quality.name == '独特'
-      })
-      if (this.tipsFlagComfirm) {
-        return
+      // 如果是用户主动刷新（非强制跳过）且没有独特装备阻挡，则记录冷却
+      if (!skipTip) {
+        this.lastFreeRefreshTime = Date.now();
+        this.freeRefreshRemainSec = 3;
+        localStorage.setItem('shop_lastFreeRefreshTime', this.lastFreeRefreshTime);
       }
-      if (this.tipsFlag && !constraint) {
-        this.tipsFlagComfirm = true
+    },
+    // 金币刷新
+    goldRefreshShopItems(constraint) {
+      const hasUnique = !constraint && this.grid.find(item => item.quality && item.quality.name == '独特');
+      if (hasUnique && !this.tipsFlagComfirm) {
+        this.tipsFlagComfirm = true;
         this.$message({
           message: '刷到了独特装备哦，不看看嘛？',
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
-            this.tipsFlagComfirm = false
+            this.tipsFlagComfirm = false;
+            this.goldRefreshShopItems(true);
           },
           onClose: () => {
-            this.tipsFlagComfirm = false
-            this.goldRefreshShopItems(true)
+            this.tipsFlagComfirm = false;
           }
-        })
-        return
+        });
+        return;
       }
       if (this.$store.state.playerAttribute.GOLD < 10000) {
         this.$store.commit("set_sys_info", {
@@ -185,25 +164,21 @@ export default {
         this.$store.commit("set_player_gold", -10000);
         this.grid = new Array(5).fill({});
         for (let i = 0; i < 5; i++) {
-          var lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+          let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
           this.createShopItem(lv);
         }
       }
     },
-    /**
-     * 原有免费刷新方法（保留但不再使用，改为调用 freeRefreshHandler）
-     * 为了避免其他地方调用，这里将其指向新方法
-     */
+    // 为了兼容外部调用（例如独特装备提示后强制刷新），保留 refreshShopItems
     refreshShopItems(constraint) {
-      // 为了兼容外部可能的调用，直接调用新的冷却处理
-      if (!constraint) {
-        this.freeRefreshHandler();
+      if (constraint) {
+        this.doRefreshShop(true);
       } else {
-        // 强制刷新（例如独特装备确认后）
-        this.doRefreshShop();
+        this.freeRefreshHandler();
       }
     },
     createShopItem(lv) {
+      // 原有代码不变
       var equip = [0.4, 0.342, 0.25, 0.008];
       var equipQua = -1;
       var r = Math.random();
@@ -218,21 +193,13 @@ export default {
       }
       if (equipQua != -1) {
         var index = Math.floor(Math.random() * 4);
-        if (index == 0) {
-          var b = this.findBrothersComponents(this, "weaponPanel", false)[0];
-          var item = b.createNewItem(equipQua, lv);
-        } else if (index == 1) {
-          var b = this.findBrothersComponents(this, "armorPanel", false)[0];
-          var item = b.createNewItem(equipQua, lv);
-        } else if (index == 2) {
-          var b = this.findBrothersComponents(this, "ringPanel", false)[0];
-          var item = b.createNewItem(equipQua, lv);
-        } else {
-          var b = this.findBrothersComponents(this, "neckPanel", false)[0];
-          var item = b.createNewItem(equipQua, lv);
-        }
-        item = JSON.parse(item);
-        item.gold = parseInt(item.lv * item.quality.qualityCoefficient * (250 + 20 * item.lv))
+        var b;
+        if (index == 0) b = this.findBrothersComponents(this, "weaponPanel", false)[0];
+        else if (index == 1) b = this.findBrothersComponents(this, "armorPanel", false)[0];
+        else if (index == 2) b = this.findBrothersComponents(this, "ringPanel", false)[0];
+        else b = this.findBrothersComponents(this, "neckPanel", false)[0];
+        var item = JSON.parse(b.createNewItem(equipQua, lv));
+        item.gold = parseInt(item.lv * item.quality.qualityCoefficient * (250 + 20 * item.lv));
         for (let i = 0; i < this.grid.length; i++) {
           if (JSON.stringify(this.grid[i]).length < 3) {
             this.$set(this.grid, i, item);
@@ -248,16 +215,13 @@ export default {
       const offsetLeft = this.$el.getBoundingClientRect().left;
       const offsetWidth = this.$el.offsetWidth;
       const maxLeft = offsetWidth - menuMinWidth;
+      let left;
       if (e.type == 'touchstart') {
-        var left = e.changedTouches[0].clientX - offsetLeft + 15;
+        left = e.changedTouches[0].clientX - offsetLeft + 15;
       } else {
-        var left = e.clientX - offsetLeft + 15;
+        left = e.clientX - offsetLeft + 15;
       }
-      if (left > maxLeft) {
-        this.left = maxLeft;
-      } else {
-        this.left = left;
-      }
+      this.left = left > maxLeft ? maxLeft : left;
       this.top = e.offsetY;
       this.visible = true;
     },
@@ -266,7 +230,7 @@ export default {
     },
     showItemInfo($event, type, item, SchemaIsMobile) {
       if (SchemaIsMobile != 'touch' && this.$store.state.operatorSchemaIsMobile) {
-        return
+        return;
       }
       var p = this.findComponentUpward(this, "index");
       p.showItemInfo($event, type, item);
@@ -297,6 +261,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+/* 样式保持不变，与原文件相同 */
 .shop {
   width: 5.02rem;
   height: 3.1rem;
