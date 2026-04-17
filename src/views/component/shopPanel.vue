@@ -15,7 +15,7 @@
         <span>免费刷新剩余次数：{{ freeRefreshCount }} / 100</span>
         <span>金币刷新：100金币</span>
       </div>
-      <div class="button" @click="startAutoSeekUnique()" :disabled="goldRefreshLock || autoSeeking">100金币刷新（寻独特）</div>
+      <div class="button" @click="startAutoSeekUnique()" :disabled="autoSeeking || (freeRefreshCount <= 0 && $store.state.playerAttribute.GOLD < 100)">寻独特（优先免费）</div>
       <div class="button" :disabled="freeRefreshCount <= 0 || freeRefreshLock" @click="freeRefreshHandler()">免费刷新</div>
     </div>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
@@ -159,24 +159,52 @@ export default {
         this.createShopItem(lv);
       }
     },
-    // 自动寻独特：持续刷新直到出现独特装备
+    // 自动寻独特：持续刷新直到出现独特装备（优先使用免费次数，不足则用金币）
     startAutoSeekUnique() {
       if (this.autoSeeking) return;
-      if (this.goldRefreshLock) return;
+      // 初步检查是否有可用的刷新资源
+      if (this.freeRefreshCount <= 0 && this.$store.state.playerAttribute.GOLD < 100) {
+        this.$store.commit("set_sys_info", {
+          msg: `免费次数不足且金币不足，无法开始寻独特。`,
+          type: "warning",
+        });
+        return;
+      }
       this.autoSeeking = true;
       this.seekUniqueStep();
     },
     seekUniqueStep() {
-      // 检查金币是否足够
-      if (this.$store.state.playerAttribute.GOLD < 100) {
-        this.$store.commit("set_sys_info", { msg: `金币不足，无法继续刷新。`, type: "warning" });
+      // 检查资源：优先免费次数，其次金币
+      let useFree = false;
+      if (this.freeRefreshCount > 0) {
+        useFree = true;
+      } else if (this.$store.state.playerAttribute.GOLD >= 100) {
+        useFree = false;
+      } else {
+        // 资源不足，停止自动刷新
+        this.$store.commit("set_sys_info", {
+          msg: `免费次数不足且金币不足，寻独特已停止。`,
+          type: "warning",
+        });
         this.autoSeeking = false;
         return;
       }
-      // 加锁，防止重复点击
+      // 加锁，防止重复点击（这里复用 goldRefreshLock 作为操作锁）
+      if (this.goldRefreshLock) {
+        // 如果锁住，稍后重试
+        setTimeout(() => {
+          if (this.autoSeeking) this.seekUniqueStep();
+        }, 100);
+        return;
+      }
       this.goldRefreshLock = true;
-      // 扣除金币
-      this.$store.commit("set_player_gold", -100);
+      // 消耗资源
+      if (useFree) {
+        this.freeRefreshCount--;
+        this.saveFreeRefreshState();
+      } else {
+        this.$store.commit("set_player_gold", -100);
+      }
       // 刷新商店（生成新商品）
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
@@ -195,13 +223,12 @@ export default {
           closeBtnText: '看看（停止）',
           confirmBtnText: '继续寻找',
           onCancle: () => {
-            // 点击“看看（停止）”：关闭弹窗，不继续
             this.tipsFlagComfirm = false;
           },
           onClose: () => {
-            // 点击“继续寻找”：关闭弹窗，继续自动刷新
             this.tipsFlagComfirm = false;
-            // 延迟一小段时间再开始下一步，避免过快
+            // 继续自动刷新（注意：需要重新启动，因为 autoSeeking 已被设为 false）
+            this.autoSeeking = true;
             setTimeout(() => {
               this.seekUniqueStep();
             }, 100);
@@ -212,7 +239,7 @@ export default {
         this.goldRefreshLock = false;
         // 延迟一下再继续，避免死循环和界面卡顿
         setTimeout(() => {
-          this.seekUniqueStep();
+          if (this.autoSeeking) this.seekUniqueStep();
         }, 50);
       }
     },
