@@ -145,14 +145,14 @@ export default {
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
-            // 点击“辣鸡我不要”：关闭弹窗，强制刷新（跳过独特检查），不消耗次数
+            // 点击“辣鸡我不要”：关闭弹窗，强制刷新（跳过独特检查），不额外消耗次数
             this.tipsFlagComfirm = false;
             this.doRefreshShop(true);
           },
           onClose: () => {
             // 点击“看看”或关闭按钮：仅关闭弹窗，不刷新商店
             this.tipsFlagComfirm = false;
-            // 什么也不做
+            // 不执行任何刷新
           }
         });
         return;
@@ -272,7 +272,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-/* 样式保持不变 */
 .shop {
   width: 5.02rem;
   height: 3.1rem;
