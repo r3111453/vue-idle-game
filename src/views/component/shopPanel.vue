@@ -12,12 +12,11 @@
     </div>
     <div class="handle">
       <div class="info">
-        <span v-if="freeRefreshRemainSec > 0" class="timeStart">免费刷新冷却：{{ freeRefreshRemainSec }}秒</span>
-        <span v-else class="timeStart">免费刷新可用</span>
-        <span>金币刷新：10000金币</span>
+        <span>免费刷新剩余次数：{{ freeRefreshCount }} / 100</span>
+        <span>金币刷新：100金币</span>
       </div>
-      <div class="button" @click="goldRefreshShopItems()">10000金币刷新</div>
-      <div class="button" :disabled="freeRefreshRemainSec > 0" @click="freeRefreshHandler()">免费刷新</div>
+      <div class="button" @click="goldRefreshShopItems()">100金币刷新</div>
+      <div class="button" :disabled="freeRefreshCount <= 0" @click="freeRefreshHandler()">免费刷新</div>
     </div>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
       <li @click="showItemInfo($event,currentItem.itemType,currentItem,'touch')" v-if="$store.state.operatorSchemaIsMobile">查看</li>
@@ -37,11 +36,11 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
-      // 免费刷新的冷却剩余秒数（0 表示可用）
-      freeRefreshRemainSec: 0,
-      // 上一次免费刷新的时间戳（毫秒）
-      lastFreeRefreshTime: null,
-      // 保留原变量（但不再用于免费刷新次数）
+      // 免费刷新剩余次数（最大 100）
+      freeRefreshCount: 100,
+      // 上一次次数恢复的时间戳（毫秒）
+      lastRecoverTime: null,
+      // 保留原变量（不再使用）
       refreshTime: 5,
       timeo: 60,
       timeStart: false,
@@ -66,49 +65,74 @@ export default {
   },
   mounted() {
     this.loadFreeRefreshState();
-    this.startFreeRefreshTimer();
+    this.startRecoverTimer();
     this.refreshShopItems(true);
   },
   beforeDestroy() {
-    if (this._timer) clearInterval(this._timer);
+    if (this._recoverTimer) clearInterval(this._recoverTimer);
   },
   methods: {
-    // ---------- 免费刷新冷却（持久化） ----------
+    // ---------- 免费刷新次数持久化（每5秒恢复1次，最多100） ----------
     loadFreeRefreshState() {
-      const last = localStorage.getItem('shop_lastFreeRefreshTime');
-      if (last) {
-        this.lastFreeRefreshTime = parseInt(last);
-        const elapsed = (Date.now() - this.lastFreeRefreshTime) / 1000;
-        this.freeRefreshRemainSec = elapsed < 3 ? Math.ceil(3 - elapsed) : 0;
+      const storedCount = localStorage.getItem('shop_freeRefreshCount');
+      const storedLastTime = localStorage.getItem('shop_lastRecoverTime');
+      const now = Date.now();
+      if (storedCount !== null && storedLastTime !== null) {
+        this.freeRefreshCount = parseInt(storedCount);
+        this.lastRecoverTime = parseInt(storedLastTime);
+        // 计算离线期间应该恢复的次数
+        const elapsedSeconds = Math.floor((now - this.lastRecoverTime) / 1000);
+        const recoverCount = Math.floor(elapsedSeconds / 5);
+        if (recoverCount > 0) {
+          let newCount = this.freeRefreshCount + recoverCount;
+          if (newCount > 100) newCount = 100;
+          this.freeRefreshCount = newCount;
+          this.lastRecoverTime = now;
+          this.saveFreeRefreshState();
+        }
       } else {
-        this.freeRefreshRemainSec = 0;
+        // 首次加载，默认满次数
+        this.freeRefreshCount = 100;
+        this.lastRecoverTime = now;
+        this.saveFreeRefreshState();
       }
     },
-    startFreeRefreshTimer() {
-      this._timer = setInterval(() => {
-        if (this.freeRefreshRemainSec > 0) {
-          this.freeRefreshRemainSec--;
+    saveFreeRefreshState() {
+      localStorage.setItem('shop_freeRefreshCount', this.freeRefreshCount);
+      localStorage.setItem('shop_lastRecoverTime', this.lastRecoverTime);
+    },
+    startRecoverTimer() {
+      this._recoverTimer = setInterval(() => {
+        const now = Date.now();
+        const elapsed = (now - this.lastRecoverTime) / 1000;
+        if (elapsed >= 5) {
+          const recoverCount = Math.floor(elapsed / 5);
+          let newCount = this.freeRefreshCount + recoverCount;
+          if (newCount > 100) newCount = 100;
+          if (newCount !== this.freeRefreshCount) {
+            this.freeRefreshCount = newCount;
+            this.lastRecoverTime = now;
+            this.saveFreeRefreshState();
+          }
         }
       }, 1000);
     },
     freeRefreshHandler() {
-      if (this.freeRefreshRemainSec > 0) {
+      if (this.freeRefreshCount <= 0) {
         this.$store.commit("set_sys_info", {
-          msg: `免费刷新冷却中，请等待 ${this.freeRefreshRemainSec} 秒`,
+          msg: `免费刷新次数不足，请等待恢复（每5秒恢复1次）`,
           type: "warning",
         });
         return;
       }
       // 执行刷新
       this.doRefreshShop();
-      // 记录冷却
-      this.lastFreeRefreshTime = Date.now();
-      this.freeRefreshRemainSec = 3;
-      localStorage.setItem('shop_lastFreeRefreshTime', this.lastFreeRefreshTime);
+      // 消耗次数
+      this.freeRefreshCount--;
+      this.saveFreeRefreshState();
     },
-    // 实际刷新商店的核心逻辑（不检查冷却，不减少次数）
+    // 实际刷新商店的核心逻辑
     doRefreshShop() {
-      // 独特装备提示（防止递归）
       if (this.tipsFlagComfirm) return;
       const hasUnique = this.grid.some(item => item.quality && item.quality.name === '独特');
       if (hasUnique) {
@@ -119,12 +143,10 @@ export default {
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
             this.tipsFlagComfirm = false;
-            // 点击“辣鸡我不要”：立即刷新商店（不额外消耗冷却）
             this.doRefreshShop();
           },
           onClose: () => {
             this.tipsFlagComfirm = false;
-            // 点击“看看”或关闭：也刷新商店（强制刷新）
             this.doRefreshShop();
           }
         });
@@ -137,7 +159,7 @@ export default {
         this.createShopItem(lv);
       }
     },
-    // ---------- 金币刷新（保持不变） ----------
+    // ---------- 金币刷新（消耗100金币） ----------
     goldRefreshShopItems(constraint) {
       if (this.tipsFlagComfirm) return;
       const hasUnique = !constraint && this.grid.some(item => item.quality && item.quality.name === '独特');
@@ -158,11 +180,11 @@ export default {
         });
         return;
       }
-      if (this.$store.state.playerAttribute.GOLD < 10000) {
+      if (this.$store.state.playerAttribute.GOLD < 100) {
         this.$store.commit("set_sys_info", { msg: `钱不够啊，想啥呢。`, type: "warning" });
         return;
       }
-      this.$store.commit("set_player_gold", -10000);
+      this.$store.commit("set_player_gold", -100);
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
         const lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
@@ -244,7 +266,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-/* 样式保持不变，略 */
+/* 样式保持不变 */
 .shop {
   width: 5.02rem;
   height: 3.1rem;
