@@ -40,7 +40,7 @@ export default {
       currentItem: {},
       currentItemIndex: "",
       refreshTime: 5,
-      timeo: 60,
+      timeo: 3,
       timeStart: false,
       timeInterval: '',
       isTouch: false,
@@ -71,7 +71,7 @@ export default {
           this.timeo--
           if (this.timeo <= 0) {
             this.refreshTime++
-            this.timeo = 60
+            this.timeo = 3
           }
         }, 1000)
       } else {
