@@ -132,14 +132,15 @@ export default {
           message: '刷到了独特装备哦，不看看嘛？',
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
+          // 交换回调：让“辣鸡我不要”（onClose）执行刷新，“看看”（onCancle）仅关闭
           onCancle: () => {
-            // 点击“辣鸡我不要”：关闭弹窗，强制刷新
+            // 对应“看看”按钮：仅关闭弹窗，不刷新
             this.tipsFlagComfirm = false;
-            this.doRefreshShop(true);
           },
           onClose: () => {
-            // 点击“看看”：仅关闭弹窗，不刷新
+            // 对应“辣鸡我不要”按钮：关闭弹窗并强制刷新
             this.tipsFlagComfirm = false;
+            this.doRefreshShop(true);
           }
         });
         return;
@@ -161,10 +162,10 @@ export default {
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
             this.tipsFlagComfirm = false;
-            this.goldRefreshShopItems(true);
           },
           onClose: () => {
             this.tipsFlagComfirm = false;
+            this.goldRefreshShopItems(true);
           }
         });
         return;
