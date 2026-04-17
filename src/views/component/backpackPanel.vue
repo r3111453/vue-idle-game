@@ -32,20 +32,8 @@
         </div>
       </div>
       <div class="sort-controls">
-        <span>排序优先级：</span>
-        <select v-model="sortLevel1">
-          <option value="none">无</option>
-          <option value="type">类型</option>
-          <option value="quality">品质</option>
-          <option value="level">等级</option>
-        </select>
-        <select v-model="sortLevel2">
-          <option value="none">无</option>
-          <option value="type">类型</option>
-          <option value="quality">品质</option>
-          <option value="level">等级</option>
-        </select>
-        <select v-model="sortLevel3">
+        <span>排序规则：</span>
+        <select v-model="sortMode">
           <option value="none">无</option>
           <option value="type">类型</option>
           <option value="quality">品质</option>
@@ -81,9 +69,7 @@ export default {
       currentItemIndex: '',
       autoSellPanel: false,
       autoSell:[false,false,false,false],
-      sortLevel1: 'none',
-      sortLevel2: 'none',
-      sortLevel3: 'none',
+      sortMode: 'none', // 排序模式：none / type / quality / level
     };
   },
   mixins: [assist],
@@ -125,49 +111,20 @@ export default {
     setAutoSell(index){
       this.$set(this.autoSell,index,!this.autoSell[index])
     },
-    // 整理背包：根据设定的多级优先级排序
+    // 整理背包：根据选择的排序模式进行排序
     neaten() {
       const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
       
-      // 定义各属性的比较函数
-      const compareType = (a, b) => {
+      if (this.sortMode === 'type') {
         const typeOrder = { weapon: 1, armor: 2, ring: 3, neck: 4 };
-        return (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5);
-      };
-      const compareQuality = (a, b) => {
+        items.sort((a, b) => (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5));
+      } else if (this.sortMode === 'quality') {
         const qualityOrder = { '独特': 4, '史诗': 3, '神器': 2, '普通': 1, '破旧': 0 };
-        return (qualityOrder[b.quality.name] || 0) - (qualityOrder[a.quality.name] || 0); // 降序
-      };
-      const compareLevel = (a, b) => b.lv - a.lv;
-      
-      // 构建排序函数数组
-      const sorters = [];
-      if (this.sortLevel1 !== 'none') {
-        if (this.sortLevel1 === 'type') sorters.push(compareType);
-        else if (this.sortLevel1 === 'quality') sorters.push(compareQuality);
-        else if (this.sortLevel1 === 'level') sorters.push(compareLevel);
+        items.sort((a, b) => (qualityOrder[b.quality.name] || 0) - (qualityOrder[a.quality.name] || 0));
+      } else if (this.sortMode === 'level') {
+        items.sort((a, b) => b.lv - a.lv);
       }
-      if (this.sortLevel2 !== 'none') {
-        if (this.sortLevel2 === 'type') sorters.push(compareType);
-        else if (this.sortLevel2 === 'quality') sorters.push(compareQuality);
-        else if (this.sortLevel2 === 'level') sorters.push(compareLevel);
-      }
-      if (this.sortLevel3 !== 'none') {
-        if (this.sortLevel3 === 'type') sorters.push(compareType);
-        else if (this.sortLevel3 === 'quality') sorters.push(compareQuality);
-        else if (this.sortLevel3 === 'level') sorters.push(compareLevel);
-      }
-      
-      if (sorters.length > 0) {
-        items.sort((a, b) => {
-          for (const sorter of sorters) {
-            const result = sorter(a, b);
-            if (result !== 0) return result;
-          }
-          return 0;
-        });
-      }
-      // 否则不排序（保持原顺序）
+      // sortMode === 'none' 时不排序，保持原顺序
       
       const newGrid = new Array(this.capacity).fill({});
       for (let i = 0; i < items.length; i++) {
