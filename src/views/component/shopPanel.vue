@@ -36,11 +36,8 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
-      // 免费刷新剩余次数（最大 100）
       freeRefreshCount: 100,
-      // 上一次次数恢复的时间戳（毫秒）
       lastRecoverTime: null,
-      // 保留原变量（不再使用）
       refreshTime: 5,
       timeo: 60,
       timeStart: false,
@@ -72,7 +69,6 @@ export default {
     if (this._recoverTimer) clearInterval(this._recoverTimer);
   },
   methods: {
-    // ---------- 免费刷新次数持久化（每5秒恢复1次，最多100） ----------
     loadFreeRefreshState() {
       const storedCount = localStorage.getItem('shop_freeRefreshCount');
       const storedLastTime = localStorage.getItem('shop_lastRecoverTime');
@@ -80,7 +76,6 @@ export default {
       if (storedCount !== null && storedLastTime !== null) {
         this.freeRefreshCount = parseInt(storedCount);
         this.lastRecoverTime = parseInt(storedLastTime);
-        // 计算离线期间应该恢复的次数
         const elapsedSeconds = Math.floor((now - this.lastRecoverTime) / 1000);
         const recoverCount = Math.floor(elapsedSeconds / 5);
         if (recoverCount > 0) {
@@ -91,7 +86,6 @@ export default {
           this.saveFreeRefreshState();
         }
       } else {
-        // 首次加载，默认满次数
         this.freeRefreshCount = 100;
         this.lastRecoverTime = now;
         this.saveFreeRefreshState();
@@ -125,16 +119,10 @@ export default {
         });
         return;
       }
-      // 执行刷新（允许独特装备弹窗）
       this.doRefreshShop(false);
-      // 消耗次数
       this.freeRefreshCount--;
       this.saveFreeRefreshState();
     },
-    /**
-     * 刷新商店核心逻辑
-     * @param {boolean} skipUniqueCheck - 是否跳过独特装备检查（强制刷新）
-     */
     doRefreshShop(skipUniqueCheck = false) {
       if (this.tipsFlagComfirm && !skipUniqueCheck) return;
       const hasUnique = this.grid.some(item => item.quality && item.quality.name === '独特');
@@ -145,26 +133,23 @@ export default {
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
-            // 点击“辣鸡我不要”：关闭弹窗，强制刷新（跳过独特检查），不额外消耗次数
+            // 点击“辣鸡我不要”：关闭弹窗，强制刷新
             this.tipsFlagComfirm = false;
             this.doRefreshShop(true);
           },
           onClose: () => {
-            // 点击“看看”或关闭按钮：仅关闭弹窗，不刷新商店
+            // 点击“看看”：仅关闭弹窗，不刷新
             this.tipsFlagComfirm = false;
-            // 不执行任何刷新
           }
         });
         return;
       }
-      // 刷新商品
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
         const lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
         this.createShopItem(lv);
       }
     },
-    // ---------- 金币刷新（消耗100金币） ----------
     goldRefreshShopItems(constraint) {
       if (this.tipsFlagComfirm) return;
       const hasUnique = !constraint && this.grid.some(item => item.quality && item.quality.name === '独特');
@@ -176,12 +161,10 @@ export default {
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
             this.tipsFlagComfirm = false;
-            // 强制刷新（跳过独特检查）
             this.goldRefreshShopItems(true);
           },
           onClose: () => {
             this.tipsFlagComfirm = false;
-            // 不刷新
           }
         });
         return;
@@ -197,10 +180,9 @@ export default {
         this.createShopItem(lv);
       }
     },
-    // 为了兼容外部调用，保留 refreshShopItems 方法
     refreshShopItems(constraint) {
       if (constraint) {
-        this.doRefreshShop(true); // 强制刷新
+        this.doRefreshShop(true);
       } else {
         this.freeRefreshHandler();
       }
