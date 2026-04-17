@@ -41,7 +41,15 @@
       <div class="btn-group" v-if='!autoStrengModel'>
         <p>自动强化目标等级：</p>
         <p><input type="number" placeholder="目标等级" max="15" min="5" v-model="autoStrengLv"></p>
-        <div class="button" @click="startAutoStreng">自动强化</div>
+
+        <cTooltip placement="bottom" style="width: auto;">
+          <template v-slot:content>
+            <div class="button" @mouseenter="simulateStrengNeed(equiment.lv,equiment.enchantlvl,autoStrengLv)" @click="startAutoStreng">自动强化</div>
+          </template>
+          <template v-slot:tip>
+            <p class="info">* 估算需要强化{{simulateNeedTimes.toFixed(0)}}次，耗时{{ (simulateNeedTimes*0.15).toFixed(0)}}秒，消耗金币{{simulateNeedMoney.toFixed(0)}}<span v-if="simulateNeedMoney>userGold" style="color: red">，金币不够！</span></p>
+          </template>
+        </cTooltip>
       </div>
       <div class="btn-group" v-if='autoStrengModel'>
         <p>自动强化中...</p>
@@ -67,7 +75,7 @@
               <div class="border-left"></div>
             </div>
             <div v-if="v.recastStatus" class="recast-info"><span :class="{red:userGold<recastNeedGold}"></span>点击花费{{recastNeedGold}}金币重铸</div>
-            <div v-else>{{v.name}} : {{v.showVal}} <span style="font-size:.12rem;margin-left:.06rem" v-if="v.EntryLevel"> ({{v.EntryLevel}})</span> </div>
+            <div v-else>{{v.name}} : {{v.showVal}} {{plusValue(v)}}<span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span></div>
           </button>
 
         </div>
@@ -95,6 +103,8 @@ export default {
       recast: false,
       qualityClass: '',
       qualityProbability: [0.25, 0.55, 0.15, 0.05,],
+      simulateNeedTimes:0,
+      simulateNeedMoney:"",
       quality: [{
         name: '破旧',
         qualityCoefficient: 0.7,
@@ -140,6 +150,27 @@ export default {
     recastNeedGold() {
       var a = parseInt(parseInt(this.equiment.lv) * this.equiment.quality.qualityCoefficient * (200 + 10 * parseInt(this.equiment.lv)) / 4)
       return a
+    },
+    plusValue(){
+      return function (v){
+        let attribute = this.$store.state.playerAttribute.attribute;
+        let output = 0;
+        switch (v.type){
+          case "ATKPERCENT":
+            output = parseInt(attribute.ATK.info[1] * v.value / 100);
+            break;
+          case "DEFPERCENT":
+            output = parseInt(attribute.DEF.info[1] * v.value / 100);
+            break;
+          case "HPPERCENT":
+            output = parseInt(attribute.MAXHP.info[1] * v.value / 100);
+            break;
+          case "BLOCPERCENT":
+            output = parseInt(attribute.BLOC.info[1] * v.value / 100);
+            break;
+        }
+        return output>0?"(+"+output+")":"";
+      };
     }
   },
   watch: {
@@ -272,10 +303,44 @@ export default {
       index.saveGame(false)
       this.equiment.locked = true;
       this.$set(backpackPanel.grid, backpackPanel.currentItemIndex, this.$deepCopy(this.equiment));
+    },
+    simulateStrengNeed(weaponLv,originalLv,targetLv){
+      let costMoney = 0,costTime = 0;
+      for(let i=0;i<1000;i++){
+        let oneCostMoney =0,oneCostTime = 0,nowLv = originalLv;
+        while(nowLv<targetLv){
+          oneCostMoney += (parseInt((parseInt(weaponLv) + 1) * (1.1 ** (nowLv) ** 1.1) * (10 + parseInt(weaponLv) / 5)) + 100)*1;
+          oneCostTime++;
+          let probabilityOfSuccess = 1
+          if (nowLv <= 5) {
+            probabilityOfSuccess = 1
+          } else if (nowLv == 6) {
+            probabilityOfSuccess = 0.8
+          } else if (nowLv == 7) {
+            probabilityOfSuccess = 0.65
+          } else if (nowLv == 8) {
+            probabilityOfSuccess = 0.45
+          } else if (nowLv == 9) {
+            probabilityOfSuccess = 0.3
+          } else {
+            probabilityOfSuccess = 0.2
+          }
+          if (Math.random() < probabilityOfSuccess) {
+            nowLv++;
+          } else {
+            if (nowLv >= 5) {
+              nowLv--;
+            }
+          }
+        }
+        costMoney+=oneCostMoney;
+        costTime+=oneCostTime;
+      }
+      this.simulateNeedTimes=costTime/1000;
+      this.simulateNeedMoney=costMoney/1000;
     }
   }
 };
-
 
 </script>
 <style lang="scss" scoped>

@@ -75,13 +75,25 @@ function CalculateStrAttr(entry, lv) {
 function createRandomDungeons(lv, difficulty) {
   lv = lv||1,difficulty = difficulty||1;
   var df = difficulty==1?1:difficulty==2?1.15:1.4
+  var strength = [
+    {HP:Math.random(),ATK:Math.random()},
+    {HP:Math.random(),ATK:Math.random()},
+    {HP:Math.random(),ATK:Math.random()},
+    {HP:Math.random(),ATK:Math.random()},
+    {HP:Math.random(),ATK:Math.random()}
+  ];
   var dungeonsConfig = {
     id:lv+''+difficulty,
     battleTime: 2000,
+    moveTime:5,
     name: 'Lv'+lv+'_'+(difficulty==1?'普通':difficulty==2?'困难':'极难'),
     eventNum: '5',
     lv: lv,
     needDPS: parseInt(lv*lv**1.3*2*difficulty),
+    HPStrength:parseInt(((strength[0].HP+strength[1].HP+strength[2].HP+strength[3].HP)/8+strength[4].HP/2)*100)+"%",
+    ATKStrength:parseInt(((strength[0].ATK+strength[1].ATK+strength[2].ATK+strength[3].ATK)/8+strength[4].ATK/2)*100)+"%",
+    totalHP:0,
+    totalGold:0,
     difficulty:difficulty,
     difficultyName:difficulty==1?'普通':difficulty==2?'困难':'极难',
     top:Math.random()*70+15+'%',
@@ -91,8 +103,10 @@ function createRandomDungeons(lv, difficulty) {
       type: 'monster',
       eventType: 'battle',
       attribute: {
-        HP: parseInt(lv*lv**1.1*(Math.random()*5+16)*df),
-        ATK: parseInt(lv*lv**1.1*(Math.random()*1+2)*df),
+        HPStrength:parseInt(strength[0].HP*100)+"%",
+        HP: parseInt(lv*lv**1.1*(strength[0].HP*5+16)*df),
+        ATKStrength:parseInt(strength[0].ATK*100)+"%",
+        ATK: parseInt(lv*lv**1.1*(strength[0].ATK*1+2)*df),
       },
       trophy: {
         gold: parseInt(lv**1.16*(Math.random()*5+11)*df),
@@ -105,8 +119,10 @@ function createRandomDungeons(lv, difficulty) {
       type: 'monster',
       eventType: 'battle',
       attribute: {
-        HP: parseInt(lv*lv**1.1*(Math.random()*5+16)*df),
-        ATK: parseInt(lv*lv**1.1*(Math.random()*1+2)*df),
+        HPStrength:parseInt(strength[1].HP*100)+"%",
+        HP: parseInt(lv*lv**1.1*(strength[1].HP*5+16)*df),
+        ATKStrength:parseInt(strength[1].ATK*100)+"%",
+        ATK: parseInt(lv*lv**1.1*(strength[1].ATK*1+2)*df),
       },
       trophy: {
         gold: parseInt(lv**1.16*(Math.random()*5+11)*df),
@@ -119,8 +135,10 @@ function createRandomDungeons(lv, difficulty) {
       type: 'monster',
       eventType: 'battle',
       attribute: {
-        HP: parseInt(lv*lv**1.1*(Math.random()*5+16)*df),
-        ATK: parseInt(lv*lv**1.1*(Math.random()*1+2)*df),
+        HPStrength:parseInt(strength[2].HP*100)+"%",
+        HP: parseInt(lv*lv**1.1*(strength[2].HP*5+16)*df),
+        ATKStrength:parseInt(strength[2].ATK*100)+"%",
+        ATK: parseInt(lv*lv**1.1*(strength[2].ATK*1+2)*df),
       },
       trophy: {
         gold: parseInt(lv**1.16*(Math.random()*5+11)*df),
@@ -133,8 +151,10 @@ function createRandomDungeons(lv, difficulty) {
       type: 'monster',
       eventType: 'battle',
       attribute: {
-        HP: parseInt(lv*lv**1.1*(Math.random()*5+16)*df),
-        ATK: parseInt(lv*lv**1.1*(Math.random()*1+2)*df),
+        HPStrength:parseInt(strength[3].HP*100)+"%",
+        HP: parseInt(lv*lv**1.1*(strength[3].HP*5+16)*df),
+        ATKStrength:parseInt(strength[3].ATK*100)+"%",
+        ATK: parseInt(lv*lv**1.1*(strength[3].ATK*1+2)*df),
       },
       trophy: {
         gold: parseInt(lv**1.16*(Math.random()*5+11)*df),
@@ -147,8 +167,10 @@ function createRandomDungeons(lv, difficulty) {
       type: 'boss',
       eventType: 'battle',
       attribute: {
-        HP: parseInt(lv*lv**1.1*(Math.random()*5+30)*df),
-        ATK: parseInt(lv*lv**1.1*(Math.random()*1+3)*df),
+        HPStrength:parseInt(strength[4].HP*100)+"%",
+        HP: parseInt(lv*lv**1.1*(strength[4].HP*5+30)*df),
+        ATKStrength:parseInt(strength[4].ATK*100)+"%",
+        ATK: parseInt(lv*lv**1.1*(strength[4].ATK*1+3)*df),
       },
       trophy: {
         gold: parseInt(lv**1.16*(Math.random()*10+28)*df),
@@ -157,6 +179,10 @@ function createRandomDungeons(lv, difficulty) {
         ],
       }
     }, ]
+  }
+  for(let i=0;i<5;i++){
+    dungeonsConfig.totalHP+=dungeonsConfig.eventType[i].attribute.HP;
+    dungeonsConfig.totalGold+=dungeonsConfig.eventType[i].trophy.gold;
   }
   return dungeonsConfig
 }
@@ -234,6 +260,7 @@ function createRandomEntry(lv, qualityCoefficient) {
   let index = Math.floor((Math.random()  * extraEntry.length));
   entry = extraEntry[index]
   entry.EntryLevel = EntryLevel
+  entry.strength = EntryLevel;
   switch (entry.type) {
     case 'ATK':
       var random = parseInt(lv * 1 + (randomCoefficient  * lv / 2 + 1))

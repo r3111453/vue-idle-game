@@ -241,22 +241,27 @@ export default new Vuex.Store({
         MAXHP: {
           value: 0 + rA.HP,
           showValue: '',
+          info:[rA.HP,0,0]
         },
         ATK: {
           value: 0 + rA.ATK,
           showValue: 0 + rA.ATK,
+          info:[rA.ATK,0,0]
         },
         DEF: {
           value: 0 + rA.DEF,
           showValue: 0 + rA.DEF,
+          info:[rA.DEF,0,0]
         },
         CRIT: {
           value: 0 + rA.CRIT,
           showValue: '+' + 0 + rA.CRIT + '%',
+          info:[rA.CRIT,0,0]
         },
         CRITDMG: {
           value: 0 + rA.CRITDMG,
           showValue: '+' + 0 + rA.CRITDMG + '%',
+          info:[rA.CRITDMG,0,0]
         },
         EVA: {
           value: 0,
@@ -265,6 +270,7 @@ export default new Vuex.Store({
         BLOC: {
           value: 0 + rA.BLOC,
           showValue: 0 + rA.BLOC,
+          info:[rA.BLOC,0,0]
         },
       }
 
@@ -315,6 +321,12 @@ export default new Vuex.Store({
             break;
         }
       })
+      attribute.ATK.info[1] = attribute.ATK.value-attribute.ATK.info[0];
+      attribute.DEF.info[1] = attribute.DEF.value-attribute.DEF.info[0];
+      attribute.MAXHP.info[1] = attribute.MAXHP.value-attribute.MAXHP.info[0];
+      attribute.CRIT.info[1] = attribute.CRIT.value-attribute.CRIT.info[0];
+      attribute.CRITDMG.info[1] = attribute.CRITDMG.value-attribute.CRITDMG.info[0];
+      attribute.BLOC.info[1] = attribute.BLOC.value-attribute.BLOC.info[0];
       var ATKPERCENT = 0,
         DEFPERCENT = 0,
         HPPERCENT = 0,
@@ -337,6 +349,10 @@ export default new Vuex.Store({
             break;
         }
       })
+      attribute.ATK.info[2]=Math.round(ATKPERCENT);
+      attribute.DEF.info[2]=Math.round(DEFPERCENT);
+      attribute.MAXHP.info[2]=Math.round(HPPERCENT);
+      attribute.BLOC.info[2]=Math.round(BLOCPERCENT);
       attribute.ATK.value = parseInt(attribute.ATK.value * (100 + ATKPERCENT) / 100)
       attribute.ATK.showValue = '+' + (attribute.ATK.value)
       attribute.DEF.value = parseInt(attribute.DEF.value * (100 + DEFPERCENT) / 100)

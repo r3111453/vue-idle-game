@@ -20,12 +20,12 @@
       <div class="entry">
         <div v-for="v in armor.type.entry" :key="v.id">
           <!-- <div>{{v.name}} : {{v.showVal}}</div> -->
-          <div>{{v.name}} : {{v.showVal}} <span style="color:#68d5ed" v-if="armor.enchantlvl">(+{{Math.round(v.value*(1.05**(armor.enchantlvl)**1.1)-v.value)}})</span></div>
+          <div>{{v.name}} : {{v.showVal}} <span style="color:#68d5ed" v-if="armor.enchantlvl">(+{{Math.round(v.value*(1.05**(armor.enchantlvl)**1.1)-v.value)}})</span><span style="float:right">{{v.strength}}</span></div>
         </div>
       </div>
       <div class="extraEntry">
         <div v-for="v in armor.extraEntry" :key="v.id">
-          <div>{{v.name}} : {{v.showVal}}</div>
+          <div>{{v.name}} : {{v.showVal}}{{plusValue(v)}}<span style="float:right">{{v.strength}}</span></div>
         </div>
       </div>
       <div class="des">
@@ -56,6 +56,29 @@ export default {
       this.armor = this.$deepCopy(this.item)
     }
   },
+  computed:{
+    plusValue(){
+      return function (v){
+        let attribute = this.$store.state.playerAttribute.attribute;
+        let output = 0;
+        switch (v.type){
+          case "ATKPERCENT":
+            output = parseInt(attribute.ATK.info[1] * v.value / 100);
+            break;
+          case "DEFPERCENT":
+            output = parseInt(attribute.DEF.info[1] * v.value / 100);
+            break;
+          case "HPPERCENT":
+            output = parseInt(attribute.MAXHP.info[1] * v.value / 100);
+            break;
+          case "BLOCPERCENT":
+            output = parseInt(attribute.BLOC.info[1] * v.value / 100);
+            break;
+        }
+        return output>0?"(+"+output+")":"";
+      };
+    }
+  },
   methods: {
     createNewItem(qualityIndex, lv) {
       var armor = {}
@@ -80,40 +103,52 @@ export default {
       type.entry.map(item => {
         switch (item.type) {
           case 'ATK':
-            var random = parseInt(lv * item.valCoefficient + (Math.random() * lv / 2 + 1))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt(lv * item.valCoefficient + (random * lv / 2 + 1))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
             item.showVal = '+' + random
             break;
           case 'DEF':
-            var random = parseInt((lv * item.valCoefficient + (Math.random() * lv / 2 + 1)))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt((lv * item.valCoefficient + (random * lv / 2 + 1)))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
             item.showVal = '+' + random
             break;
           case 'HP':
-            var random = parseInt((lv * item.valCoefficient * 10 + (Math.random() * lv / 2 + 1)))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt((lv * item.valCoefficient * 10 + (random * lv / 2 + 1)))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
             item.showVal = '+' + random
             break;
           case 'CRIT':
-            var random = parseInt(Math.random() * 5 + 5)
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt(random * 5 + 5)
             random = parseInt(random * armor.quality.qualityCoefficient)
             item.value = random
             item.showVal = '+' + random + '%'
             break;
           case 'CRITDMG':
-            var random = parseInt(Math.random() * 20 + 20)
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt(random * 20 + 20)
             random = parseInt(random * armor.quality.qualityCoefficient)
             item.value = random
             item.showVal = '+' + random + '%'
             break;
           case 'BLOC':
-            var random = parseInt((lv * 1.3 + (Math.random() * lv / 2 + 1)))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt((lv * 1.3 + (random * lv / 2 + 1)))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
@@ -156,47 +191,61 @@ export default {
       b.map(item => {
         switch (item.type) {
           case 'ATK':
-            var random = parseInt(lv * 0.3 + (Math.random() * lv / 2 + 1))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt(lv * 0.3 + (random * lv / 2 + 1))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
             item.showVal = '+' + random
             break;
           case 'DEF':
-            var random = parseInt((lv * 0.2 + (Math.random() * lv / 2 + 1)))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt((lv * 0.2 + (random * lv / 2 + 1)))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
             item.showVal = '+' + random
             break;
           case 'HP':
-            var random = parseInt((lv * 0.2 * 10 + (Math.random() * lv / 2 + 1)))
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt((lv * 0.2 * 10 + (random * lv / 2 + 1)))
             random = parseInt(random * armor.quality.qualityCoefficient)
             random = random || 1
             item.value = random
             item.showVal = '+' + random
             break;
           case 'CRIT':
-            var random = parseInt(Math.random() * 5 + 5)
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt(random * 5 + 5)
             random = parseInt(random * armor.quality.qualityCoefficient)
             item.value = random
             item.showVal = '+' + random + '%'
             break;
           case 'CRITDMG':
-            var random = parseInt(Math.random() * 12 + 20)
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseInt(random * 12 + 20)
             random = parseInt(random * armor.quality.qualityCoefficient)
             item.value = random
             item.showVal = '+' + random + '%'
             break;
           case 'DEFPERCENT':
-            var random = parseFloat(lv * 0.12 + (Math.random() * lv / 10 + 4)).toFixed(2)
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseFloat(lv * 0.12 + (random * lv / 10 + 4)).toFixed(2)
             random = parseFloat(random * armor.quality.qualityCoefficient).toFixed(2)
             random = random || 1
             item.value = random
             item.showVal = '+' + random + '%'
             break;
           case 'HPPERCENT':
-            var random = parseFloat(lv * 0.11 + (Math.random() * lv / 10 + 4)).toFixed(2)
+            var random =Math.random();
+            item.strength = parseInt(random*100)+"%";
+            random = parseFloat(lv * 0.11 + (random * lv / 10 + 4)).toFixed(2)
             random = parseFloat(random * armor.quality.qualityCoefficient).toFixed(2)
             random = random || 1
             item.value = random

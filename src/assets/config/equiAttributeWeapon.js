@@ -41,6 +41,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.8,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -48,11 +49,13 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.5,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }, {
           'valCoefficient': 1.3,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'CRITDMG',
           'name': '暴击伤害'
         }]
@@ -64,6 +67,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 2.7,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -71,6 +75,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 2.5,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }]
       }, {
@@ -81,6 +86,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.8,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -88,11 +94,13 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.5,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }, {
           'valCoefficient': 1.3,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'CRITDMG',
           'name': '暴击伤害'
         }]
@@ -104,6 +112,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.8,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -111,11 +120,13 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.5,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }, {
           'valCoefficient': 1.3,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'CRITDMG',
           'name': '暴击伤害'
         }]
@@ -127,6 +138,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.8,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -134,11 +146,13 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.5,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }, {
           'valCoefficient': 1.3,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'CRITDMG',
           'name': '暴击伤害'
         }]
@@ -150,12 +164,14 @@ export const equiAttributeWeapon = {
           'valCoefficient': 2.8,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
           'valCoefficient': 2.2,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'CRITDMG',
           'name': '暴击伤害'
         }]
@@ -167,6 +183,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 2.4,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -174,6 +191,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.8,
           'value': '8',
           'showVal': '8',
+'strength':'100%',
           'name': '生命值'
         }]
       }, {
@@ -184,6 +202,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 2.6,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -191,6 +210,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.8,
           'value': '8',
           'showVal': '8',
+'strength':'100%',
           'name': '防御力'
         }]
       }, {
@@ -201,6 +221,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 3.9,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }]
@@ -212,6 +233,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.9,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -219,12 +241,14 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.2,
           'value': '8',
           'showVal': '8',
+'strength':'100%',
           'name': '防御力'
         }, {
           type: 'BLOC',
           'valCoefficient': 1.2,
           'value': '8',
           'showVal': '8',
+'strength':'100%',
           'name': '格挡'
         }]
       },],
@@ -236,6 +260,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.2,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -243,6 +268,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.3,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }]
       },
@@ -254,6 +280,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.2,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -261,6 +288,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 0.5,
           'value': '8',
           'showVal': '8',
+'strength':'100%',
           'name': '防御力'
         }]
       },
@@ -272,6 +300,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.3,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -279,6 +308,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.1,
           'value': '8',
           'showVal': '8',
+'strength':'100%',
           'name': '生命值'
         }]
       },
@@ -290,6 +320,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.7,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }]
@@ -303,6 +334,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.7,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }]
@@ -315,6 +347,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 2,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
@@ -322,6 +355,7 @@ export const equiAttributeWeapon = {
           'valCoefficient': 0.7,
           'value': '8',
           'showVal': '+8%',
+'strength':'100%',
           'name': '暴击率'
         }]
       },
@@ -333,12 +367,14 @@ export const equiAttributeWeapon = {
           'valCoefficient': 1.4,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'ATK',
           'name': '攻击力'
         }, {
           'valCoefficient': 1.3,
           'value': '11',
           'showVal': '+11',
+'strength':'100%',
           type: 'CRITDMG',
           'name': '暴击伤害'
         }]
@@ -347,41 +383,49 @@ export const equiAttributeWeapon = {
       extraEntry: [{
         'value': '11',
         'showVal': '+11',
+'strength':'100%',
         type: 'ATK',
         'name': '攻击力'
       }, {
         type: 'CRIT',
         'value': '8',
         'showVal': '+8%',
+'strength':'100%',
         'name': '暴击率'
       }, {
         type: 'CRITDMG',
         'value': '20',
         'showVal': '+20%',
+'strength':'100%',
         'name': '暴击伤害'
       }, {
         type: 'HP',
         'value': '20',
         'showVal': '+20',
+'strength':'100%',
         'name': '生命值'
       }, {
         type: 'DEF',
         'value': '8',
         'showVal': '+8%',
+'strength':'100%',
         'name': '防御力'
       }, {
         'value': '11%',
         'showVal': '+11%',
+'strength':'100%',
         type: 'ATKPERCENT',
         'name': '攻击力'
       }, {
         'value': '11%',
         'showVal': '+11%',
+'strength':'100%',
         type: 'DEFPERCENT',
         'name': '防御力'
       }, {
         'value': '11%',
         'showVal': '+11%',
+'strength':'100%',
         type: 'HPPERCENT',
         'name': '生命值'
       },]

@@ -7,13 +7,26 @@
         <!-- :style="{background-position:}" -->
       </div>
       <div class="monster" v-for="(v,k) in dungeons.eventType" :key="k" :style="{left:(100/dungeons.eventNum)*(k+1)+'%'}">
-        <img :src="'./icons/map/'+v.type+'.png'" alt="">
+        <cTooltip placement="bottom">
+          <template v-slot:content>
+            <img :src="'./icons/map/'+v.type+'.png'" alt="" style="vertical-align:top;">
+          </template>
+          <template v-slot:tip>
+            <div class="info" style="line-height: .14rem">
+            <p>{{v.name}}</p>
+            <p>HP{{v.attribute.HP}}({{v.attribute.HPStrength}})</p>
+              <p>ATK{{v.attribute.ATK}}({{v.attribute.ATKStrength}})</p>
+            <p>金钱{{v.trophy.gold}} 独特掉落率{{ (dungeons.type == "endless"?0:(v.type=="boss"?0.02*((dungeons.difficulty-1)*2+1):v.trophy.equip[3]))*100+"%"}}</p>
+            </div>
+          </template>
+        </cTooltip>
       </div>
     </div>
   </div>
 </template>
 <script>
 import { assist } from '../../assets/js/assist';
+import cTooltip from "@/views/uiComponent/tooltip";
 export default {
   name: "dungeons",
   mixins: [assist],
@@ -39,6 +52,7 @@ export default {
           attribute: {
             HP: 20,
             ATK: 1,
+            strength:"100%"
           },
           trophy: {
             gold: 30,
@@ -51,6 +65,7 @@ export default {
           attribute: {
             HP: 20,
             ATK: 1,
+            strength:"100%"
           },
           trophy: {
             gold: 30,
@@ -64,6 +79,7 @@ export default {
           attribute: {
             HP: 20,
             ATK: 1,
+            strength:"100%"
           },
           trophy: {
             gold: 30,
@@ -77,6 +93,7 @@ export default {
           attribute: {
             HP: 20,
             ATK: 1,
+            strength:"100%"
           },
           trophy: {
             gold: 30,
@@ -90,6 +107,7 @@ export default {
           attribute: {
             HP: 40,
             ATK: 2,
+            strength:"100%"
           },
           trophy: {
             gold: 30,
@@ -101,6 +119,7 @@ export default {
       }
     };
   },
+  components:{cTooltip},
   computed: {
     reincarnationAttribute() { return this.$store.state.reincarnationAttribute },
   },
@@ -238,7 +257,7 @@ export default {
           p.showEndlessDungeonsInfo()
           p.eventBegin()
         } else {
-          p.dungeons = ''
+          //p.dungeons = ''
           p.inDungeons = false
         }
 

@@ -6,7 +6,12 @@
       <div class="info">
         <p>- 转生后会失去金币与装备</p>
         <p>- 转生会获得转生点数</p>
-        <p>- 转生点数根据人物等级，身上装备品质强化等级计算，持有金币与背包装备不会纳入计算</p>
+        <p>- 转生点数根据人物等级，身上装备品质强化等级计算，持有金币与背包装备不会纳入计算，详细：</p>
+        <p style="margin-left: 0.1rem;">· 等级点数：{{lvPoint.toFixed(1)}}</p>
+        <p style="margin-left: 0.1rem;">· 武器点数：{{weaponPoint.toFixed(1)}}</p>
+        <p style="margin-left: 0.1rem;">· 防具点数：{{armorPoint.toFixed(1)}}</p>
+        <p style="margin-left: 0.1rem;">· 项链点数：{{neckPoint.toFixed(1)}}</p>
+        <p style="margin-left: 0.1rem;">· 戒指点数：{{ringPoint.toFixed(1)}}</p>
       </div>
       <div class='btn-div'>
         <div class="button" @click="reincarnationConfirm">确认转生</div>
@@ -42,6 +47,11 @@ export default {
       reincarnationPoint: 100,
       reinCount: 0,
       willGetreincarnationPoint: 0,
+      lvPoint:0,
+      weaponPoint:0,
+      armorPoint:0,
+      ringPoint:0,
+      neckPoint:0,
       subtractTimer1: {},
       subtractTimer2: {},
       addTimer1: {},
@@ -229,41 +239,41 @@ export default {
       p.createdDungeons(true)
     },
     caculateWillGetreincarnationPoint() {
-      let lv = this.$store.state.playerAttribute.lv, lvPoint
-      lvPoint = lv >= 20 ? Math.floor((lv - 20) ** 1.1 / 2.1) : 0
+      let lv = this.$store.state.playerAttribute.lv
+      this.lvPoint = (lv >= 20 ? Math.floor((lv - 20) ** 1.1 / 2.1) : 0)*1.2
 
-      let weapon = this.$store.state.playerAttribute.weapon, weaponPonit
+      let weapon = this.$store.state.playerAttribute.weapon
       var wlv = weapon.lv, elv = weapon.enchantlvl || 0, q = weapon.quality.qualityCoefficient
       if (wlv >= 20) {
-        weaponPonit = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)
+        this.weaponPoint = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)*1.2
       } else {
-        weaponPonit = 0
+        this.weaponPoint = 0
       }
 
-      let armor = this.$store.state.playerAttribute.armor, armorPonit
+      let armor = this.$store.state.playerAttribute.armor
       var wlv = armor.lv, elv = armor.enchantlvl || 0, q = armor.quality.qualityCoefficient
       if (wlv >= 20) {
-        armorPonit = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)
+        this.armorPoint = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)*1.2
       } else {
-        armorPonit = 0
+        this.armorPoint = 0
       }
 
-      let ring = this.$store.state.playerAttribute.ring, ringPonit
+      let ring = this.$store.state.playerAttribute.ring
       var wlv = ring.lv, elv = ring.enchantlvl || 0, q = ring.quality.qualityCoefficient
       if (wlv >= 20) {
-        ringPonit = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)
+        this.ringPoint = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)*1.2
       } else {
-        ringPonit = 0
+        this.ringPoint = 0
       }
 
-      let neck = this.$store.state.playerAttribute.neck, neckPonit
+      let neck = this.$store.state.playerAttribute.neck
       var wlv = neck.lv, elv = neck.enchantlvl || 0, q = neck.quality.qualityCoefficient
       if (wlv >= 20) {
-        neckPonit = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)
+        this.neckPoint = Math.floor(((wlv - 20) / 10) ** 1.1 * (0.1 * elv ** 1.5 + 1) * q / 3.5)*1.2
       } else {
-        neckPonit = 0
+        this.neckPoint = 0
       }
-      this.willGetreincarnationPoint = parseInt((lvPoint + weaponPonit + armorPonit + ringPonit + neckPonit)*1.2)
+      this.willGetreincarnationPoint = parseInt(this.lvPoint + this.weaponPoint + this.armorPoint + this.ringPoint + this.neckPoint);
     },
     subtract(v, e) {
       let num = 1

@@ -3,7 +3,7 @@
     <!-- <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game"></a> -->
     <div class="update-info" @click="drawerOpen" type="primary">
       <img src="../../assets/icons/menu/extras.png" alt="">
-      <span>留言板</span>
+      <span>更新日志</span>
       <i class="new" v-if="!checkedUpdateInfo"></i>
     </div>
     <transition name="fade">
@@ -25,7 +25,7 @@
 
         <div class="footer">
           <div class="footer-github">
-            <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/r3111453/vue-idle-game">
+            <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game">
             </a>
             <span>创作不易，给个star？</span>
 
@@ -66,12 +66,28 @@ export default {
           title: '历史版本',
           vision: [{
             vision: '测试服',
-            href: 'https://r3111453.github.io/vue-idle-game/#/'
+            href: 'http://couy.xyz/rpg'
           }, {
             vision: '1.2.2',
-            href: 'https://r3111453.github.io/vue-idle-game/#/'
+            href: 'http://couy.xyz/v1.2.2'
           }],
           desc: '- 这里保留了历史版本，你仍然可以导入存档到旧版本游玩,测试服版本不保证可玩性',
+        },
+        {
+          title: '2021-2-4 (1.3.3 mod v1.1)',
+          adjust: [
+            '- 血量恢复后自动重新挑战地下城功能',
+            '- 自动刷新和购买商店装备',
+            '- 背包容量提升到100，除此之外未对原版参数进行任何修改',
+            '- 地下城及其怪物强度、生命、攻击力显示，计算能否胜利和恢复时长',
+            '- 装备属性强度显示',
+            '- 属性面板计算公式显示',
+            '- 商店装备属性直接显示',
+            '- 强化界面估算自动强化到目标等级的消耗显示',
+            '- 转生界面点数由来明细显示',
+            '- 存档保存背包自动出售的设置',
+            '- 微调部分界面',
+          ]
         },
         {
           title: '2021-1-15 (1.3.3)',
@@ -237,35 +253,60 @@ export default {
       }
     },
     drawerOpen() {
-      // 直接打开留言板，不再打开抽屉
-      window.open('https://r3111453.github.io/Giscus/index.html', '_blank');
-      // 下面的代码可以保留，不影响跳转
-      this.checkedUpdateInfo = true;
-      localStorage.setItem('version', '1.2.2');
-      // 注意：不再设置 showExtrasInfo = true，所以抽屉不会弹出
+      this.showExtrasInfo = true
+      this.checkedUpdateInfo = true
+      localStorage.setItem('version', '1.2.2')
     },
     closePanel() {
       localStorage.setItem('version', '1.2.2')
       this.showExtrasInfo = false
     },
     navToGithub() {
-      window.open('https://github.com/r3111453/vue-idle-game', '_blank');
+      //window.open('https://github.com/Couy69/vue-idle-game', '_blank');
+      window.open('https://github.com/XiaofengdiZhu/vue-idle-game-mod', '_blank');
     },
-    // 修改后的提交方法：跳转到 Giscus 留言板
-    submitSuggest() {
-      // 打开留言板页面（新窗口）
-      window.open('https://r3111453.github.io/Giscus/index.html', '_blank');
-      // 可选提示
-      this.$store.commit("set_sys_info", {
-        msg: `请在新打开的留言板页面中提交你的建议～`,
-        type: 'win'
-      });
-      // 清空输入框（可选）
-      this.suggest = '';
-      this.name = '';
+    async submitSuggest() {
+      if (this.disabled) {
+        return
+      }
+      try {
+        let data = await this.$api.post(
+          "http://couy.xyz/v1/Suggest/add",
+          {
+            name: this.name,
+            suggest: this.suggest,
+          }
+        );
+        console.log(data)
+        if (data.data.error_code == 20000) {
+          this.$store.commit("set_sys_info", {
+            msg: `
+              你的建议已经提交了哦，十分感谢😘
+            `,
+            type: 'win'
+          });
+          this.name = ''
+          this.suggest = ''
+        } else {
+          this.$store.commit("set_sys_info", {
+            msg: `
+              提交失败：${data.data.msg}
+            `,
+            type: 'win'
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      this.disabled = true
+      setTimeout(() => {
+        this.disabled = false
+      }, 1000)
     }
   }
 };
+
+
 </script>
 <style lang="scss" scoped>
 .extras {

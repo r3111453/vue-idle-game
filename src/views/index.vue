@@ -31,6 +31,7 @@
         <template v-slot:tip>
           <p class="info">* 当前生命值/最大生命值</p>
           <p class="info">* 每秒会回复2%的最大生命值</p>
+          <p class="info">最大生命值=200+({{attribute.MAXHP.info[1]}}+{{attribute.MAXHP.info[0]}})*{{100+attribute.MAXHP.info[2]}}%</p>
         </template>
 
       </cTooltip>
@@ -55,6 +56,7 @@
           </template>
           <template v-slot:tip>
             <p class="info">* 角色攻击力</p>
+            <p class="info">=({{attribute.ATK.info[1]}}+{{attribute.ATK.info[0]}})*{{100+attribute.ATK.info[2]}}%</p>
           </template>
         </cTooltip>
 
@@ -69,6 +71,7 @@
           </template>
           <template v-slot:tip>
             <p class="info">* 角色当前的暴击率</p>
+            <p class="info">=({{attribute.CRIT.info[1]}}+{{attribute.CRIT.info[0]}})%</p>
           </template>
         </cTooltip>
 
@@ -83,6 +86,7 @@
           </template>
           <template v-slot:tip>
             <p class="info">* 暴击伤害初始为150%</p>
+            <p class="info">=150%+({{attribute.CRITDMG.info[1]}}+{{attribute.CRITDMG.info[0]}})%</p>
           </template>
         </cTooltip>
 
@@ -97,8 +101,12 @@
           </template>
           <template v-slot:tip>
             <p class="info">* 角色防御力以及计算后的减伤比例</p>
-            <p class="info">* 减伤比例采用非线性计算，护甲越高收益越低</p>
-            <p class="info">* 显示为近似值，实际上永远不会到达100%减伤</p>
+            <p class="info">* 减伤比例采用反比例函数计算，护甲越高收益越低</p>
+            <p class="info">* 显示为近似值，最高减伤95.238%</p>
+            <p class="info">* 减伤=20*防御力/(21*防御力+400)</p>
+            <p class="info">* 400*减伤/(20-21*减伤)=防御力</p>
+            <p class="info">防御力=({{attribute.DEF.info[1]}}+{{attribute.DEF.info[0]}})*{{100+attribute.DEF.info[2]}}%</p>
+            <p class="info">要再降低20%受到伤害，需提高防御力至{{(400*(1-attribute.REDUCDMG*0.8)/(20-21*(1-attribute.REDUCDMG*0.8))).toFixed(0)}}</p>
           </template>
         </cTooltip>
 
@@ -130,6 +138,7 @@
           <template v-slot:tip>
             <p class="info">* 角色格挡伤害</p>
             <p class="info">* 计算护甲后再计算格挡伤害就是最终受到的伤害</p>
+            <p class="info">=({{attribute.BLOC.info[1]}}+{{attribute.BLOC.info[0]}})*{{100+attribute.BLOC.info[2]}}%</p>
           </template>
         </cTooltip>
 
@@ -146,6 +155,10 @@
           <template v-slot:tip>
             <p class="info">* DPS:角色每秒伤害</p>
             <p class="info">* 这个只是伤害数据，并没有统计防御属性，所以只是作为战斗力评估的一个依据</p>
+            <p class="info">=(1+暴击率*(暴击伤害-100%)*攻击力<br />
+              =(1+{{attribute.CRIT.value>100?100:attribute.CRIT.value}}%*({{attribute.CRITDMG.value}}%-100%)*{{attribute.ATK.value}}<br />
+              ={{ 100+(attribute.CRIT.value>100?1:attribute.CRIT.value/100)*(attribute.CRITDMG.value-100)}}%*{{attribute.ATK.value}}
+            </p>
           </template>
         </cTooltip>
         <cTooltip placement="bottom">
@@ -218,23 +231,57 @@
           <div class="dungeons-lv" v-if="dungeons.type=='endless'">无尽层数:{{dungeons.lv}}</div>
           <div class="dungeons-lv" v-else>副本等级:{{dungeons.lv}}</div>
         </div>
-        <div class="jjj">
-          <div class="dungeons-difficulty">当前副本难度等级：{{dungeons.difficultyName}}</div>
+        <cTooltip placement="bottom">
+          <template v-slot:content>
+            <div class="jjj">
+              <div class="dungeons-difficulty">- 当前副本难度等级：{{dungeons.difficultyName}} i -</div>
+            </div>
+          </template>
+          <template v-slot:tip>
+            <div class="info" v-if="dungeons.type=='endless'">
+              <p>- 无尽难度大致为层数*5的极难副本难度</p>
+              <p>- 无尽模式下仅能获得金币，将不会有装备</p>
+              <p>- 无尽模式挑战成功会回满血</p>
+            </div>
+            <div class="info" v-else>
+              <p>- 副本难度等级分为：普通，困难，极难</p>
+              <p>- 难度越高装备爆率也相应提升</p>
+              <p>- 困难，极难仅能挑战一次</p>
+              <p>- 困难，极难下有几率出现套装装备(下个版本加入)</p>
+            </div>
+          </template>
+        </cTooltip>
+        <table class="info" style="width:100%;">
+          <thead>
+            <td>名称</td>
+          <td>生命值</td>
+          <td>攻击力</td>
+            <td>受到伤害</td>
+            <td>金币</td>
+          </thead>
+          <tr v-for="(m,i) in dungeons.eventType">
+            <td>{{m.name}}</td>
+            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
+            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
+            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</td>
+            <td>{{m.trophy.gold}}</td>
+          </tr>
+          <tr>
+            <td>合计</td>
+            <td>{{dungeons.totalHP}}</td>
+            <td>/</td>
+            <td>{{-dungeonsSimulator.allGetDamaged}}</td>
+            <td>{{dungeons.totalGold}}</td>
+          </tr>
+        </table>
+        <div class="info">
+          <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒{{dungeonsSimulator.victory?"胜利":"战败"}}<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span></p>
         </div>
-        <div class="info" v-if="dungeons.type=='endless'">
-          <p>- 无尽难度大致为层数*5的极难副本难度</p>
-          <p>- 无尽模式下仅能获得金币，将不会有装备</p>
-          <p>- 无尽模式挑战成功会回满血</p>
-        </div>
-        <div class="info" v-else>
-          <p>- 副本难度等级分为：普通，困难，极难</p>
-          <p>- 难度越高装备爆率也相应提升</p>
-          <p>- 困难，极难仅能挑战一次</p>
-          <p>- 困难，极难下有几率出现套装装备(下个版本加入)</p>
-        </div>
+
         <div class="handle">
-          <div v-if="dungeons.type!='endless'">
-            <p v-if="dungeons.difficulty==1"><input type="checkbox" name="" v-model="reChallenge"> 重复挑战</p>
+          <div v-if="dungeons.type!='endless'" style="flex-direction:column;margin-left:0.2rem">
+            <p v-if="dungeons.difficulty==1" style="width:100%"><input type="checkbox" name="" v-model="reChallenge"> 重复挑战</p>
+            <p v-if="dungeons.difficulty==1" style="width: 100%;margin-top:0.08rem"><input type="checkbox" name="" v-model="reChallengeEx"> 恢复后重复挑战</p>
           </div>
           <div class="handle-column" style="display:flex;flex-direction:column" v-else>
             <p><input type="checkbox" name="" v-model="upEChallenge"> 向上挑战</p>
@@ -246,6 +293,8 @@
       <div class="event-icon" :class="{'low-level':v.difficulty==1,'h-level':v.difficulty==2,'boss':v.difficulty==3}" v-for="(v,k) in dungeonsArr" :key="k" @click="showDungeonsInfo(k)" v-show='!inDungeons' :style="{top: v.top,left: v.left}">
         <i class="icon-image"></i>
         <span>lv{{v.lv}}</span>
+        <span style="font-size: 0.12rem">HP{{v.HPStrength}}</span>
+        <span style="font-size: 0.12rem">ATK{{v.ATKStrength}}</span>
       </div>
       <div class="event-icon endless" v-if="endlessLv&&playerLv>=10" @click="showEndlessDungeonsInfo()" v-show='!inDungeons' style="top: 6%;left: 16%;"><i class="icon-image"></i><span>无尽</span></div>
     </div>
@@ -463,12 +512,24 @@ export default {
       weapon: {},
       inDungeons: false,  //是否在副本进程中
       reChallenge: false,
+      reChallengeEx: false,
+      reChallengeExR: false,
       upEChallenge: false,
       reEChallenge: false,
       dungeons: '',
       dungeonsArr: [],
       dungeonsTime: '', //刷新副本计时器
       dungeonsTimeO: 30, //刷新副本时间间隔 单位：S
+      dungeonsSimulator:{
+        victory:false,
+        recoveryToMaxHP:false,
+        costTime:0,
+        perGetDamaged:[0,0,0,0,0],
+        allGetDamaged:0,
+        lastHP:0,
+        maxFightCount:0,
+        perActionTime:0
+      },
       ring: {},
       neck: {},
       armor: {},
@@ -515,6 +576,15 @@ export default {
     // 自动回血
     this.autoHealthRecovery = setInterval(() => {
       this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+      //console.log(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02));
+      if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+        if(this.reChallengeEx){
+          //console.log(new Date().getTime()/1000);
+          this.eventBegin();
+        }else{
+          this.reChallengeExR=false;
+        }
+      }
     }, 1000)
 
 
@@ -708,6 +778,14 @@ export default {
         if (!this.autoHealthRecovery) {
           this.autoHealthRecovery = setInterval(() => {
             this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+            if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+              if(this.reChallengeEx){
+                //console.log(new Date().getTime()/1000);
+                this.eventBegin();
+              }else{
+                this.reChallengeExR=false;
+              }
+            }
           }, 1000)
         }
         return
@@ -718,6 +796,14 @@ export default {
       } else {
         this.autoHealthRecovery = setInterval(() => {
           this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+          if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+            if(this.reChallengeEx){
+              //console.log(new Date().getTime()/1000);
+              this.eventBegin();
+            }else{
+              this.reChallengeExR=false;
+            }
+          }
         }, 1000)
       }
     },
@@ -727,6 +813,10 @@ export default {
         this,
         "backpackPanel",
       );
+      var shopPanel = this.findComponentDownward(
+          this,
+          "shop",
+      );
       data = {
         playerEquipment: {
           playerWeapon: this.$store.state.playerAttribute.weapon,
@@ -735,6 +825,7 @@ export default {
           playerNeck: this.$store.state.playerAttribute.neck,
         },
         backpackEquipment: backpackPanel.grid,
+        backpackAutoSell: backpackPanel.autoSell,
         lv: this.$store.state.playerAttribute.lv,
         gold: this.$store.state.playerAttribute.GOLD,
         endlessLv: this.$store.state.playerAttribute.endlessLv,
@@ -742,6 +833,11 @@ export default {
         r: {
           count: this.$store.state.reincarnation.count,
           point: this.$store.state.reincarnation.point,
+        },
+        autoBuyAttributes:{
+          autoBuyLevel:shopPanel.autoBuyLevel,
+          autoBuyStrength:shopPanel.autoBuyStrength,
+          autoBuyPriceTimes:shopPanel.autoBuyPriceTimes
         }
       }
       var saveData = Base64.encode(Base64.encode(JSON.stringify(data)))
@@ -785,8 +881,20 @@ export default {
             this,
             "backpackPanel",
           );
+          var shopPanel = this.findComponentDownward(
+              this,
+              "shop",
+          );
           if (JSON.stringify(this.saveData) != '{}') {
             backpackPanel.grid = this.saveData.backpackEquipment
+            if(this.saveData.backpackAutoSell!=undefined) {
+              backpackPanel.autoSell = this.saveData.backpackAutoSell;
+            }
+            if(this.saveData.autoBuyAttributes!=undefined){
+              shopPanel.autoBuyLevel=this.saveData.autoBuyAttributes.autoBuyLevel;
+              shopPanel.autoBuyStrength=this.saveData.autoBuyAttributes.autoBuyStrength;
+              shopPanel.autoBuyPriceTimes=this.saveData.autoBuyAttributes.autoBuyPriceTimes;
+            }
           }
           if (!this.saveData.playerEquipment.playerNeck) {
             this.saveData.playerEquipment.playerNeck = {
@@ -923,13 +1031,117 @@ export default {
       this.dungeons = this.dungeonsArr[k]
       if (this.dungeons.difficulty != 1) {
         this.reChallenge = false
+        this.reChallengeEx=false;
+        this.reChallengeExR=false;
       }
+      this.dungeonsSimulator.victory=true;
+      this.dungeonsSimulator.recoveryToMaxHP=false;
+      this.dungeonsSimulator.costTime=0;
+      this.dungeonsSimulator.lastHP=0;
+      this.dungeonsSimulator.maxFightCount=0;
+      this.dungeonsSimulator.perGetDamaged=[0,0,0,0,0];
+      this.dungeonsSimulator.allGetDamaged=0;
+      let playerAttribute = this.$store.state.playerAttribute.attribute,
+          healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+          reincarnationAttribute=this.$store.state.reincarnationAttribute;
+      let reducedDamage =playerAttribute.REDUCDMG,
+          playerDPS = playerAttribute.DPS,
+          playerBLOC = playerAttribute.BLOC.value,
+          playerMaxHP = playerAttribute.MAXHP.value,
+          playerHP = playerAttribute.MAXHP.value,
+          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
+          perActionTime=0.4*(this.dungeons.moveTime+reincarnationAttribute.MOVESPEED)+battleTime;
+      this.dungeonsSimulator.perActionTime = perActionTime;
+      for(let i=0;i<this.dungeons.eventNum;i++){
+        this.dungeonsSimulator.costTime+=perActionTime;
+        if(i>0){
+          let newHP=playerHP+ playerMaxHP*0.02*Math.ceil(perActionTime);
+          playerHP = newHP<playerMaxHP?newHP:playerMaxHP;
+        }
+        let monsterAttribute=this.dungeons.eventType[i].attribute;
+        let playerDeadTime = (playerHP+playerBLOC) / reducedDamage / monsterAttribute.ATK,
+            monsterDeadTime = (monsterAttribute.HP / playerDPS);
+        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK)*reducedDamage)+playerBLOC;
+        this.dungeonsSimulator.perGetDamaged[i]=takeDmg;
+        this.dungeonsSimulator.allGetDamaged+=takeDmg;
+        if(monsterDeadTime < playerDeadTime){
+          playerHP+=takeDmg;
+        }else {
+          this.dungeonsSimulator.victory=false;
+          this.dungeonsSimulator.recoveryToMaxHP=false;
+          this.dungeonsSimulator.lastHP=0;
+          return;
+        }
+      }
+      this.dungeonsSimulator.victory=true;
+      this.dungeonsSimulator.lastHP=playerHP.toFixed(1);
+      for(let i=0;i<this.dungeons.eventNum;i++){
+        let newHP=playerMaxHP*0.02*Math.floor(perActionTime)+playerHP;
+        if(newHP>=playerMaxHP){
+          this.dungeonsSimulator.recoveryToMaxHP=true;
+          return;
+        }
+        playerHP = newHP+this.dungeonsSimulator.perGetDamaged[i]>0?this.dungeonsSimulator.perGetDamaged[i]:0;
+      }
+      this.dungeonsSimulator.maxFightCount=Math.ceil(this.dungeonsSimulator.lastHP/(this.dungeonsSimulator.lastHP-playerHP));
     },
     showEndlessDungeonsInfo() {
       this.reChallenge = false
+      this.reChallengeEx = false
+      this.reChallengeExR = false
       this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
       this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
       this.dungeons.type = 'endless'
+      this.dungeonsSimulator.victory=true;
+      this.dungeonsSimulator.recoveryToMaxHP=false;
+      this.dungeonsSimulator.costTime=0;
+      this.dungeonsSimulator.lastHP=0;
+      this.dungeonsSimulator.maxFightCount=0;
+      this.dungeonsSimulator.perGetDamaged=[0,0,0,0,0];
+      this.dungeonsSimulator.allGetDamaged=0;
+      let playerAttribute = this.$store.state.playerAttribute.attribute,
+          healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+          reincarnationAttribute=this.$store.state.reincarnationAttribute;
+      let reducedDamage =playerAttribute.REDUCDMG,
+          playerDPS = playerAttribute.DPS,
+          playerBLOC = playerAttribute.BLOC.value,
+          playerMaxHP = playerAttribute.MAXHP.value,
+          playerHP = playerAttribute.MAXHP.value,
+          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
+          perActionTime=0.4*(this.dungeons.moveTime+reincarnationAttribute.MOVESPEED)+battleTime;
+      this.dungeonsSimulator.perActionTime = perActionTime;
+      for(let i=0;i<this.dungeons.eventNum;i++){
+        this.dungeonsSimulator.costTime+=perActionTime;
+        if(i>0){
+          let newHP=playerHP+ playerMaxHP*0.02*Math.ceil(perActionTime);
+          playerHP = newHP<playerMaxHP?newHP:playerMaxHP;
+        }
+        let monsterAttribute=this.dungeons.eventType[i].attribute;
+        let playerDeadTime = (playerHP+playerBLOC) / reducedDamage / monsterAttribute.ATK,
+            monsterDeadTime = (monsterAttribute.HP / playerDPS);
+        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK)*reducedDamage)+playerBLOC;
+        this.dungeonsSimulator.perGetDamaged[i]=takeDmg;
+        this.dungeonsSimulator.allGetDamaged+=takeDmg;
+        if(monsterDeadTime < playerDeadTime){
+          playerHP+=takeDmg;
+        }else {
+          this.dungeonsSimulator.victory=false;
+          this.dungeonsSimulator.recoveryToMaxHP=false;
+          this.dungeonsSimulator.lastHP=0;
+          return;
+        }
+      }
+      this.dungeonsSimulator.victory=true;
+      this.dungeonsSimulator.lastHP=playerHP.toFixed(1);
+      for(let i=0;i<this.dungeons.eventNum;i++){
+        let newHP=playerMaxHP*0.02*Math.floor(perActionTime)+playerHP;
+        if(newHP>=playerMaxHP){
+          this.dungeonsSimulator.recoveryToMaxHP=true;
+          return;
+        }
+        playerHP = newHP+this.dungeonsSimulator.perGetDamaged[i]>0?this.dungeonsSimulator.perGetDamaged[i]:0;
+      }
+      this.dungeonsSimulator.maxFightCount=Math.ceil(this.dungeonsSimulator.lastHP/(this.dungeonsSimulator.lastHP-playerHP));
     },
     closeDungeonsInfo() {
       this.dungeons = ''
@@ -940,9 +1152,11 @@ export default {
       b.evenHandle()
       // this.dungeons = ''
       this.inDungeons = true
+      this.reChallengeExR=this.reChallengeEx;
     },
     eventEnd() {
       this.inDungeons = false;
+      this.reChallengeEx=false;
       this.dungeons = ''
 
       var b = this.findComponentDownward(this, 'dungeons')
@@ -1209,7 +1423,7 @@ a {
     }
     .uii {
       display: flex;
-      width: calc(100% -0.4rem);
+      width: calc(100% - .4rem);
     }
     .gold {
       cursor: pointer;
@@ -1335,8 +1549,6 @@ a {
     .event-icon {
       position: absolute;
       cursor: pointer;
-      width: 0.55rem;
-      height: 0.75rem;
       border: 1px solid #111;
       background: rgba(0, 0, 0, 0.5);
       border-radius: 4px;
@@ -1560,11 +1772,10 @@ a {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 3.5rem;
+  width: 5rem;
   background: rgba(0, 0, 0, 0.7);
   border-radius: 4px;
   border: 2px solid #ccc;
-  height: 3.5rem;
   padding: 0.1rem;
   .info {
     padding: 0.1rem 0.2rem;
@@ -1653,8 +1864,8 @@ a {
     color: #999;
   }
   .dungeons-btn {
-    margin: 0.2rem 0.3rem;
-    padding: 0.1rem 0.3rem;
+    margin: 0.2rem 0.1rem;
+    padding: 0.1rem 0.1rem;
     cursor: pointer;
     color: #fff;
     background: #000;
