@@ -65,6 +65,10 @@ export default {
         {
           title: '历史版本',
           vision: [{
+            vision: 'Discord',
+            href: 'https://discord.gg/HtXrhE9wY5'
+          }, {
+          vision: [{
             vision: '测试服',
             href: 'http://couy.xyz/rpg'
           }, {
