@@ -15,8 +15,8 @@
         <span>免费刷新剩余次数：{{ freeRefreshCount }} / 100</span>
         <span>金币刷新：100金币</span>
       </div>
-      <div class="button" @click="goldRefreshShopItems()">100金币刷新</div>
-      <div class="button" :disabled="freeRefreshCount <= 0" @click="freeRefreshHandler()">免费刷新</div>
+      <div class="button" @click="goldRefreshShopItems()" :disabled="goldRefreshLock">100金币刷新</div>
+      <div class="button" :disabled="freeRefreshCount <= 0 || freeRefreshLock" @click="freeRefreshHandler()">免费刷新</div>
     </div>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
       <li @click="showItemInfo($event,currentItem.itemType,currentItem,'touch')" v-if="$store.state.operatorSchemaIsMobile">查看</li>
@@ -45,6 +45,9 @@ export default {
       isTouch: false,
       tipsFlag: false,
       tipsFlagComfirm: false,
+      // 防连点锁
+      goldRefreshLock: false,
+      freeRefreshLock: false,
     };
   },
   mixins: [assist],
@@ -119,9 +122,15 @@ export default {
         });
         return;
       }
+      if (this.freeRefreshLock) return;
+      this.freeRefreshLock = true;
+      // 执行刷新
       this.doRefreshShop(false);
       this.freeRefreshCount--;
       this.saveFreeRefreshState();
+      setTimeout(() => {
+        this.freeRefreshLock = false;
+      }, 500);
     },
     doRefreshShop(skipUniqueCheck = false) {
       if (this.tipsFlagComfirm && !skipUniqueCheck) return;
@@ -132,13 +141,10 @@ export default {
           message: '刷到了独特装备哦，不看看嘛？',
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
-          // 交换回调：让“辣鸡我不要”（onClose）执行刷新，“看看”（onCancle）仅关闭
           onCancle: () => {
-            // 对应“看看”按钮：仅关闭弹窗，不刷新
             this.tipsFlagComfirm = false;
           },
           onClose: () => {
-            // 对应“辣鸡我不要”按钮：关闭弹窗并强制刷新
             this.tipsFlagComfirm = false;
             this.doRefreshShop(true);
           }
@@ -152,6 +158,7 @@ export default {
       }
     },
     goldRefreshShopItems(constraint) {
+      if (this.goldRefreshLock) return;
       if (this.tipsFlagComfirm) return;
       const hasUnique = !constraint && this.grid.some(item => item.quality && item.quality.name === '独特');
       if (hasUnique && !constraint) {
@@ -174,12 +181,17 @@ export default {
         this.$store.commit("set_sys_info", { msg: `钱不够啊，想啥呢。`, type: "warning" });
         return;
       }
+      // 执行刷新（加锁）
+      this.goldRefreshLock = true;
       this.$store.commit("set_player_gold", -100);
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
         const lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
         this.createShopItem(lv);
       }
+      setTimeout(() => {
+        this.goldRefreshLock = false;
+      }, 500);
     },
     refreshShopItems(constraint) {
       if (constraint) {
