@@ -64,17 +64,11 @@ export default {
       update: [
         {
           title: '历史版本',
-          vision: [{
-            vision: 'Discord',
-            href: 'https://discord.gg/HtXrhE9wY5'
-          }, {
-          vision: [{
-            vision: '测试服',
-            href: 'http://couy.xyz/rpg'
-          }, {
-            vision: '1.2.2',
-            href: 'http://couy.xyz/v1.2.2'
-          }],
+          vision: [
+            { vision: 'Discord', href: 'https://discord.gg/HtXrhE9wY5' },
+            { vision: '测试服', href: 'http://couy.xyz/rpg' },
+            { vision: '1.2.2', href: 'http://couy.xyz/v1.2.2' }
+          ],
           desc: '- 这里保留了历史版本，你仍然可以导入存档到旧版本游玩,测试服版本不保证可玩性',
         },
         {
@@ -213,7 +207,8 @@ export default {
           bug: [
             '- 修复自动出售可能将背包其余装备卖出的bug',
           ]
-        }, {
+        },
+        {
           title: '2020-11-09 (1.1.1)',
           adjust: [
             '-  适配移动端',
@@ -237,7 +232,8 @@ export default {
           bug: [
             '- （bug）修复了手动结束副本挑战可能导致副本加速的 bug'
           ]
-        },]
+        },
+      ]
     };
   },
   mounted() {
@@ -278,8 +274,6 @@ export default {
       this.showExtrasInfo = false
     },
     navToGithub() {
-      //window.open('https://github.com/Couy69/vue-idle-game', '_blank');
-      //window.open('https://github.com/XiaofengdiZhu/vue-idle-game-mod', '_blank');
       window.open('https://github.com/r3111453/vue-idle-game', '_blank');
     },
     async submitSuggest() {
@@ -322,8 +316,6 @@ export default {
     }
   }
 };
-
-
 </script>
 <style lang="scss" scoped>
 .extras {
