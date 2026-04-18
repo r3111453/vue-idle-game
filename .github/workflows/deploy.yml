@@ -45,6 +45,16 @@ jobs:
       - name: Build project
         run: NODE_OPTIONS="--max_old_space_size=4096" npm run build
 
+      - name: Update sitemap lastmod
+        run: |
+          TODAY=$(date +'%Y-%m-%d')
+          if [ -f ./dist/sitemap.xml ]; then
+            sed -i "s|<lastmod>.*</lastmod>|<lastmod>$TODAY</lastmod>|" ./dist/sitemap.xml
+            echo "Updated sitemap.xml lastmod to $TODAY"
+          else
+            echo "Warning: dist/sitemap.xml not found, skipping update"
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
