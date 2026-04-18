@@ -278,39 +278,60 @@ export default {
       window.open('https://github.com/r3111453/vue-idle-game', '_blank');
     },
     async submitSuggest() {
+      // 防重复提交
       if (this.disabled) {
         return
       }
+      // 校验内容是否为空
+      if (!this.suggest.trim()) {
+        this.$store.commit("set_sys_info", {
+          msg: `请填写反馈内容后再提交哦～`,
+          type: 'warning'
+        });
+        return
+      }
+      this.disabled = true
       try {
-        let data = await this.$api.post(
-          "http://couy.xyz/v1/Suggest/add",
-          {
-            name: this.name,
-            suggest: this.suggest,
-          }
-        );
-        console.log(data)
-        if (data.data.error_code == 20000) {
+        // 你的 Formspree 表单端点
+        const endpoint = 'https://formspree.io/f/mojyweay'
+        // 发送 POST 请求（使用 JSON 格式）
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            name: this.name || '匿名玩家',
+            suggest: this.suggest
+          })
+        })
+        // 检查响应是否成功
+        if (response.ok) {
           this.$store.commit("set_sys_info", {
-            msg: `
-              你的建议已经提交了哦，十分感谢😘
-            `,
+            msg: `你的建议已经提交了哦，十分感谢😘`,
             type: 'win'
           });
+          // 清空输入框
           this.name = ''
           this.suggest = ''
         } else {
+          // 尝试解析错误信息
+          const errorData = await response.json()
+          const errorMsg = errorData.errors ? errorData.errors.map(e => e.message).join(', ') : '提交失败'
           this.$store.commit("set_sys_info", {
-            msg: `
-              提交失败：${data.data.msg}
-            `,
-            type: 'win'
+            msg: `提交失败：${errorMsg}`,
+            type: 'warning'
           });
         }
       } catch (error) {
-        console.log(error);
+        console.error(error)
+        this.$store.commit("set_sys_info", {
+          msg: `网络错误，请稍后重试`,
+          type: 'warning'
+        });
       }
-      this.disabled = true
+      // 1 秒后恢复提交按钮
       setTimeout(() => {
         this.disabled = false
       }, 1000)
