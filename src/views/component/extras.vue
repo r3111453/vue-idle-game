@@ -26,7 +26,13 @@
         <div class="footer">
           <div class="footer-github">
             <a class="github" target="_blank" @click="navToGithub" title="源码"></a>
-            <span>本游戏基于 <a href="https://github.com/Couy69/vue-idle-game" target="_blank">Couy69 的 vue-idle-game</a> 修改，感谢原作！</span>
+            <span>
+              本游戏基于 
+              <a href="https://github.com/Couy69/vue-idle-game" target="_blank">Couy69 的 vue-idle-game</a> 修改，
+              并参考了 
+              <a href="https://github.com/XiaofengdiZhu/vue-idle-game-mod" target="_blank">XiaofengdiZhu 的 mod 版本</a>，
+              感谢原作与 mod 作者！
+            </span>
           </div>
           <div class="footer-suggest">
             <div>
