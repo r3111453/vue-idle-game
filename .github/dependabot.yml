@@ -1,0 +1,25 @@
+# .github/dependabot.yml
+version: 2
+updates:
+  # 配置 npm 依赖的自动更新
+  - package-ecosystem: "npm"
+    # package.json 所在目录（根目录）
+    directory: "/"
+    # 检查更新的频率（每周一次）
+    schedule:
+      interval: "weekly"
+      # 可选：指定每周的某天（如 Monday）
+      day: "monday"
+    # 最多同时打开的 PR 数量
+    open-pull-requests-limit: 10
+    # 自动为 PR 添加标签
+    labels:
+      - "dependencies"
+    # 自定义 commit 消息格式
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # 可选：忽略某些包的更新（示例）
+    # ignore:
+    #   - dependency-name: "vue"
+    #     versions: [">=3.0.0"]
