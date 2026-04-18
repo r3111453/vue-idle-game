@@ -25,10 +25,8 @@
 
         <div class="footer">
           <div class="footer-github">
-            <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game">
-            </a>
-            <span>创作不易，给个star？</span>
-
+            <a class="github" target="_blank" @click="navToGithub" title="源码"></a>
+            <span>本游戏基于 <a href="https://github.com/Couy69/vue-idle-game" target="_blank">Couy69 的 vue-idle-game</a> 修改，感谢原作！</span>
           </div>
           <div class="footer-suggest">
             <div>
@@ -39,12 +37,9 @@
               <div class="button" @click="submitSuggest()">提交</div>
             </div>
           </div>
-          
-          
         </div>
       </div>
     </transition>
-
   </div>
 </template>
 <script>
