@@ -45,6 +45,7 @@ jobs:
       - name: Build project
         run: NODE_OPTIONS="--max_old_space_size=4096" npm run build
 
+      # 新增：自动更新 sitemap.xml 的 lastmod 为当天日期
       - name: Update sitemap lastmod
         run: |
           TODAY=$(date +'%Y-%m-%d')
