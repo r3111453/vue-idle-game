@@ -13,7 +13,7 @@
             <h1>📢 更新日志</h1>
             <p>
               完整的更新记录请查阅 GitHub 仓库的
-              <a href="https://github.com/r3111453/vue-idle-game#readme" target="_blank">自述文件 (README.md)</a>
+              <a href="https://github.com/r3111453/vue-idle-game#%E6%9B%B4%E6%96%B0%E5%86%85%E5%AE%B9" target="_blank">自述文件 (README.md)</a>
             </p>
             <p style="margin-top: 10px;">
               🎮 玩家交流 Discord：
