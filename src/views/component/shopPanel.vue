@@ -79,6 +79,8 @@ import { assist } from "../../assets/js/assist";
 export default {
   name: "shop",
   data() {
+    // 从 localStorage 读取剩余刷新次数，如果没有则默认为 5
+    const savedRefreshTime = localStorage.getItem('shop_refreshTime');
     return {
       grid: [],
       left: "",
@@ -86,8 +88,7 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
-      refreshTime: 5,
-      //timeo: 10,
+      refreshTime: savedRefreshTime !== null ? parseInt(savedRefreshTime) : 5,
       timeo: 60,
       timeStart: false,
       timeInterval: '',
@@ -113,8 +114,9 @@ export default {
       }
     },
     refreshTime(value) {
+      // 当 refreshTime 变化时，保存到 localStorage
+      localStorage.setItem('shop_refreshTime', value);
       if (value < 5) {
-
         if (this.timeStart) {
           return
         }
