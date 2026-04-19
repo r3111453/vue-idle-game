@@ -400,15 +400,15 @@ export default {
     if(item.quality && item.quality.name == '独特' && item.lv>=this.autoBuyLevel && item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes){
       console.log(`\n检查装备: ${item.type.name} (等级${item.lv}, 价格${item.gold})`);
       let allPass = true;
-      // 只检查额外词条（不可洗）
-      if(item.extraEntry && item.extraEntry.length){
-        for(let i=0;i<item.extraEntry.length;i++){
-          let entry = item.extraEntry[i];
+      // 只检查基础词条（不可洗）
+      if(item.type.entry && item.type.entry.length){
+        for(let i=0;i<item.type.entry.length;i++){
+          let entry = item.type.entry[i];
           let strengthValue = parseFloat(entry.strength);
-          console.log(`  额外词条: ${entry.name}, strength: "${entry.strength}", 解析后: ${strengthValue}`);
+          console.log(`  基础词条: ${entry.name}, strength: "${entry.strength}", 解析后: ${strengthValue}`);
           if(isNaN(strengthValue)) strengthValue = 0;
           if(strengthValue < this.autoBuyStrength){
-            console.log(`    ❌ 额外词条强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
+            console.log(`    ❌ 基础词条强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
             allPass = false;
             break;
           }
