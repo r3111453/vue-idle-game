@@ -292,9 +292,7 @@ export default {
       }
       this.disabled = true
       try {
-        // 你的 Formspree 表单端点
         const endpoint = 'https://formspree.io/f/mojyweay'
-        // 发送 POST 请求（使用 JSON 格式）
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -303,20 +301,18 @@ export default {
           },
           body: JSON.stringify({
             name: this.name || '匿名玩家',
-            suggest: this.suggest
+            suggest: this.suggest,
+            _gotcha: ''   // 蜜罐字段，留空即可
           })
         })
-        // 检查响应是否成功
         if (response.ok) {
           this.$store.commit("set_sys_info", {
             msg: `你的建议已经提交了哦，十分感谢😘`,
             type: 'win'
           });
-          // 清空输入框
           this.name = ''
           this.suggest = ''
         } else {
-          // 尝试解析错误信息
           const errorData = await response.json()
           const errorMsg = errorData.errors ? errorData.errors.map(e => e.message).join(', ') : '提交失败'
           this.$store.commit("set_sys_info", {
@@ -331,10 +327,10 @@ export default {
           type: 'warning'
         });
       }
-      // 1 秒后恢复提交按钮
+      // 冷却时间延长到 10 秒（防止手动快速重复提交）
       setTimeout(() => {
         this.disabled = false
-      }, 1000)
+      }, 10000)
     }
   }
 };
