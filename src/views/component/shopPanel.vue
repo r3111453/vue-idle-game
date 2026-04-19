@@ -395,33 +395,37 @@ export default {
       this.buyTheEquipment();
     },
     autoBuyItems(){
-  console.log('autoBuyItems 开始执行');
   this.grid.forEach(function(item, index){
     if(item.quality && item.quality.name == '独特' && item.lv>=this.autoBuyLevel && item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes){
-      console.log('符合条件的独特装备:', item.type.name);
       let allPass = true;
+      // 检查基础词条
       for(let i=0;i<item.type.entry.length;i++){
         let entry = item.type.entry[i];
-        console.log('词条:', entry.name, 'showVal:', entry.showVal, 'strength:', entry.strength);
-        if(entry.showVal && entry.showVal.includes('%')){
-          let percentValue = parseFloat(entry.strength);
-          console.log('百分比词条强度:', percentValue, '阈值:', this.autoBuyStrength);
-          if(percentValue < this.autoBuyStrength){
+        let strengthValue = parseFloat(entry.strength);
+        if(isNaN(strengthValue)) strengthValue = 0;
+        if(strengthValue < this.autoBuyStrength){
+          allPass = false;
+          break;
+        }
+      }
+      // 如果基础词条通过，再检查额外词条
+      if(allPass && item.extraEntry && item.extraEntry.length){
+        for(let i=0;i<item.extraEntry.length;i++){
+          let entry = item.extraEntry[i];
+          let strengthValue = parseFloat(entry.strength);
+          if(isNaN(strengthValue)) strengthValue = 0;
+          if(strengthValue < this.autoBuyStrength){
             allPass = false;
-            console.log('强度不足，放弃购买');
             break;
           }
         }
       }
       if(allPass){
-        console.log('所有词条达标，自动购买');
         this.buyTheEquipmentEX(index);
         let items = [];
         items.push(item);
         this.$store.commit("set_sys_info", {
-          msg: `
-            消费金币${parseInt(item.gold)}自动购买了
-          `,
+          msg: `消费金币${parseInt(item.gold)}自动购买了`,
           type: 'trophy',
           equip: items
         });
