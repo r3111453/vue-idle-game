@@ -90,6 +90,35 @@ export default {
         localStorage.removeItem('shop_refreshTime');
       }
     }
+
+    // 读取保存的自动购买参数
+    let savedAutoBuyLevel = localStorage.getItem('shop_autoBuyLevel');
+    let autoBuyLevel = 100;
+    if (savedAutoBuyLevel !== null) {
+      let parsed = parseInt(savedAutoBuyLevel);
+      if (!isNaN(parsed) && parsed >= 1) {
+        autoBuyLevel = parsed;
+      }
+    }
+
+    let savedAutoBuyStrength = localStorage.getItem('shop_autoBuyStrength');
+    let autoBuyStrength = 70;
+    if (savedAutoBuyStrength !== null) {
+      let parsed = parseInt(savedAutoBuyStrength);
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+        autoBuyStrength = parsed;
+      }
+    }
+
+    let savedAutoBuyPriceTimes = localStorage.getItem('shop_autoBuyPriceTimes');
+    let autoBuyPriceTimes = 20;
+    if (savedAutoBuyPriceTimes !== null) {
+      let parsed = parseInt(savedAutoBuyPriceTimes);
+      if (!isNaN(parsed) && parsed >= 0) {
+        autoBuyPriceTimes = parsed;
+      }
+    }
+
     return {
       grid: [],
       left: "",
@@ -105,9 +134,9 @@ export default {
       tipsFlag: false,
       tipsFlagComfirm: false,
       autoBuy: false,
-      autoBuyLevel: 100,  // 默认100，等角色等级加载后再修正
-      autoBuyStrength: 70,
-      autoBuyPriceTimes: 20
+      autoBuyLevel: autoBuyLevel,
+      autoBuyStrength: autoBuyStrength,
+      autoBuyPriceTimes: autoBuyPriceTimes
     };
   },
   mixins: [assist],
@@ -157,12 +186,25 @@ export default {
       handler() {
         this.checkAndFixAutoBuyLevel();
       },
-      immediate: false  // 不立即执行，等待等级数据从存档加载完成
+      immediate: false  // 不立即执行，等待等级数据从存档加载完成，以保留用户保存的等级值
     },
     // 监听用户手动修改最低等级，同样进行防呆修正
     autoBuyLevel(newVal, oldVal) {
-      // 避免循环触发，仅在用户修改时检查
       this.checkAndFixAutoBuyLevel();
+      // 保存到 localStorage
+      if (newVal !== undefined && newVal !== null) {
+        localStorage.setItem('shop_autoBuyLevel', newVal);
+      }
+    },
+    autoBuyStrength(newVal) {
+      if (newVal !== undefined && newVal !== null) {
+        localStorage.setItem('shop_autoBuyStrength', newVal);
+      }
+    },
+    autoBuyPriceTimes(newVal) {
+      if (newVal !== undefined && newVal !== null) {
+        localStorage.setItem('shop_autoBuyPriceTimes', newVal);
+      }
     }
   },
   computed: {
@@ -196,7 +238,6 @@ export default {
   mounted() {
     // 初始化商店商品（不消耗免费刷新次数）
     this.initShopItems();
-    // 注意：不在 mounted 中调用 checkAndFixAutoBuyLevel，等待角色等级加载后自动触发
     // 如果初始 refreshTime < 5 且倒计时未启动，手动启动倒计时
     if (this.refreshTime < 5 && !this.timeStart) {
       this.timeStart = true;
@@ -211,7 +252,7 @@ export default {
   },
   methods: {
     /**
-     * 检查并修正 autoBuyLevel（只修正超过上限的情况，不主动提高）
+     * 检查并修正 autoBuyLevel（只修正超过上限或小于1的情况，不主动提高）
      */
     checkAndFixAutoBuyLevel() {
       const max = this.maxAutoBuyLevel;
@@ -229,7 +270,7 @@ export default {
           type: 'warning'
         });
       }
-      // 注意：如果当前值小于 max 且大于等于 1，不做任何修改，保留用户设置
+      // 如果当前值小于 max 且大于等于 1，不做任何修改，保留用户设置
     },
     /**
      * 初始化商店商品（不消耗次数）
@@ -441,6 +482,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+/* 样式保持不变 */
 .shop {
   width: 12rem;
   display: flex;
