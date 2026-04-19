@@ -48,7 +48,13 @@
           <div style="margin-left: 0.1rem;">自动刷新<br/>购买独特</div>
         </div>
         <div style="margin-left: 0.3rem;">
-          最低等级<input type="number" placeholder="100" v-model="autoBuyLevel" min="1" style="width: 0.7rem;margin-left: 0.1rem;"/>
+          最低等级
+          <input type="number"
+                 placeholder="100"
+                 v-model="autoBuyLevel"
+                 :max="maxAutoBuyLevel"
+                 min="1"
+                 style="width: 0.7rem;margin-left: 0.1rem;"/>
         </div>
         <div style="display: flex;align-items: center;margin-left: 0.3rem;">
           <div>基础属性<br/>最低百分比</div>
@@ -145,21 +151,17 @@ export default {
         this.autoBuyItems();
         this.refreshShopItems(true);
       }
-    }
-  },
-  mounted() {
-    // 初始化商店商品（不消耗免费刷新次数）
-    this.initShopItems();
-    // 如果初始 refreshTime < 5 且倒计时未启动，手动启动倒计时
-    if (this.refreshTime < 5 && !this.timeStart) {
-      this.timeStart = true;
-      this.timeInterval = setInterval(() => {
-        this.timeo--;
-        if (this.timeo <= 0) {
-          this.refreshTime++;
-          this.timeo = 60;
-        }
-      }, 1000);
+    },
+    // 监听角色等级变化，当角色升级时，自动调整 autoBuyLevel 上限
+    '$store.state.playerAttribute.lv': {
+      handler(newLv) {
+        this.checkAndFixAutoBuyLevel();
+      },
+      immediate: true
+    },
+    // 监听用户修改的 autoBuyLevel，超出上限时自动修正
+    autoBuyLevel(newVal) {
+      this.checkAndFixAutoBuyLevel();
     }
   },
   computed: {
@@ -183,9 +185,49 @@ export default {
         }
         return output > 0 ? "(+" + output + ")" : "";
       };
+    },
+    // 商店可能出现装备的最高等级 = 角色等级 + 2
+    maxAutoBuyLevel() {
+      const playerLv = this.$store.state.playerAttribute.lv || 1;
+      return playerLv + 2;
+    }
+  },
+  mounted() {
+    // 初始化商店商品（不消耗免费刷新次数）
+    this.initShopItems();
+    // 如果初始 refreshTime < 5 且倒计时未启动，手动启动倒计时
+    if (this.refreshTime < 5 && !this.timeStart) {
+      this.timeStart = true;
+      this.timeInterval = setInterval(() => {
+        this.timeo--;
+        if (this.timeo <= 0) {
+          this.refreshTime++;
+          this.timeo = 60;
+        }
+      }, 1000);
     }
   },
   methods: {
+    /**
+     * 检查并修正 autoBuyLevel，防止超过最高可能等级
+     */
+    checkAndFixAutoBuyLevel() {
+      const max = this.maxAutoBuyLevel;
+      let newVal = this.autoBuyLevel;
+      if (newVal > max) {
+        this.autoBuyLevel = max;
+        this.$store.commit("set_sys_info", {
+          msg: `最低等级不能超过当前角色等级+2（最高${max}级），已自动调整为${max}。`,
+          type: 'warning'
+        });
+      } else if (newVal < 1) {
+        this.autoBuyLevel = 1;
+        this.$store.commit("set_sys_info", {
+          msg: `最低等级不能小于1，已自动调整为1。`,
+          type: 'warning'
+        });
+      }
+    },
     /**
      * 初始化商店商品（不消耗次数）
      */
