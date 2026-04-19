@@ -9,8 +9,8 @@
                 <img :src="v.type.iconSrc" alt="">
               </div>
               <div style="display: flex;flex-direction: column;justify-content:space-around;margin-left: 0.06rem;">
-                <div :style="{color:v.quality.color}">{{v.type.name}} {{v.enchantlvl?'(+'+v.enchantlvl+')':''}}</div>
-                <div :style="{'font-size':(parseInt(v.gold)>99999?0.14:0.16)+'rem'}">{{v.gold}}金币</div>
+              <div :style="{color:v.quality.color}">{{v.type.name}} {{v.enchantlvl?'(+'+v.enchantlvl+')':''}}</div>
+              <div :style="{'font-size':(parseInt(v.gold)>99999?0.14:0.16)+'rem'}">{{v.gold}}金币</div>
               </div>
               <div class="button" @click="buyTheEquipmentEX(k)">购买</div>
             </div>
@@ -38,6 +38,7 @@
       </div>
     </div>
     <div class="handle">
+
       <div class="info">
         <span v-show="timeStart" class="timeStart">下次刷新次数获取：{{timeo}}s</span>
         <span>剩余刷新次数：{{refreshTime}}次。</span>
@@ -45,22 +46,27 @@
       <div style="display: flex;align-items: center;margin: auto">
         <div style="display: flex;align-items: center;">
           <input type="checkbox" name="" v-model="autoBuy"/>
-          <div style="margin-left: 0.1rem;">自动刷新<br/>购买独特</div>
+          <div style="margin-left: 0.1rem;">自动刷新<br/>
+            购买独特</div>
         </div>
         <div style="margin-left: 0.3rem;">
           最低等级<input type="number" placeholder="100" v-model="autoBuyLevel" min="1" style="width: 0.7rem;margin-left: 0.1rem;"/>
         </div>
         <div style="display: flex;align-items: center;margin-left: 0.3rem;">
-          <div>基础属性<br/>最低百分比</div>
+          <div>基础属性<br/>
+            最低百分比</div>
           <input type="number" placeholder="100" v-model="autoBuyStrength" max="100" min="0" style="margin-left: 0.1rem;"/>%
         </div>
         <div style="display: flex;align-items: center;margin-left: 0.3rem;">
-          <div>持有金币<br/>为价格倍数</div>
+          <div>持有金币<br/>
+            为价格倍数</div>
           <input type="number" placeholder="100" v-model="autoBuyPriceTimes" min="0" style="width: 0.7rem;margin-left: 0.1rem;"/>
         </div>
       </div>
+
       <div class="button" @click="goldRefreshShopItems()">10000金币刷新</div>
       <div class="button" @click="refreshShopItems()">免费刷新</div>
+      <!-- <div class="button" @click="sell">一键出售</div> -->
     </div>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
       <li @click="showItemInfo($event,currentItem.itemType,currentItem,'touch')" v-if="$store.state.operatorSchemaIsMobile">查看</li>
@@ -73,18 +79,6 @@ import { assist } from "../../assets/js/assist";
 export default {
   name: "shop",
   data() {
-    // 从 localStorage 安全读取剩余刷新次数
-    let savedRefreshTime = localStorage.getItem('shop_refreshTime');
-    let refreshTime = 5;
-    if (savedRefreshTime !== null) {
-      let parsed = parseInt(savedRefreshTime);
-      if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) {
-        refreshTime = parsed;
-      } else {
-        // 无效值，删除并重置为5
-        localStorage.removeItem('shop_refreshTime');
-      }
-    }
     return {
       grid: [],
       left: "",
@@ -92,17 +86,18 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
-      refreshTime: refreshTime,
+      refreshTime: 5,
+      //timeo: 10,
       timeo: 60,
       timeStart: false,
       timeInterval: '',
       isTouch: false,
       tipsFlag: false,
       tipsFlagComfirm: false,
-      autoBuy: false,
-      autoBuyLevel: 100,
-      autoBuyStrength: 70,
-      autoBuyPriceTimes: 20
+      autoBuy:false,
+      autoBuyLevel:100,
+      autoBuyStrength:70,
+      autoBuyPriceTimes:20
     };
   },
   mixins: [assist],
@@ -118,31 +113,30 @@ export default {
       }
     },
     refreshTime(value) {
-      // 保存到 localStorage（仅当值有效）
-      if (value >= 0 && value <= 5) {
-        localStorage.setItem('shop_refreshTime', value);
-      }
       if (value < 5) {
-        if (this.timeStart) return;
-        this.timeStart = true;
+
+        if (this.timeStart) {
+          return
+        }
+        this.timeStart = true
         this.timeInterval = setInterval(() => {
-          this.timeo--;
+          this.timeo--
           if (this.timeo <= 0) {
-            this.refreshTime++;
-            this.timeo = 60;
+            this.refreshTime++
+            this.timeo = 60
           }
-        }, 1000);
+        }, 1000)
       } else {
-        this.timeStart = false;
-        this.timeo = 5;
-        clearInterval(this.timeInterval);
-        if (this.autoBuy) {
+        this.timeStart = false
+        this.timeo = 5
+        clearInterval(this.timeInterval)
+        if(this.autoBuy){
           this.refreshShopItems(true);
         }
       }
     },
-    autoBuy(value) {
-      if (value === true && this.refreshTime === 5) {
+    autoBuy(value){
+      if(value==true&&this.refreshTime==5){
         this.autoBuyItems();
         this.refreshShopItems(true);
       }
@@ -150,24 +144,13 @@ export default {
   },
   mounted() {
     this.refreshShopItems(true);
-    // 如果初始 refreshTime < 5 但倒计时未启动（比如从localStorage读取到0），手动启动倒计时
-    if (this.refreshTime < 5 && !this.timeStart) {
-      this.timeStart = true;
-      this.timeInterval = setInterval(() => {
-        this.timeo--;
-        if (this.timeo <= 0) {
-          this.refreshTime++;
-          this.timeo = 60;
-        }
-      }, 1000);
-    }
   },
-  computed: {
-    plusValue() {
-      return function(v) {
+  computed:{
+    plusValue(){
+      return function (v){
         let attribute = this.$store.state.playerAttribute.attribute;
         let output = 0;
-        switch (v.type) {
+        switch (v.type){
           case "ATKPERCENT":
             output = parseInt(attribute.ATK.info[1] * v.value / 100);
             break;
@@ -181,119 +164,164 @@ export default {
             output = parseInt(attribute.BLOC.info[1] * v.value / 100);
             break;
         }
-        return output > 0 ? "(+" + output + ")" : "";
+        return output>0?"(+"+output+")":"";
       };
     }
   },
   methods: {
+    /**
+     * 刷新商店
+     * constraint 是否跳过独特装备检测强制刷新
+     */
     refreshShopItems(constraint) {
       this.tipsFlag = !constraint && this.grid.find(item => {
-        return item.quality && item.quality.name == '独特';
-      });
-      if (this.tipsFlagComfirm) return;
+        return item.quality && item.quality.name == '独特'
+      })
+      if (this.tipsFlagComfirm) {
+        return
+      }
       if (this.tipsFlag && !constraint) {
-        this.tipsFlagComfirm = true;
+        this.tipsFlagComfirm = true
         this.$message({
           message: '刷到了独特装备哦，不看看嘛？',
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
-            this.tipsFlagComfirm = false;
+            this.tipsFlagComfirm = false
           },
           onClose: () => {
-            this.tipsFlagComfirm = false;
-            this.refreshShopItems(true);
+            this.tipsFlagComfirm = false
+            this.refreshShopItems(true)
           }
-        });
-        return;
+        })
+        return
       }
       if (this.refreshTime > 5) {
-        this.refreshTime = 5;
+        this.refreshTime = 5
       }
       if (this.refreshTime < 1) {
         this.$store.commit("set_sys_info", {
-          msg: `刷新次数不够了，等等吧。`,
+          msg: `
+              刷新次数不够了，等等吧。
+            `,
           type: "warning",
         });
-        return;
+        return
       }
-      this.refreshTime--;
+      this.refreshTime--
       this.grid = new Array(5).fill({});
+      var wlv = Number(this.$store.state.playerAttribute.weapon.lv);
+      var alv = Number(this.$store.state.playerAttribute.armor.lv);
+      var ringlv = Number(this.$store.state.playerAttribute.ring.lv);
+      var necklv = Number(this.$store.state.playerAttribute.neck.lv);
       for (let i = 0; i < 5; i++) {
-        let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        var lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        //装备等级最高200
+        // lv = lv > 200 ? 200 : lv
         this.createShopItem(lv);
       }
-      if (this.autoBuy) {
+      if(this.autoBuy){
         this.autoBuyItems();
       }
     },
+    /**
+     * 金币刷新商店
+     * constraint 是否跳过独特装备检测强制刷新
+     */
     goldRefreshShopItems(constraint) {
       this.tipsFlag = !constraint && this.grid.find(item => {
-        return item.quality && item.quality.name == '独特';
-      });
-      if (this.tipsFlagComfirm) return;
+        return item.quality && item.quality.name == '独特'
+      })
+      if (this.tipsFlagComfirm) {
+        return
+      }
       if (this.tipsFlag && !constraint) {
-        this.tipsFlagComfirm = true;
+        this.tipsFlagComfirm = true
         this.$message({
           message: '刷到了独特装备哦，不看看嘛？',
           closeBtnText: '看看',
           confirmBtnText: '辣鸡我不要',
           onCancle: () => {
-            this.tipsFlagComfirm = false;
+            this.tipsFlagComfirm = false
           },
           onClose: () => {
-            this.tipsFlagComfirm = false;
-            this.goldRefreshShopItems(true);
+            this.tipsFlagComfirm = false
+            this.goldRefreshShopItems(true)
           }
-        });
-        return;
+        })
+        return
       }
       if (this.$store.state.playerAttribute.GOLD < 10000) {
         this.$store.commit("set_sys_info", {
-          msg: `钱不够啊，想啥呢。`,
+          msg: `
+              钱不够啊，想啥呢。
+            `,
           type: "warning",
         });
       } else {
         this.$store.commit("set_player_gold", -10000);
         this.grid = new Array(5).fill({});
+        var wlv = Number(this.$store.state.playerAttribute.weapon.lv);
+        var alv = Number(this.$store.state.playerAttribute.armor.lv);
+        var ringlv = Number(this.$store.state.playerAttribute.ring.lv);
+        var necklv = Number(this.$store.state.playerAttribute.neck.lv);
         for (let i = 0; i < 5; i++) {
-          let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+          var lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
           this.createShopItem(lv);
         }
       }
     },
     createShopItem(lv) {
-      let equip = [0.4, 0.342, 0.25, 0.008];
-      let equipQua = -1;
-      let r = Math.random();
+      //var equip = [0.4, 0.4, 0.1, 0.1];
+      var equip = [0.4, 0.342, 0.25, 0.008];
+      // var equip = [0.4, 0.30, 0.25, 0.05];
+      // var equip = [0, 0, 0,1];
+      var equipQua = -1;
+      var r = Math.random();
       if (r <= equip[0]) {
+        // 获得普通装备
         equipQua = 1;
       } else if (r < equip[1] + equip[0] && r >= equip[0]) {
+        // 获得神器装备
         equipQua = 2;
-      } else if (r < equip[2] + equip[1] + equip[0] && r >= equip[1] + equip[0]) {
+      } else if (
+        r < equip[2] + equip[1] + equip[0] &&
+        r >= equip[1] + equip[0]
+      ) {
+        // 获得史诗装备
         equipQua = 3;
-      } else if (r < equip[3] + equip[2] + equip[1] + equip[0] && r >= equip[2] + equip[1] + equip[0]) {
+      } else if (
+        r < equip[3] + equip[2] + equip[1] + equip[0] &&
+        r >= equip[2] + equip[1] + equip[0]
+      ) {
+        // 获得独特装备
         equipQua = 4;
       } else {
-        return;
+        // 未获得装备
       }
-      let index = Math.floor(Math.random() * 4);
-      let comp;
-      if (index === 0) {
-        comp = this.findBrothersComponents(this, "weaponPanel", false)[0];
-      } else if (index === 1) {
-        comp = this.findBrothersComponents(this, "armorPanel", false)[0];
-      } else if (index === 2) {
-        comp = this.findBrothersComponents(this, "ringPanel", false)[0];
-      } else {
-        comp = this.findBrothersComponents(this, "neckPanel", false)[0];
-      }
-      let item = JSON.parse(comp.createNewItem(equipQua, lv));
-      item.gold = parseInt(item.lv * item.quality.qualityCoefficient * (250 + 20 * item.lv));
-      for (let i = 0; i < this.grid.length; i++) {
-        if (JSON.stringify(this.grid[i]).length < 3) {
-          this.$set(this.grid, i, item);
-          break;
+      if (equipQua != -1) {
+        // this.createEquip(equipQua,lv)
+        var index = Math.floor(Math.random() * 4);
+        if (index == 0) {
+          var b = this.findBrothersComponents(this, "weaponPanel", false)[0];
+          var item = b.createNewItem(equipQua, lv);
+        } else if (index == 1) {
+          var b = this.findBrothersComponents(this, "armorPanel", false)[0];
+          var item = b.createNewItem(equipQua, lv);
+        } else if (index == 2) {
+          var b = this.findBrothersComponents(this, "ringPanel", false)[0];
+          var item = b.createNewItem(equipQua, lv);
+        } else {
+          var b = this.findBrothersComponents(this, "neckPanel", false)[0];
+          var item = b.createNewItem(equipQua, lv);
+        }
+        item = JSON.parse(item);
+        item.gold = parseInt(item.lv * item.quality.qualityCoefficient * (250 + 20 * item.lv))
+        for (let i = 0; i < this.grid.length; i++) {
+          if (JSON.stringify(this.grid[i]).length < 3) {
+            this.$set(this.grid, i, item);
+            break;
+          }
         }
       }
     },
@@ -301,11 +329,21 @@ export default {
       this.currentItemIndex = k;
       this.currentItem = this.grid[k];
       const menuMinWidth = 105;
-      const offsetLeft = this.$el.getBoundingClientRect().left;
-      const offsetWidth = this.$el.offsetWidth;
-      const maxLeft = offsetWidth - menuMinWidth;
-      let left = (e.type === 'touchstart' ? e.changedTouches[0].clientX : e.clientX) - offsetLeft + 15;
-      this.left = left > maxLeft ? maxLeft : left;
+      const offsetLeft = this.$el.getBoundingClientRect().left; // container margin left
+      const offsetWidth = this.$el.offsetWidth; // container width
+      const maxLeft = offsetWidth - menuMinWidth; // left boundary
+      if (e.type == 'touchstart') {
+        var left = e.changedTouches[0].clientX - offsetLeft + 15; // 15: margin right
+      } else {
+        var left = e.clientX - offsetLeft + 15; // 15: margin right
+      }
+
+      if (left > maxLeft) {
+        this.left = maxLeft;
+      } else {
+        this.left = left;
+      }
+
       this.top = e.offsetY;
       this.visible = true;
     },
@@ -313,73 +351,86 @@ export default {
       this.visible = false;
     },
     showItemInfo($event, type, item, SchemaIsMobile) {
-      if (SchemaIsMobile !== 'touch' && this.$store.state.operatorSchemaIsMobile) return;
-      let p = this.findComponentUpward(this, "index");
+      if (SchemaIsMobile != 'touch' && this.$store.state.operatorSchemaIsMobile) {
+        return
+      }
+      var p = this.findComponentUpward(this, "index");
       p.showItemInfo($event, type, item);
     },
     closeItemInfo() {
-      let p = this.findComponentUpward(this, "index");
+      var p = this.findComponentUpward(this, "index");
       p.weaponShow = p.armorShow = p.ringShow = p.neckShow = false;
     },
     buyTheEquipment() {
+      // var gold =
+      //   this.currentItem.lv * this.currentItem.quality.qualityCoefficient * (200+5*this.currentItem.lv);
+      // gold = parseInt(gold)
       if (this.$store.state.playerAttribute.GOLD < this.currentItem.gold) {
         this.$store.commit("set_sys_info", {
-          msg: `钱不够啊，买啥呢。`,
+          msg: `
+              钱不够啊，买啥呢。
+            `,
           type: "warning",
         });
-        return;
-      }
-      this.$store.commit("set_player_gold", -parseInt(this.currentItem.gold));
-      let backpackPanel = this.findBrothersComponents(this, "backpackPanel", false)[0];
-      for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-          this.$set(backpackPanel.grid, i, this.currentItem);
-          break;
+      } else {
+        this.$store.commit("set_player_gold", -parseInt(this.currentItem.gold));
+
+        var backpackPanel = this.findBrothersComponents(
+          this,
+          "backpackPanel",
+          false
+        )[0];
+        for (let i = 0; i < backpackPanel.grid.length; i++) {
+          if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+            this.$set(backpackPanel.grid, i, this.currentItem);
+            break;
+          }
         }
+        this.$set(this.grid, this.currentItemIndex, {});
       }
-      this.$set(this.grid, this.currentItemIndex, {});
     },
-    buyTheEquipmentEX(k) {
+    buyTheEquipmentEX(k){
       this.currentItemIndex = k;
       this.currentItem = this.grid[k];
       this.buyTheEquipment();
     },
-    autoBuyItems() {
-      console.log('=== autoBuyItems 执行 ===');
-      this.grid.forEach(function(item, index) {
-        if (item.quality && item.quality.name == '独特' && item.lv >= this.autoBuyLevel && item.gold <= this.$store.state.playerAttribute.GOLD / this.autoBuyPriceTimes) {
-          console.log(`\n检查装备: ${item.type.name} (等级${item.lv}, 价格${item.gold})`);
-          let allPass = true;
-          if (item.type.entry && item.type.entry.length) {
-            for (let i = 0; i < item.type.entry.length; i++) {
-              let entry = item.type.entry[i];
-              let strengthValue = parseFloat(entry.strength);
-              console.log(`  基础词条: ${entry.name}, strength: "${entry.strength}", 解析后: ${strengthValue}`);
-              if (isNaN(strengthValue)) strengthValue = 0;
-              if (strengthValue < this.autoBuyStrength) {
-                console.log(`    ❌ 基础词条强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
-                allPass = false;
-                break;
-              }
-            }
-          }
-          if (allPass) {
-            console.log(`✅ 所有不可洗词条强度达标，自动购买`);
-            this.buyTheEquipmentEX(index);
-            let items = [];
-            items.push(item);
-            this.$store.commit("set_sys_info", {
-              msg: `消费金币${parseInt(item.gold)}自动购买了`,
-              type: 'trophy',
-              equip: items
-            });
-          } else {
-            console.log(`❌ 未达标，不购买`);
+    autoBuyItems(){
+  console.log('=== autoBuyItems 执行 ===');
+  this.grid.forEach(function(item, index){
+    if(item.quality && item.quality.name == '独特' && item.lv>=this.autoBuyLevel && item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes){
+      console.log(`\n检查装备: ${item.type.name} (等级${item.lv}, 价格${item.gold})`);
+      let allPass = true;
+      // 只检查基础词条（不可洗）
+      if(item.type.entry && item.type.entry.length){
+        for(let i=0;i<item.type.entry.length;i++){
+          let entry = item.type.entry[i];
+          let strengthValue = parseFloat(entry.strength);
+          console.log(`  基础词条: ${entry.name}, strength: "${entry.strength}", 解析后: ${strengthValue}`);
+          if(isNaN(strengthValue)) strengthValue = 0;
+          if(strengthValue < this.autoBuyStrength){
+            console.log(`    ❌ 基础词条强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
+            allPass = false;
+            break;
           }
         }
-      }, this);
+      }
+      if(allPass){
+        console.log(`✅ 所有不可洗词条强度达标，自动购买`);
+        this.buyTheEquipmentEX(index);
+        let items = [];
+        items.push(item);
+        this.$store.commit("set_sys_info", {
+          msg: `消费金币${parseInt(item.gold)}自动购买了`,
+          type: 'trophy',
+          equip: items
+        });
+      } else {
+        console.log(`❌ 未达标，不购买`);
+      }
     }
-  }
+  },this);
+}
+  },
 };
 </script>
 <style lang="scss" scoped>
@@ -455,6 +506,7 @@ export default {
   font-weight: 400;
   color: #fff;
   box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
+
   li {
     margin: 0;
     padding: 9px 16px;
@@ -486,11 +538,11 @@ export default {
       justify-content: center;
       border-radius: 0.04rem;
     }
-    .button {
-      padding: 0.03rem 0.06rem;
-      height: fit-content;
+    .button{
+      padding:0.03rem 0.06rem;
+      height:fit-content;
       margin-left: auto;
-      align-self: center;
+      align-self:center;
     }
   }
   .type {
@@ -518,7 +570,7 @@ export default {
       text-align: left;
     }
   }
-  .des {
+  .des{
     color: #777;
     font-size: 0.12rem;
     margin-top: 0.1rem;
