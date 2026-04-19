@@ -79,6 +79,15 @@ import { assist } from "../../assets/js/assist";
 export default {
   name: "shop",
   data() {
+    // 安全读取 localStorage 中的剩余刷新次数
+    let savedRefreshTime = localStorage.getItem('shop_refreshTime');
+    let refreshTime = 5;
+    if (savedRefreshTime !== null) {
+      let parsed = parseInt(savedRefreshTime);
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) {
+        refreshTime = parsed;
+      }
+    }
     return {
       grid: [],
       left: "",
@@ -86,8 +95,7 @@ export default {
       visible: false,
       currentItem: {},
       currentItemIndex: "",
-      refreshTime: 5,
-      //timeo: 10,
+      refreshTime: refreshTime,
       timeo: 60,
       timeStart: false,
       timeInterval: '',
@@ -113,8 +121,9 @@ export default {
       }
     },
     refreshTime(value) {
+      // 保存到 localStorage
+      localStorage.setItem('shop_refreshTime', value);
       if (value < 5) {
-
         if (this.timeStart) {
           return
         }
@@ -136,7 +145,7 @@ export default {
       }
     },
     autoBuy(value){
-      if(value==true&&this.refreshTime==5){
+      if(value==true && this.refreshTime==5){
         this.autoBuyItems();
         this.refreshShopItems(true);
       }
