@@ -395,15 +395,19 @@ export default {
       this.buyTheEquipment();
     },
     autoBuyItems(){
+  console.log('=== autoBuyItems 执行 ===');
   this.grid.forEach(function(item, index){
     if(item.quality && item.quality.name == '独特' && item.lv>=this.autoBuyLevel && item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes){
+      console.log(`\n检查装备: ${item.type.name} (等级${item.lv}, 价格${item.gold})`);
       let allPass = true;
       // 检查基础词条
       for(let i=0;i<item.type.entry.length;i++){
         let entry = item.type.entry[i];
         let strengthValue = parseFloat(entry.strength);
+        console.log(`  词条: ${entry.name}, strength原始值: "${entry.strength}", 解析后: ${strengthValue}, 阈值: ${this.autoBuyStrength}`);
         if(isNaN(strengthValue)) strengthValue = 0;
         if(strengthValue < this.autoBuyStrength){
+          console.log(`    ❌ 强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
           allPass = false;
           break;
         }
@@ -413,14 +417,17 @@ export default {
         for(let i=0;i<item.extraEntry.length;i++){
           let entry = item.extraEntry[i];
           let strengthValue = parseFloat(entry.strength);
+          console.log(`  额外词条: ${entry.name}, strength: "${entry.strength}", 解析后: ${strengthValue}`);
           if(isNaN(strengthValue)) strengthValue = 0;
           if(strengthValue < this.autoBuyStrength){
+            console.log(`    ❌ 额外词条强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
             allPass = false;
             break;
           }
         }
       }
       if(allPass){
+        console.log(`✅ 所有词条强度达标，自动购买`);
         this.buyTheEquipmentEX(index);
         let items = [];
         items.push(item);
@@ -429,6 +436,8 @@ export default {
           type: 'trophy',
           equip: items
         });
+      } else {
+        console.log(`❌ 未达标，不购买`);
       }
     }
   },this);
