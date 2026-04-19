@@ -15,6 +15,10 @@
               完整的更新记录请查阅 GitHub 仓库的
               <a href="https://github.com/r3111453/vue-idle-game#readme" target="_blank">自述文件 (README.md)</a>
             </p>
+            <p style="margin-top: 10px;">
+              🎮 玩家交流 Discord：
+              <a href="https://discord.gg/HtXrhE9wY5" target="_blank">https://discord.gg/HtXrhE9wY5</a>
+            </p>
             <p style="margin-top: 10px; color: #aaa; font-size: 12px;">
               游戏版本持续迭代中，建议关注 GitHub 仓库获取最新动态。
             </p>
@@ -60,14 +64,8 @@ export default {
       disabled: false,
       keyCode: [38, 38, 40, 40, 37, 39, 37, 39, 66, 65, 66, 65],
       reKeyCode: [],
-      // 移除原有的复杂 update 数组，只保留一个简单的指引条目
-      update: [
-        {
-          title: '更新日志',
-          desc: '',
-          adjust: []
-        }
-      ],
+      // 保留一个空的 update 数组（不再使用，但为了不报错保留）
+      update: [],
       // 冷却相关
       cooldownUntil: 0,
       cooldownRemaining: 0,
@@ -212,7 +210,7 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-/* 样式保持不变（省略，与之前相同） */
+/* 样式保持不变（与之前相同） */
 .extras {
   position: fixed;
   width: 0.5rem;
