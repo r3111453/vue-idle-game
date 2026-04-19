@@ -395,27 +395,36 @@ export default {
       this.buyTheEquipment();
     },
     autoBuyItems(){
-      this.grid.forEach(function(item, index){
-        if(item.quality && item.quality.name == '独特' && item.lv>=this.autoBuyLevel && item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes){
-          for(let i=0;i<item.type.entry.length;i++){
-            if(item.type.entry[i].strength.replace("%","")*100<this.autoBuyStrength){
-              return;
-            }
+  this.grid.forEach(function(item, index){
+    if(item.quality && item.quality.name == '独特' && item.lv>=this.autoBuyLevel && item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes){
+      let allPass = true;
+      for(let i=0;i<item.type.entry.length;i++){
+        let entry = item.type.entry[i];
+        // 只检查百分比词条（词条显示值包含 % 符号）
+        if(entry.showVal && entry.showVal.includes('%')){
+          let percentValue = parseFloat(entry.strength); // 例如 "+78%" -> 78
+          if(isNaN(percentValue)) percentValue = 0;
+          if(percentValue < this.autoBuyStrength){
+            allPass = false;
+            break;
           }
-          this.buyTheEquipmentEX(index);
-          let items = [];
-          items.push(item);
-          this.$store.commit("set_sys_info", {
-            msg: `
-              消费金币${parseInt(item.gold)}自动购买了
-            `,
-            type: 'trophy',
-            equip: items
-          });
         }
-        //console.log(index+"垃圾"+(item.quality.name == '独特') +" "+ (item.lv>=this.autoBuyLevel) +" "+ (item.gold<=this.$store.state.playerAttribute.GOLD/this.autoBuyPriceTimes));
-      },this);
+      }
+      if(allPass){
+        this.buyTheEquipmentEX(index);
+        let items = [];
+        items.push(item);
+        this.$store.commit("set_sys_info", {
+          msg: `
+            消费金币${parseInt(item.gold)}自动购买了
+          `,
+          type: 'trophy',
+          equip: items
+        });
+      }
     }
+  },this);
+}
   },
 };
 </script>
