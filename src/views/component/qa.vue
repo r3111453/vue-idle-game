@@ -86,7 +86,7 @@ export default {
   mounted() {
     this.checkedUpdateInfo = localStorage.getItem('checkedUpdateInfo')
     this.update = this.update.reverse()
-    this.getSuggest()
+    //this.getSuggest()
   },
   methods: {
     eastereEgg1(e) {
