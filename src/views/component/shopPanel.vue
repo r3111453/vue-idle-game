@@ -48,7 +48,13 @@
           <div style="margin-left: 0.1rem;">自动刷新<br/>购买独特</div>
         </div>
         <div style="margin-left: 0.3rem;">
-          最低等级<input type="number" placeholder="100" v-model="autoBuyLevel" min="1" style="width: 0.7rem;margin-left: 0.1rem;"/>
+          最低等级
+          <input type="number"
+                 placeholder="100"
+                 v-model="autoBuyLevel"
+                 :max="maxAutoBuyLevel"
+                 min="1"
+                 style="width: 0.7rem;margin-left: 0.1rem;"/>
         </div>
         <div style="display: flex;align-items: center;margin-left: 0.3rem;">
           <div>基础属性<br/>最低百分比</div>
@@ -99,7 +105,7 @@ export default {
       tipsFlag: false,
       tipsFlagComfirm: false,
       autoBuy: false,
-      autoBuyLevel: 100,
+      autoBuyLevel: 100,  // 默认100，等角色等级加载后再修正
       autoBuyStrength: 70,
       autoBuyPriceTimes: 20
     };
@@ -145,21 +151,18 @@ export default {
         this.autoBuyItems();
         this.refreshShopItems(true);
       }
-    }
-  },
-  mounted() {
-    // 初始化商店商品（不消耗免费刷新次数）
-    this.initShopItems();
-    // 如果初始 refreshTime < 5 且倒计时未启动，手动启动倒计时
-    if (this.refreshTime < 5 && !this.timeStart) {
-      this.timeStart = true;
-      this.timeInterval = setInterval(() => {
-        this.timeo--;
-        if (this.timeo <= 0) {
-          this.refreshTime++;
-          this.timeo = 60;
-        }
-      }, 1000);
+    },
+    // 监听角色等级变化，等级加载完成后进行防呆修正（只修正超过上限的情况）
+    '$store.state.playerAttribute.lv': {
+      handler() {
+        this.checkAndFixAutoBuyLevel();
+      },
+      immediate: false  // 不立即执行，等待等级数据从存档加载完成
+    },
+    // 监听用户手动修改最低等级，同样进行防呆修正
+    autoBuyLevel(newVal, oldVal) {
+      // 避免循环触发，仅在用户修改时检查
+      this.checkAndFixAutoBuyLevel();
     }
   },
   computed: {
@@ -183,9 +186,51 @@ export default {
         }
         return output > 0 ? "(+" + output + ")" : "";
       };
+    },
+    // 商店可能出现装备的最高等级 = 角色等级 + 2
+    maxAutoBuyLevel() {
+      const playerLv = this.$store.state.playerAttribute.lv || 1;
+      return playerLv + 2;
+    }
+  },
+  mounted() {
+    // 初始化商店商品（不消耗免费刷新次数）
+    this.initShopItems();
+    // 注意：不在 mounted 中调用 checkAndFixAutoBuyLevel，等待角色等级加载后自动触发
+    // 如果初始 refreshTime < 5 且倒计时未启动，手动启动倒计时
+    if (this.refreshTime < 5 && !this.timeStart) {
+      this.timeStart = true;
+      this.timeInterval = setInterval(() => {
+        this.timeo--;
+        if (this.timeo <= 0) {
+          this.refreshTime++;
+          this.timeo = 60;
+        }
+      }, 1000);
     }
   },
   methods: {
+    /**
+     * 检查并修正 autoBuyLevel（只修正超过上限的情况，不主动提高）
+     */
+    checkAndFixAutoBuyLevel() {
+      const max = this.maxAutoBuyLevel;
+      let currentVal = this.autoBuyLevel;
+      if (currentVal > max) {
+        this.autoBuyLevel = max;
+        this.$store.commit("set_sys_info", {
+          msg: `最低等级不能超过当前角色等级+2（最高${max}级），已自动调整为${max}。`,
+          type: 'warning'
+        });
+      } else if (currentVal < 1) {
+        this.autoBuyLevel = 1;
+        this.$store.commit("set_sys_info", {
+          msg: `最低等级不能小于1，已自动调整为1。`,
+          type: 'warning'
+        });
+      }
+      // 注意：如果当前值小于 max 且大于等于 1，不做任何修改，保留用户设置
+    },
     /**
      * 初始化商店商品（不消耗次数）
      */
