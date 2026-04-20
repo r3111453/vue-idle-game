@@ -119,6 +119,14 @@ export default {
       }
     }
 
+    // 读取保存的自动购买开关状态（复选框）
+    let savedAutoBuy = localStorage.getItem('shop_autoBuy');
+    let autoBuy = false;
+    if (savedAutoBuy !== null) {
+      // localStorage 存储的是字符串 "true" 或 "false"
+      autoBuy = savedAutoBuy === 'true';
+    }
+
     return {
       grid: [],
       left: "",
@@ -133,7 +141,7 @@ export default {
       isTouch: false,
       tipsFlag: false,
       tipsFlagComfirm: false,
-      autoBuy: false,
+      autoBuy: autoBuy,
       autoBuyLevel: autoBuyLevel,
       autoBuyStrength: autoBuyStrength,
       autoBuyPriceTimes: autoBuyPriceTimes
@@ -176,6 +184,8 @@ export default {
       }
     },
     autoBuy(value) {
+      // 保存到 localStorage
+      localStorage.setItem('shop_autoBuy', value);
       if (value === true && this.refreshTime === 5) {
         this.autoBuyItems();
         this.refreshShopItems(true);
