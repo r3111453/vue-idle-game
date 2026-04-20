@@ -137,7 +137,7 @@ export default {
               }, this.moveTime+this.reincarnationAttribute.MOVESPEED)
             }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
           } else {
-            setTimeout(() => {
+            this.timeOut = setTimeout(() => {
               this.eventEnd()
             }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
           }
@@ -194,6 +194,10 @@ export default {
       this.dungeons = {}
     },
     eventEnd() {
+      // 如果 dungeons 已被清空（例如失败时已清理），则直接返回
+      if (!this.dungeons || !this.dungeons.type) {
+        return;
+      }
       setTimeout(() => {
         if (this.dungeons.type == "endless") {
           // 无尽模式：胜利后无条件增加1层
@@ -236,10 +240,10 @@ export default {
         let backpackPanelSign = backpackPanel.itemNum / backpackPanel.grid.length < 0.8
         if (p.reChallenge && backpackPanelSign) {
           p.eventBegin()
-        } else if (p.reEChallenge&&p.dungeons.type=='endless') {
+        } else if (p.reEChallenge && p.dungeons && p.dungeons.type=='endless') {
           this.$store.commit("set_endless_lv", this.$store.state.playerAttribute.endlessLv - 1);
           p.eventBegin()
-        } else if (p.upEChallenge&&p.dungeons.type=='endless') {
+        } else if (p.upEChallenge && p.dungeons && p.dungeons.type=='endless') {
           p.endlessLv = this.$store.state.playerAttribute.endlessLv
           p.dungeons.lv = this.$store.state.playerAttribute.endlessLv
           p.showEndlessDungeonsInfo()
@@ -300,27 +304,45 @@ export default {
           p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
         }
       } else {
-        // 战斗失败
-        // 先处理无尽降层（必须在清空 dungeons 之前，因为需要判断类型）
+        // ========== 战斗失败处理 ==========
+        // 1. 无尽模式降层（只降1层）
         if (this.dungeons && this.dungeons.type == 'endless') {
-          let newLv = Math.max(1, this.$store.state.playerAttribute.endlessLv - 1);
+          let oldLv = this.$store.state.playerAttribute.endlessLv;
+          let newLv = Math.max(1, oldLv - 1);
           this.$store.commit('set_endless_lv', newLv);
           this.$store.commit("set_sys_info", {
-            msg: `无尽挑战失败，层数降低至 ${newLv} 层。`,
+            msg: `无尽挑战失败，层数从 ${oldLv} 降低至 ${newLv} 层。`,
             type: 'warning'
           });
         }
 
-        this.$store.commit('set_player_curhp', 'dead');
+        // 2. 中断向上挑战模式（取消勾选，避免自动重试）
+        if (p.upEChallenge) {
+          p.upEChallenge = false;
+          p.reEChallenge = false;
+          this.$store.commit("set_sys_info", {
+            msg: `向上挑战已中断。`,
+            type: 'warning'
+          });
+        }
+
+        // 3. 立即停止所有战斗动画和计时器
         clearInterval(this.pro);
         clearTimeout(this.timeOut);
+        clearTimeout(this.battleComTime);
         this.pro = {};
         this.timeOut = {};
         this.left = 0;
         this.nextEvent = 1;
-        p.inDungeons = false;
-        this.dungeons = {};  // 最后清空
 
+        // 4. 清空副本数据，退出战斗界面
+        this.dungeons = {};
+        p.inDungeons = false;
+
+        // 5. 玩家死亡
+        this.$store.commit('set_player_curhp', 'dead');
+
+        // 6. 显示失败信息
         var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
         takeDmg = parseInt(takeDmg * reducedDamage)
         takeDmg = takeDmg - playerBLOC
