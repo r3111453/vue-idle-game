@@ -135,7 +135,62 @@ export default {
   },
   mounted() {
     this.caculateWillGetreincarnationPoint()
-    this.initAttributes()
+    // 初始化属性值，并正确设置已使用的点数
+    for (let i in this.reincarnationAttribute) {
+      let item = this.reincarnationAttribute[i]
+      switch (i) {
+        case 'HP':
+          var p = this.attr.filter(({ name }) => name == 'HP')[0];
+          p.oldValue = p.currentValue = item
+          p.hasPoint = item / 10
+          p.point = p.hasPoint
+          break;
+        case 'ATK':
+          var p = this.attr.filter(({ name }) => name == 'ATK')[0];
+          p.oldValue = p.currentValue = item
+          p.hasPoint = item / 3
+          p.point = p.hasPoint
+          break;
+        case 'CRIT':
+          var p = this.attr.filter(({ name }) => name == 'CRIT')[0];
+          p.oldValue = p.currentValue = item
+          p.hasPoint = item / 0.1
+          p.point = p.hasPoint
+          break;
+        case 'CRITDMG':
+          var p = this.attr.filter(({ name }) => name == 'CRITDMG')[0];
+          p.oldValue = p.currentValue = item
+          p.hasPoint = item / 1
+          p.point = p.hasPoint
+          break;
+        case 'DEF':
+          var p = this.attr.filter(({ name }) => name == 'DEF')[0];
+          p.oldValue = p.currentValue = item
+          p.hasPoint = item / 2
+          p.point = p.hasPoint
+          break;
+        case 'BLOC':
+          var p = this.attr.filter(({ name }) => name == 'BLOC')[0];
+          p.oldValue = p.currentValue = item
+          p.hasPoint = item / 2
+          p.point = p.hasPoint
+          break;
+        case 'MOVESPEED':
+          var p = this.attr.filter(({ name }) => name == 'MOVESPEED')[0];
+          p.oldValue = p.currentValue = Number((-(item / 0.06 * 0.01)).toFixed(2))
+          p.hasPoint = -(item / 0.06)
+          p.point = p.hasPoint
+          break;
+        case 'BATTLESPEED':
+          var p = this.attr.filter(({ name }) => name == 'BATTLESPEED')[0];
+          p.oldValue = p.currentValue = Number((-(item / 3 * 0.01)).toFixed(2))
+          p.hasPoint = -(item / 3)
+          p.point = p.hasPoint
+          break;
+        default:
+          break;
+      }
+    }
     this.reinCount = this.reincarnationData.count
   },
   computed: {
@@ -143,55 +198,6 @@ export default {
     reincarnationAttribute() { return this.$store.state.reincarnationAttribute },
   },
   methods: {
-    initAttributes() {
-      for (let i in this.reincarnationAttribute) {
-        let item = this.reincarnationAttribute[i]
-        switch (i) {
-          case 'HP':
-            var p = this.attr.find(({ name }) => name == 'HP');
-            p.oldValue = p.currentValue = item
-            p.hasPoint = item / 10
-            break;
-          case 'ATK':
-            var p = this.attr.find(({ name }) => name == 'ATK');
-            p.oldValue = p.currentValue = item
-            p.hasPoint = item / 3
-            break;
-          case 'CRIT':
-            var p = this.attr.find(({ name }) => name == 'CRIT');
-            p.oldValue = p.currentValue = item
-            p.hasPoint = item / 0.1
-            break;
-          case 'CRITDMG':
-            var p = this.attr.find(({ name }) => name == 'CRITDMG');
-            p.oldValue = p.currentValue = item
-            p.hasPoint = item / 1
-            break;
-          case 'DEF':
-            var p = this.attr.find(({ name }) => name == 'DEF');
-            p.oldValue = p.currentValue = item
-            p.hasPoint = item / 2
-            break;
-          case 'BLOC':
-            var p = this.attr.find(({ name }) => name == 'BLOC');
-            p.oldValue = p.currentValue = item
-            p.hasPoint = item / 2
-            break;
-          case 'MOVESPEED':
-            var p = this.attr.find(({ name }) => name == 'MOVESPEED');
-            p.oldValue = p.currentValue = Number((-(item / 0.06 * 0.01)).toFixed(2))
-            p.hasPoint = -(item / 0.06)
-            break;
-          case 'BATTLESPEED':
-            var p = this.attr.find(({ name }) => name == 'BATTLESPEED');
-            p.oldValue = p.currentValue = Number((-(item / 3 * 0.01)).toFixed(2))
-            p.hasPoint = -(item / 3)
-            break;
-          default:
-            break;
-        }
-      }
-    },
     reincarnationConfirm() {
       if (this.$store.state.playerAttribute.lv <= 30) {
         this.$store.commit("set_sys_info", {
@@ -369,7 +375,7 @@ export default {
     },
     resetPoints() {
       if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
-        // 计算所有已分配的点数
+        // 计算所有已分配的点数（基于当前 attr 中的 point 值）
         let spentPoints = 0
         this.attr.forEach(item => {
           spentPoints += item.point
