@@ -371,32 +371,32 @@ export default {
       this.$store.commit('set_player_rein_attribute', data)
     },
     resetPoints() {
-      if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
-        // 计算已分配的总点数
-        let totalSpent = 0;
-        this.attr.forEach(item => {
-          totalSpent += item.point;
-        });
-        // 当前剩余点数（来自 store）
-        let currentRemain = this.reincarnationData.point;
-        // 新的总剩余点数 = 当前剩余 + 已分配
-        const newRemain = currentRemain + totalSpent;
-        // 重置所有属性加点数为 0
-        this.attr.forEach(item => {
-          item.point = 0;
-          // 重置当前显示值为初始值
-          item.currentValue = item.oldValue;
-        });
-        // 更新 store 中的剩余点数
-        this.$store.commit('set_player_rein', {
-          count: this.reinCount,
-          point: newRemain
-        });
-        // 重新计算属性加成（会将 reincarnationAttribute 清零）
-        this.caculateAttr();
-        this.$message({ message: '转生点数已重置', type: 'success' });
-      }
-    }
+  if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
+    // 计算已分配的总点数
+    let totalSpent = 0;
+    this.attr.forEach(item => {
+      totalSpent += item.point;
+    });
+    // 直接从 store 中获取当前剩余点数（避免计算属性缓存问题）
+    const currentRemain = this.$store.state.reincarnation.point;
+    const newRemain = currentRemain + totalSpent;
+    // 重置所有属性的点数和显示值
+    this.attr.forEach(item => {
+      item.point = 0;
+      item.currentValue = item.oldValue;
+    });
+    // 更新 store 中的剩余点数
+    this.$store.commit('set_player_rein', {
+      count: this.reinCount,
+      point: newRemain
+    });
+    // 重新计算属性加成（将转生属性清零）
+    this.caculateAttr();
+    this.$message({ message: '转生点数已重置', type: 'success' });
+    // 强制刷新视图
+    this.$forceUpdate();
+  }
+}
   }
 };
 </script>
