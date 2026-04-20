@@ -104,7 +104,7 @@ export default {
       qualityClass: '',
       qualityProbability: [0.25, 0.55, 0.15, 0.05,],
       simulateNeedTimes:0,
-      simulateNeedMoney:"",
+      simulateNeedMoney: 0,  // 改为数字 0
       quality: [{
         name: '破旧',
         qualityCoefficient: 0.7,
