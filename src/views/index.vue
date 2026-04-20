@@ -36,6 +36,14 @@
 
       </cTooltip>
 
+      <!-- <cTooltip placement="bottom">
+        <template v-slot:content>
+        </template>
+        <template v-slot:tip>
+          <p class="info">* </p>
+        </template>
+      </cTooltip> -->
+
       <div class="other">
         <cTooltip placement="bottom">
           <template v-slot:content>
@@ -101,6 +109,22 @@
             <p class="info">要再降低20%受到伤害，需提高防御力至{{(400*(1-attribute.REDUCDMG*0.8)/(20-21*(1-attribute.REDUCDMG*0.8))).toFixed(0)}}</p>
           </template>
         </cTooltip>
+
+        <!-- <cTooltip placement="bottom">
+          <template v-slot:content>
+            <div class="item">
+              <img src="../assets/icons/S_EVA.png" alt="">
+              <div class="value">
+                {{attribute.EVA.showValue}}
+              </div>
+            </div>
+          </template>
+          <template v-slot:tip>
+            <p class="info">* 角色闪避几率</p>
+            <p class="info">* 闪避几率采用非线性计算</p>
+            <p class="info">* 多个闪避来源自身乘法叠加</p>
+          </template>
+        </cTooltip> -->
 
         <cTooltip placement="bottom">
           <template v-slot:content>
@@ -207,12 +231,6 @@
           <div class="dungeons-lv" v-if="dungeons.type=='endless'">无尽层数:{{dungeons.lv}}</div>
           <div class="dungeons-lv" v-else>副本等级:{{dungeons.lv}}</div>
         </div>
-        <!-- 新增自定义层数区域 -->
-        <div class="endless-custom" v-if="dungeons.type=='endless'">
-          <label>自定义挑战层数：</label>
-          <input type="number" v-model.number="customEndlessLevel" min="1" style="width: 1.2rem; margin: 0 0.1rem;" />
-          <button class="dungeons-btn small" @click="startCustomEndless">挑战此层</button>
-        </div>
         <cTooltip placement="bottom">
           <template v-slot:content>
             <div class="jjj">
@@ -235,11 +253,11 @@
         </cTooltip>
         <table class="info" style="width:100%;">
           <thead>
-            <td>名称</th>
-            <td>生命值</th>
-            <td>攻击力</th>
-            <td>受到伤害</th>
-            <td>金币</th>
+            <td>名称</td>
+          <td>生命值</td>
+          <td>攻击力</td>
+            <td>受到伤害</td>
+            <td>金币</td>
           </thead>
           <tr v-for="(m,i) in dungeons.eventType">
             <td>{{m.name}}</td>
@@ -247,14 +265,14 @@
             <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
             <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</td>
             <td>{{m.trophy.gold}}</td>
-           </tr>
+          </tr>
           <tr>
             <td>合计</td>
             <td>{{dungeons.totalHP}}</td>
             <td>/</td>
             <td>{{-dungeonsSimulator.allGetDamaged}}</td>
             <td>{{dungeons.totalGold}}</td>
-           </tr>
+          </tr>
         </table>
         <div class="info">
           <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒{{dungeonsSimulator.victory?"胜利":"战败"}}<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span></p>
@@ -492,7 +510,7 @@ export default {
       equiShow: false,
       autoHealthRecovery: '',
       weapon: {},
-      inDungeons: false,
+      inDungeons: false,  //是否在副本进程中
       reChallenge: false,
       reChallengeEx: false,
       reChallengeExR: false,
@@ -500,8 +518,8 @@ export default {
       reEChallenge: false,
       dungeons: '',
       dungeonsArr: [],
-      dungeonsTime: '',
-      dungeonsTimeO: 30,
+      dungeonsTime: '', //刷新副本计时器
+      dungeonsTimeO: 30, //刷新副本时间间隔 单位：S
       dungeonsSimulator:{
         victory:false,
         recoveryToMaxHP:false,
@@ -530,12 +548,12 @@ export default {
       needComparison: true,
       saveData: {},
       saveDateString: '',
-      debounceTime: {},
-      customEndlessLevel: 1,
+      debounceTime: {},  //防抖计时器
     };
   },
   components: { weaponPanel, armorPanel, ringPanel, neckPanel, dungeons, backpackPanel, shopPanel, cTooltip, strengthenEquipment, extras, qa, setting, reinPanel },
   created() {
+    // 窗口自适应
     window.onresize = () => {
       if (this.debounceTime) {
         clearTimeout(this.debounceTime);
@@ -547,15 +565,21 @@ export default {
 
     };
     this.initial()
+
+    // 监听当前窗口是否处于后台状态
     document.addEventListener("visibilitychange", e => {
       this.windowVisibilitychange()
     });
+
   },
   mounted() {
+    // 自动回血
     this.autoHealthRecovery = setInterval(() => {
       this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+      //console.log(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02));
       if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
         if(this.reChallengeEx){
+          //console.log(new Date().getTime()/1000);
           this.eventBegin();
         }else{
           this.reChallengeExR=false;
@@ -563,6 +587,8 @@ export default {
       }
     }, 1000)
 
+
+    // 自动保存
     setInterval(() => {
       this.saveGame()
     }, 5 * 60 * 1000)
@@ -573,6 +599,7 @@ export default {
     this.ring = this.playerRing
     this.neck = this.playerNeck
 
+    //TODO:重新装备一次来解决不显示装备对比信息不显示的bug，不是最好但是是最快的
     {
       this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
       this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
@@ -581,6 +608,7 @@ export default {
     }
     var sd = localStorage.getItem('_sd')
     this.loadGame(sd)
+    //生成随机副本
     this.createdDungeons()
   },
   computed: {
@@ -598,6 +626,7 @@ export default {
   watch: {
     sysInfo() {
       var element = document.getElementById('sysInfo')
+      //渲染完成后滚至最下端
       this.$nextTick(() => {
         element.scrollTop = element.scrollHeight + 20
       })
@@ -621,11 +650,17 @@ export default {
     navToGithub() {
       window.open('https://github.com/Couy69/vue-idle-game', '_blank');
     },
+    /**
+     * 刷新副本
+     * constraint 强制刷新
+     */
     createdDungeons(constraint) {
       if (!constraint) {
         if (this.dungeonsTime) {
           this.$store.commit("set_sys_info", {
-            msg: `刚刚才刷新过了，需要等待${this.dungeonsTimeO}秒才能刷新哦。`,
+            msg: `
+                    刚刚才刷新过了，需要等待${this.dungeonsTimeO}秒才能刷新哦。
+                  `,
             type: 'wrning'
           });
           return
@@ -643,36 +678,69 @@ export default {
       this.dungeonsArr = []
       let Co = [0.85, 0.1, 0.05]
       for (let i = this.playerLv - 1; i > this.playerLv - 5; i--) {
-        if (i < 1) { break }
+        if (i < 1) {
+          break
+        }
         let difficulty = 1, r = Math.random()
-        if (r <= Co[0]) { difficulty = 1 }
-        else if (r < Co[1] + Co[0] && r >= Co[0]) { difficulty = 2 }
-        else { difficulty = 3 }
-        if (i > 100) { var lv = Math.floor(this.playerLv * (100 - (this.playerLv - i)) / 100) }
-        else { var lv = i }
+        // 生成普通副本时有几率刷新高难度副本
+        if (r <= Co[0]) {
+          difficulty = 1
+        } else if (r < Co[1] + Co[0] && r >= Co[0]) {
+          difficulty = 2
+        } else {
+          difficulty = 3
+        }
+        if (i > 100) {
+          var lv = Math.floor(this.playerLv * (100 - (this.playerLv - i)) / 100)
+        } else {
+          var lv = i
+        }
         this.dungeonsArr.push(handle.createRandomDungeons(lv, 1))
-        if (difficulty != 1) { this.dungeonsArr.push(handle.createRandomDungeons(i, difficulty)) }
+        if (difficulty != 1) {
+          this.dungeonsArr.push(handle.createRandomDungeons(i, difficulty))
+        }
       }
       for (let i = this.playerLv; i < this.playerLv + 6; i++) {
         let difficulty = 1, r = Math.random()
-        if (r <= Co[0]) { difficulty = 1 }
-        else if (r < Co[1] + Co[0] && r >= Co[0]) { difficulty = 2 }
-        else { difficulty = 3 }
-        if (i > 100) { var lv = Math.floor(this.playerLv * (100 + (i - this.playerLv)) / 100) }
-        else { var lv = i }
+        // 生成普通副本时有几率刷新高难度副本
+        if (r <= Co[0]) {
+          difficulty = 1
+        } else if (r < Co[1] + Co[0] && r >= Co[0]) {
+          difficulty = 2
+        } else {
+          difficulty = 3
+        }
+        if (i > 100) {
+          var lv = Math.floor(this.playerLv * (100 + (i - this.playerLv)) / 100)
+        } else {
+          var lv = i
+        }
         this.dungeonsArr.push(handle.createRandomDungeons(lv, 1))
-        if (difficulty != 1) { this.dungeonsArr.push(handle.createRandomDungeons(lv, difficulty)) }
+        if (difficulty != 1) {
+          this.dungeonsArr.push(handle.createRandomDungeons(lv, difficulty))
+        }
       }
     },
     copySavaData() {
       var imSavadataTextArea = document.getElementById("imSavedata");
-      imSavadataTextArea.select();
-      document.execCommand("copy");
-      this.$store.commit("set_sys_info", { msg: `已经复制存档了，建议保存到备忘录`, type: 'win' });
+      imSavadataTextArea.select(); // 选中文本
+      document.execCommand("copy"); // 执行浏览器复制命令
+      this.$store.commit("set_sys_info", {
+        msg: `
+                已经复制存档了，建议保存到备忘录
+              `,
+        type: 'win'
+      });
       this.closePanel()
     },
+    pasteSaveData() {
+
+    },
     exportSavedata() {
-      let backpackPanel = this.findComponentDownward(this, "backpackPanel");
+      let backpackPanel = this.findComponentDownward(
+        this,
+        "backpackPanel",
+      );
       this.exportSaveDataPanelOpened = true
       var data = {
         playerEquipment: {
@@ -695,7 +763,12 @@ export default {
     },
     importSaveData() {
       if (!this.saveDateString) {
-        this.$store.commit("set_sys_info", { msg: `清先输入存档数据！`, type: 'warning' });
+        this.$store.commit("set_sys_info", {
+          msg: `
+                清先输入存档数据！
+              `,
+          type: 'warning'
+        });
       }
       this.loadGame(this.saveDateString)
       this.closePanel()
@@ -706,8 +779,12 @@ export default {
           this.autoHealthRecovery = setInterval(() => {
             this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
             if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
-              if(this.reChallengeEx){ this.eventBegin(); }
-              else{ this.reChallengeExR=false; }
+              if(this.reChallengeEx){
+                //console.log(new Date().getTime()/1000);
+                this.eventBegin();
+              }else{
+                this.reChallengeExR=false;
+              }
             }
           }, 1000)
         }
@@ -720,16 +797,26 @@ export default {
         this.autoHealthRecovery = setInterval(() => {
           this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
           if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
-            if(this.reChallengeEx){ this.eventBegin(); }
-            else{ this.reChallengeExR=false; }
+            if(this.reChallengeEx){
+              //console.log(new Date().getTime()/1000);
+              this.eventBegin();
+            }else{
+              this.reChallengeExR=false;
+            }
           }
         }, 1000)
       }
     },
     async saveGame(needInfo) {
       var data = {}
-      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
-      var shopPanel = this.findComponentDownward(this, "shop");
+      var backpackPanel = this.findComponentDownward(
+        this,
+        "backpackPanel",
+      );
+      var shopPanel = this.findComponentDownward(
+          this,
+          "shop",
+      );
       data = {
         playerEquipment: {
           playerWeapon: this.$store.state.playerAttribute.weapon,
@@ -755,27 +842,54 @@ export default {
       }
       var saveData = Base64.encode(Base64.encode(JSON.stringify(data)))
       localStorage.setItem('_sd', saveData)
-      needInfo && this.$store.commit("set_sys_info", { msg: `游戏进度已经保存了。`, type: 'win' });
+
+      needInfo && this.$store.commit("set_sys_info", {
+        msg: `
+              游戏进度已经保存了。
+            `,
+        type: 'win'
+      });
     },
     loadGame(sd) {
       try {
         if (sd) {
+          //兼容存档
           var saveDataStr = Base64.decode(Base64.decode(sd))
           saveDataStr = saveDataStr.replace(/playerAcc/gi, 'playerRing')
           saveDataStr = saveDataStr.replace(/acc/gi, "ring")
           this.saveData = JSON.parse(saveDataStr)
           if (!this.saveData.r) {
-            this.saveData.r = { count: 0, point: 0 }
+            this.saveData.r = {
+              count: 0,
+              point: 0,
+            }
           }
           if (!this.saveData.ra) {
-            this.saveData.ra = { 'HP':0,'ATK':0,'CRIT':0,'CRITDMG':0,'DEF':0,'BLOC':0,'MOVESPEED':0,'BATTLESPEED':0 }
+            this.saveData.ra = {
+              'HP': 0,
+              'ATK': 0,
+              'CRIT': 0,
+              'CRITDMG': 0,
+              'DEF': 0,
+              'BLOC': 0,
+              'MOVESPEED': 0,
+              'BATTLESPEED': 0,
+            }
           }
           this.saveData.lv = this.saveData.lv ? this.saveData.lv : 1
-          var backpackPanel = this.findComponentDownward(this, "backpackPanel");
-          var shopPanel = this.findComponentDownward(this, "shop");
+          var backpackPanel = this.findComponentDownward(
+            this,
+            "backpackPanel",
+          );
+          var shopPanel = this.findComponentDownward(
+              this,
+              "shop",
+          );
           if (JSON.stringify(this.saveData) != '{}') {
             backpackPanel.grid = this.saveData.backpackEquipment
-            if(this.saveData.backpackAutoSell!=undefined) { backpackPanel.autoSell = this.saveData.backpackAutoSell; }
+            if(this.saveData.backpackAutoSell!=undefined) {
+              backpackPanel.autoSell = this.saveData.backpackAutoSell;
+            }
             if(this.saveData.autoBuyAttributes!=undefined){
               shopPanel.autoBuyLevel=this.saveData.autoBuyAttributes.autoBuyLevel;
               shopPanel.autoBuyStrength=this.saveData.autoBuyAttributes.autoBuyStrength;
@@ -784,17 +898,45 @@ export default {
           }
           if (!this.saveData.playerEquipment.playerNeck) {
             this.saveData.playerEquipment.playerNeck = {
-              "lv":1, itemType:'neck', "quality":{ name:'破旧', qualityCoefficient:0.7, probability:'0.25', color:'#a1a1a1', extraEntryNum:1 },
-              "type":{ "name":"新手项坠", "des":"一个普通的指环", "iconSrc":"./icons/Ac_3.png", "entry":[{ "valCoefficient":0.9, "value":20, "showVal":"+20", "type":"HP", "name":"生命值" }] },
-              "extraEntry":[{ "type":"CRIT", "value":10, "showVal":"+10%", "name":"暴击率" }]
+              "lv": 1,
+              itemType: 'neck',
+              "quality": {
+                name: '破旧',
+                qualityCoefficient: 0.7,
+                probability: '0.25',
+                color: '#a1a1a1',
+                extraEntryNum: 1,
+              },
+              "type": {
+                "name": "新手项坠",
+                "des": "一个普通的指环",
+                "iconSrc": "./icons/Ac_3.png",
+                "entry": [{
+                  "valCoefficient": 0.9,
+                  "value": 20,
+                  "showVal": "+20",
+                  "type": "HP",
+                  "name": "生命值"
+                }]
+              },
+              "extraEntry": [{
+                "type": "CRIT",
+                "value": 10,
+                "showVal": "+10%",
+                "name": "暴击率"
+              }]
             }
           }
           this.$store.commit('set_player_ring', this.$deepCopy(this.saveData.playerEquipment.playerRing))
           this.$store.commit('set_player_weapon', this.$deepCopy(this.saveData.playerEquipment.playerWeapon))
           this.$store.commit('set_player_armor', this.$deepCopy(this.saveData.playerEquipment.playerArmor))
           this.$store.commit('set_player_neck', this.$deepCopy(this.saveData.playerEquipment.playerNeck))
-          if (this.saveData.rA) { this.saveData.rA && this.$store.commit('set_player_rein_attribute', this.$deepCopy(this.saveData.rA)) }
-          if (this.saveData.r) { this.saveData.r && this.$store.commit('set_player_rein', this.$deepCopy(this.saveData.r)) }
+          if (this.saveData.rA) {
+            this.saveData.rA && this.$store.commit('set_player_rein_attribute', this.$deepCopy(this.saveData.rA))
+          }
+          if (this.saveData.r) {
+            this.saveData.r && this.$store.commit('set_player_rein', this.$deepCopy(this.saveData.r))
+          }
           this.$store.commit('reset_player_gold', parseInt(this.saveData.gold) || 0)
           this.$store.commit('set_endless_lv', parseInt(this.saveData.endlessLv) || 0)
           this.$store.commit('set_player_lv', parseInt(this.saveData.lv) || 0)
@@ -805,45 +947,87 @@ export default {
           this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
           this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
         }
-        this.$store.commit("set_sys_info", { msg: `读取存档成功`, type: 'win' });
+
+        this.$store.commit("set_sys_info", {
+          msg: `
+                读取存档成功
+              `,
+          type: 'win'
+        });
       } catch (error) {
         console.log(error)
-        this.$store.commit("set_sys_info", { msg: `糟糕，存档坏了！`, type: 'warning' });
+        this.$store.commit("set_sys_info", {
+          msg: `
+              糟糕，存档坏了！
+            `,
+          type: 'warning'
+        });
       }
     },
-    clearSysInfo() { this.$store.commit('clear_sys_info') },
+    clearSysInfo() {
+      this.$store.commit('clear_sys_info')
+    },
     createGMEquip() {
       this.$store.commit("set_player_gold", parseInt(this.GMGold));
       var b = this.findComponentDownward(this, "weaponPanel");
       var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
       this.$store.commit('set_player_lv', this.GMPlayerLv)
-      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
+      var backpackPanel = this.findComponentDownward(
+        this,
+        "backpackPanel",
+      );
       for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) { this.$set(backpackPanel.grid, i, item); break; }
+        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+          this.$set(backpackPanel.grid, i, item);
+          break;
+        }
       }
-      b = this.findComponentDownward(this, "armorPanel");
-      item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
+      var b = this.findComponentDownward(this, "armorPanel");
+      var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
+      var backpackPanel = this.findComponentDownward(
+        this,
+        "backpackPanel",
+      );
       for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) { this.$set(backpackPanel.grid, i, item); break; }
+        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+          this.$set(backpackPanel.grid, i, item);
+          break;
+        }
       }
-      b = this.findComponentDownward(this, "ringPanel");
-      item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
+      var b = this.findComponentDownward(this, "ringPanel");
+      var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
+      var backpackPanel = this.findComponentDownward(
+        this,
+        "backpackPanel",
+      );
       for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) { this.$set(backpackPanel.grid, i, item); break; }
+        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+          this.$set(backpackPanel.grid, i, item);
+          break;
+        }
       }
-      b = this.findComponentDownward(this, "neckPanel");
-      item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
+
+      var b = this.findComponentDownward(this, "neckPanel");
+      var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
+      var backpackPanel = this.findComponentDownward(
+        this,
+        "backpackPanel",
+      );
       for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) { this.$set(backpackPanel.grid, i, item); break; }
+        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+          this.$set(backpackPanel.grid, i, item);
+          break;
+        }
       }
       this.backpackPanelOpened = true
       this.GMOpened = false
     },
     showDungeonsInfo(k) {
+      // var b = this.findComponentDownward(this, 'dungeons')
       this.dungeons = this.dungeonsArr[k]
       if (this.dungeons.difficulty != 1) {
         this.reChallenge = false
@@ -959,21 +1143,34 @@ export default {
       }
       this.dungeonsSimulator.maxFightCount=Math.ceil(this.dungeonsSimulator.lastHP/(this.dungeonsSimulator.lastHP-playerHP));
     },
-    closeDungeonsInfo() { this.dungeons = '' },
+    closeDungeonsInfo() {
+      this.dungeons = ''
+    },
     eventBegin() {
       var b = this.findComponentDownward(this, 'dungeons')
       b.dungeons = this.dungeons
       b.evenHandle()
+      // this.dungeons = ''
       this.inDungeons = true
-      this.reChallengeExR = this.reChallengeEx;
+      this.reChallengeExR=this.reChallengeEx;
     },
     eventEnd() {
       this.inDungeons = false;
       this.reChallengeEx=false;
       this.dungeons = ''
+
       var b = this.findComponentDownward(this, 'dungeons')
       b.forcedToStopEvent()
-      this.$store.commit("set_sys_info", { msg: `手动中断了挑战`, type: 'warning' });
+
+      this.$store.commit("set_sys_info", {
+        msg: `
+              手动中断了挑战
+            `,
+        type: 'warning'
+      });
+      setTimeout(() => {
+
+      })
     },
     resetEndlessLv() {
       this.$message({
@@ -983,52 +1180,101 @@ export default {
         onClose: () => {
           this.$store.commit("set_endless_lv", 1);
           this.closeDungeonsInfo()
-          this.$store.commit("set_sys_info", { msg: `无尽挑战层数重置到了1级。`, type: 'win' });
+          this.$store.commit("set_sys_info", {
+            msg: `
+              无尽挑战层数重置到了1级。
+            `,
+            type: 'win'
+          });
         }
       })
     },
     openMenuPanel(type) {
       this.backpackPanelOpened = this.shopPanelOpened = false
       switch (type) {
-        case 'backpack': this.backpackPanelOpened = !this.backpackPanelOpened; break;
-        case 'shop': this.shopPanelOpened = !this.shopPanelOpened; break;
-        case 'rein': this.reinPanelOpened = !this.reinPanelOpened; break;
-        default: break;
+        case 'backpack':
+          this.backpackPanelOpened = !this.backpackPanelOpened
+          break;
+        case 'shop':
+          this.shopPanelOpened = !this.shopPanelOpened
+          break;
+        case 'rein':
+          this.reinPanelOpened = !this.reinPanelOpened
+          break;
+        default:
+          break;
       }
+
     },
     closePanel() {
       this.backpackPanelOpened = this.shopPanelOpened = this.importSaveDataPanelOpened = this.exportSaveDataPanelOpened = this.strengthenEquipmentPanelOpened = this.reinPanelOpened = false
       this.GMOpened = false
       this.saveDateString = ''
-      let equimentPanel = this.findComponentDownward(this, "equimentPanel");
+
+      let equimentPanel = this.findComponentDownward(
+        this,
+        "equimentPanel",
+      );
       equimentPanel.stopAutoStreng()
     },
     initial() {
       let html = document.documentElement;
       let wW = html.clientHeight;
-      let designSize = 1000;
-      if (!this.fullScreen) { wW = html.clientHeight; }
+      let designSize = 1000; //设计高度
+      if (!this.fullScreen) {
+        wW = html.clientHeight;
+      }
       let rem = (wW * 100) / designSize;
       document.documentElement.style.fontSize = rem + "px";
-      if (document.documentElement.clientWidth < 768) { this.$store.commit('set_operator_schema', true) }
-      else { this.$store.commit('set_operator_schema', false) }
+
+      if (document.documentElement.clientWidth < 768) {
+        this.$store.commit('set_operator_schema', true)
+      } else {
+        this.$store.commit('set_operator_schema', false)
+      }
     },
-    contextmenu(e) {},
+    contextmenu(e) {
+      // 鼠标右键
+    },
     showItemInfo(e, type, item, needComparison) {
-      if (needComparison === false) { this.needComparison = false }
-      else { this.needComparison = true }
+      if (needComparison === false) {
+        this.needComparison = false
+      } else {
+        this.needComparison = true
+      }
       let x = e.pageX, y = e.pageY, maxH = window.innerHeight
       if (y < window.innerHeight / 2) {
-        this.itemDialogStyle = { display: 'flex', 'top': y + 20 + 'px', 'left': x + 20 + 'px' }
+        this.itemDialogStyle = {
+          display: 'flex',
+          'top': y + 20 + 'px',
+          'left': x + 20 + 'px',
+        }
       } else {
-        this.itemDialogStyle = { display: 'flex', 'bottom': maxH - y + 20 + 'px', 'left': x + 20 + 'px' }
+        this.itemDialogStyle = {
+          display: 'flex',
+          'bottom': maxH - y + 20 + 'px',
+          'left': x + 20 + 'px',
+        }
       }
       switch (type) {
-        case 'weapon': this.weapon = item; this.weaponShow = true; break;
-        case 'armor': this.armor = item; this.armorShow = true; break;
-        case 'ring': this.ring = item; this.ringShow = true; break;
-        case 'neck': this.neck = item; this.neckShow = true; break;
-        default: break;
+        case 'weapon':
+          this.weapon = item
+          this.weaponShow = true
+          break;
+        case 'armor':
+          this.armor = item
+          this.armorShow = true
+          break;
+        case 'ring':
+          this.ring = item
+          this.ringShow = true
+          break;
+        case 'neck':
+          this.neck = item
+          this.neckShow = true
+          break;
+        default:
+          break;
       }
     },
     closeItemInfo() {
@@ -1036,85 +1282,595 @@ export default {
       this.weaponShow = this.armorShow = this.ringShow = this.neckShow = false
     },
     setSysInfo() {
-      this.$store.commit("set_sys_info", { msg: `副本探索成功！`, type: 'win' });
-    },
-    // 新增：自定义无尽层数挑战
-    startCustomEndless() {
-      let level = this.customEndlessLevel;
-      if (level < 1) level = 1;
-      this.dungeons = handle.createRandomDungeons(level * 5, 3);
-      this.dungeons.lv = level;
-      this.dungeons.type = 'endless';
-      this.simulateEndlessDungeons(this.dungeons);
-      this.eventBegin();
-    },
-    simulateEndlessDungeons(dungeons) {
-      this.dungeonsSimulator.victory = true;
-      this.dungeonsSimulator.recoveryToMaxHP = false;
-      this.dungeonsSimulator.costTime = 0;
-      this.dungeonsSimulator.lastHP = 0;
-      this.dungeonsSimulator.maxFightCount = 0;
-      this.dungeonsSimulator.perGetDamaged = [0,0,0,0,0];
-      this.dungeonsSimulator.allGetDamaged = 0;
-      let playerAttribute = this.$store.state.playerAttribute.attribute,
-          reincarnationAttribute = this.$store.state.reincarnationAttribute;
-      let reducedDamage = playerAttribute.REDUCDMG,
-          playerDPS = playerAttribute.DPS,
-          playerBLOC = playerAttribute.BLOC.value,
-          playerMaxHP = playerAttribute.MAXHP.value,
-          playerHP = playerAttribute.MAXHP.value,
-          battleTime = (dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
-          perActionTime = 0.4 * (dungeons.moveTime + reincarnationAttribute.MOVESPEED) + battleTime;
-      this.dungeonsSimulator.perActionTime = perActionTime;
-      for (let i = 0; i < dungeons.eventNum; i++) {
-        this.dungeonsSimulator.costTime += perActionTime;
-        if (i > 0) {
-          let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime);
-          playerHP = newHP < playerMaxHP ? newHP : playerMaxHP;
-        }
-        let monsterAttribute = dungeons.eventType[i].attribute;
-        let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-            monsterDeadTime = monsterAttribute.HP / playerDPS;
-        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC;
-        this.dungeonsSimulator.perGetDamaged[i] = takeDmg;
-        this.dungeonsSimulator.allGetDamaged += takeDmg;
-        if (monsterDeadTime < playerDeadTime) {
-          playerHP += takeDmg;
-        } else {
-          this.dungeonsSimulator.victory = false;
-          this.dungeonsSimulator.recoveryToMaxHP = false;
-          this.dungeonsSimulator.lastHP = 0;
-          return;
-        }
-      }
-      this.dungeonsSimulator.victory = true;
-      this.dungeonsSimulator.lastHP = playerHP.toFixed(1);
-      for (let i = 0; i < dungeons.eventNum; i++) {
-        let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + playerHP;
-        if (newHP >= playerMaxHP) {
-          this.dungeonsSimulator.recoveryToMaxHP = true;
-          return;
-        }
-        playerHP = newHP + this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0;
-      }
-      this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP));
+      this.$store.commit("set_sys_info", {
+        msg: `
+              副本探索成功！
+            `,
+        type: 'win'
+      });
     }
   }
 };
+
+
 </script>
 <style lang="scss" scoped>
-/* 原有样式保持不变，仅添加以下新样式 */
-.dungeons-Info .endless-custom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0.1rem 0;
-  font-size: 0.14rem;
+* {
+  box-sizing: border-box;
+  user-select: none;
 }
-.dungeons-Info .dungeons-btn.small {
-  padding: 0.05rem 0.1rem;
-  font-size: 0.12rem;
+a {
+  cursor: pointer;
+}
+.main {
+  background: #111;
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  color: #eee;
+  height: 100%;
+  .user-status {
+    position: absolute;
+    top: 0.1rem;
+    left: 0.1rem;
+    border: 2px solid #ccc;
+    height: 4rem;
+    width: 4rem;
+    padding: 0.1rem;
+    display: flex;
+    flex-direction: column;
+    .hp {
+      cursor: pointer;
+      height: 0.7rem;
+      width: 100%;
+      display: flex;
+      border: 2px solid #ccc;
+      align-items: center;
+      padding-left: 0.2rem;
+      margin-bottom: 0.1rem;
+      img {
+        width: 0.5rem;
+        height: 0.5rem;
+      }
+      .value {
+        font-size: 0.26rem;
+        font-weight: bold;
+        text-align: center;
+        flex: 1;
+      }
+    }
+    .lv {
+      cursor: pointer;
+      height: 0.7rem;
+      width: 100%;
+      display: flex;
+      border: 2px solid #ccc;
+      align-items: center;
+      padding-left: 0.2rem;
+      margin-bottom: 0.1rem;
+      img {
+        width: 0.5rem;
+        height: 0.5rem;
+      }
+      .value {
+        display: flex;
+        justify-content: space-around;
+        font-size: 0.26rem;
+        font-weight: bold;
+        text-align: center;
+        flex: 1;
+        align-items: center;
+      }
+    }
+    .other {
+      img {
+        width: 0.35rem !important;
+        height: 0.35rem !important;
+      }
+      display: flex;
+      flex: 1;
+      padding: 0.1rem;
+      border: 2px solid #ccc;
+      flex-wrap: wrap;
+      & > div,
+      .item {
+        cursor: pointer;
+        width: 33.3%;
+        height: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 0.05rem;
+        flex-direction: column;
+        .value {
+          margin-top: 0.06rem;
+          font-size: 0.23rem;
+          font-weight: normal;
+          flex: 1;
+          display: flex;
+          align-items: center;
+          flex-direction: column;
+        }
+      }
+      .item {
+        width: 100%;
+      }
+    }
+  }
+  .user-item {
+    position: absolute;
+    top: 0.1rem;
+    left: 4.2rem;
+    border: 2px solid #ccc;
+    height: 4rem;
+    width: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0.2rem 0;
+    padding-top: 0.1rem;
+    cursor: pointer;
+    & > div {
+      background: rgba(0, 0, 0, 0.7);
+      width: calc(100% - 0.4rem);
+      margin: 0 20rem;
+    }
+    .uii {
+      display: flex;
+      width: calc(100% - .4rem);
+    }
+    .gold {
+      cursor: pointer;
+      height: 0.7rem;
+      margin: 0.1rem;
+      margin-top: 0.08rem;
+      width: calc(100%);
+      display: flex;
+      align-items: center;
+      padding-left: 0.1rem;
+      font-size: 0.22rem;
+      span {
+        font-size: 0.2rem;
+        font-weight: bold;
+        text-align: right;
+        flex: 1;
+        padding: 0.1rem 0.08rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+      }
+    }
+    .title {
+      display: flex;
+      padding: 0.05rem;
+      width: 100%;
+      .icon {
+        width: 0.56rem;
+        height: 0.56rem;
+        background-color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.04rem;
+      }
+      .name {
+        font-size: 0.2rem;
+        height: 0.46rem;
+        margin-left: 0.2rem;
+        line-height: 0.46rem;
+      }
+    }
+  }
+  .sys-info {
+    position: absolute;
+    border: 2px solid #ccc;
+    height: calc(100% - 4.4rem);
+    width: 8.1rem;
+    bottom: 0.1rem;
+    left: 0.1rem;
+
+    transition: 0.2s;
+    padding: 0.2rem;
+    .clear {
+      position: absolute;
+      top: 0.2rem;
+      right: 0.2rem;
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    #sysInfo {
+      overflow-y: auto;
+      transition: 0.2s;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .info {
+      margin: 0.03rem 0;
+    }
+    a {
+      cursor: pointer;
+      text-decoration: underline;
+      margin-left: 0.05rem;
+    }
+    .warning > span {
+      color: #f90202;
+    }
+    .battle > span {
+      color: #de8618;
+    }
+    .win > span {
+      color: #24c4de;
+    }
+    .trophy > span {
+      color: #2fe20f;
+    }
+  }
+  .map {
+    position: absolute;
+    right: 0.1rem;
+    left: 8.3rem;
+    top: 0.1rem;
+    bottom: 0.1rem;
+    border: 2px solid #ccc;
+    background-image: url(../assets/img/map.jpg);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    .plan {
+      position: absolute;
+      top: 0.1rem;
+      width: calc(100% - 0.3rem);
+      left: 0.15rem;
+      height: 1rem;
+      background: rgba(54, 121, 176, 0.68);
+      text-align: center;
+      font-size: 0.4rem;
+      line-height: 1rem;
+    }
+    .eventEnd {
+      position: absolute;
+      top: 1.1rem;
+      right: 0rem;
+      height: 0.4rem;
+      font-size: 0.16rem;
+      line-height: initial;
+    }
+    .event-icon {
+      position: absolute;
+      cursor: pointer;
+      border: 1px solid #111;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      box-shadow: 0 0 4px 4px rgba(100, 255, 36, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      // transform: translate(-50%, -50%);
+      // background-image: url(../assets/icons/icon_81.png);
+      // background-repeat: no-repeat;
+      // background-position: top center;
+      // background-color: rgba(245, 54, 54, 0.7);
+      // background-size: 30px 29px;
+      .icon-image {
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 50%;
+        background-image: url(../assets/icons/menu/d1.png);
+        background-color: rgba(100, 255, 36, 0.6);
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 30px 29px;
+      }
+      span {
+        // position: absolute;
+        // top: 100%;
+        // left: 50%;
+        // transform: translateX(-50%);
+        text-shadow: 1px 1px 3px rgb(0, 0, 0);
+        white-space: nowrap;
+        width: 100%;
+        text-align: center;
+        border-top: 1px solid rgba(100, 255, 36, 0.6);
+        margin-top: 0.03rem;
+        font-size: 0.14rem;
+      }
+    }
+    .low-level {
+      // background-image: url(../assets/icons/menu/d1.png);
+      // background-color: rgba(100, 255, 36, 0.7);
+    }
+    .h-level {
+      box-shadow: 0 0 4px 4px rgba(245, 241, 0, 0.5);
+      .icon-image {
+        background-image: url(../assets/icons/menu/d2.png);
+        background-color: rgba(245, 241, 0, 0.6);
+      }
+      span {
+        border-top: 1px solid rgba(245, 241, 0, 0.6);
+      }
+      // background-image: url(../assets/icons/menu/d2.png);
+      // background-color: rgba(245, 241, 0, 0.7);
+    }
+    .boss {
+      box-shadow: 0 0 4px 4px rgba(245, 54, 54, 0.5);
+      .icon-image {
+        background-image: url(../assets/icons/menu/d3.png);
+        background-color: rgba(245, 54, 54, 0.6);
+      }
+      span {
+        border-top: 1px solid rgba(245, 54, 54, 0.6);
+      }
+      // background-image: url(../assets/icons/menu/d3.png);
+    }
+    .endless {
+      box-shadow: 0 0 4px 4px rgba(245, 69, 0, 0.5);
+      .icon-image {
+        background-image: url(../assets/icons/endless.png);
+        background-color: rgba(245, 69, 0, 0.6);
+      }
+      span {
+        border-top: 1px solid rgba(245, 69, 0, 0.6);
+      }
+    }
+  }
 }
-/* 其余原有样式不变（省略，保持你原来的样式） */
+.dialog {
+  position: absolute;
+  display: none;
+  z-index: 10;
+  & > div {
+    margin: 0.1rem;
+  }
+  display: flex;
+  justify-content: space-between;
+}
+.weaponShow {
+  top: 0.67rem;
+  left: 7.98rem;
+  display: flex;
+}
+.armorShow {
+  top: 1.77rem;
+  left: 7.98rem;
+  display: flex;
+}
+.ringShow {
+  top: 2.77rem;
+  left: 7.98rem;
+  display: flex;
+}
+.menu {
+  position: absolute;
+  bottom: 0.15rem;
+  background: rgba($color: #000000, $alpha: 0.4);
+  left: 8.33rem;
+  padding: 0.1rem;
+  border-top-right-radius: 0.1rem;
+  display: flex;
+  & > div {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    cursor: pointer;
+    margin: 0 0.2rem;
+    justify-content: space-between;
+    span {
+      color: #fff;
+      font-size: 0.3rem;
+      line-height: 0.3rem;
+      padding: 0.1rem 0;
+      font-weight: bold;
+      text-shadow: 1px 1px 3px rgb(0, 0, 0);
+    }
+  }
+}
+.dialog-backpackPanel {
+  position: absolute;
+  z-index: 9;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  border-radius: 6px;
+  box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7);
+  .title {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    padding: 0.1rem;
+    height: 0.6rem;
+    border-bottom: 1px solid #ccc;
+    .close {
+      cursor: pointer;
+      position: absolute;
+      top: 0.13rem;
+      right: 0.15rem;
+      display: block;
+      width: 0.3rem;
+      height: 0.3rem;
+      background-image: url(../assets/icons/close.png);
+      background-size: cover;
+    }
+  }
+  .body {
+    padding: 0.1rem;
+    display: flex;
+    flex-direction: column;
+    .prompt-message {
+      font-size: 0.12rem;
+      margin: 0.04rem 0;
+    }
+  }
+  .savedata-textarea {
+    width: 300px;
+    height: 180px;
+    user-select: text;
+    padding: 2px;
+    background: rgba($color: #ffffff, $alpha: 0.8);
+  }
+  .footer {
+    border-top: 1px solid #ccc;
+    padding: 0.06rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.item-close {
+  display: none;
+  position: absolute;
+  top: -0.52rem;
+  right: 50%;
+  transform: translateX(68%);
+  background: #000;
+  padding: 0.04rem 0.1rem;
+  border-radius: 0.06rem;
+  border: 1px solid #fff;
+}
+.close {
+  cursor: pointer;
+  display: block;
+  width: 0.25rem;
+  height: 0.25rem;
+  background-image: url(../assets/icons/close.png);
+  background-size: cover;
+}
+.gm-panel {
+  width: 5rem;
+  height: 3rem;
+  .content {
+    input {
+      padding: 0.05rem 0.1rem;
+      width: 1.4rem;
+    }
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    padding: 0.1rem;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.dungeons-Info {
+  z-index: 2;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  border: 2px solid #ccc;
+  padding: 0.1rem;
+  .info {
+    padding: 0.1rem 0.2rem;
+    font-size: 0.12rem;
+    color: #999;
+  }
+  .dungeons-close {
+    cursor: pointer;
+    position: absolute;
+    top: 0.1rem;
+    right: 0.1rem;
+    display: block;
+    width: 0.23rem;
+    height: 0.23rem;
+    background-image: url(../assets/icons/close.png);
+    background-size: cover;
+  }
+  .dungeons-re {
+    cursor: pointer;
+    position: absolute;
+    top: 0.1rem;
+    right: 0.5rem;
+    display: block;
+    width: 0.23rem;
+    height: 0.23rem;
+    background-image: url(../assets/icons/re.png);
+    background-size: cover;
+  }
+  .dungeons-title {
+    margin-top: 0.1rem;
+    font-size: 0.22rem;
+    margin-bottom: 0.2rem;
+  }
+  .handle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    white-space: nowrap;
+    font-size: 0.14rem;
+    margin-top: 0.1rem;
+    & > div {
+      display: flex;
+      align-items: center;
+    }
+    p {
+      display: flex;
+      align-items: center;
+    }
+    input {
+      width: 0.2rem;
+      height: 0.2rem;
+      min-height: 15px;
+      min-width: 15px;
+      margin-right: 0.05rem;
+    }
+  }
+  .handle-column {
+    display: flex;
+    flex-direction: column;
+    p {
+      display: flex;
+      align-items: center;
+    }
+  }
+  .jjj {
+    font-size: 0.16rem;
+    width: 100%;
+    justify-content: space-between;
+    display: flex;
+    padding: 0.15rem 0.25rem;
+    align-items: center;
+    .dungeons-dps {
+      color: #f90202;
+      text-shadow: 0px 0px 2px rgba(245, 54, 54, 0.7);
+    }
+    .dungeons-difficulty {
+      text-align: right;
+    }
+  }
+  .desc {
+    width: 100%;
+    height: 1.5rem;
+    font-size: 0.14rem;
+    border-top: 1px solid #ccc;
+    padding: 0.1rem;
+    color: #999;
+  }
+  .dungeons-btn {
+    margin: 0.2rem 0.1rem;
+    padding: 0.1rem 0.1rem;
+    cursor: pointer;
+    color: #fff;
+    background: #000;
+    border: 1px solid #fff;
+    white-space: nowrap;
+  }
+}
 </style>
