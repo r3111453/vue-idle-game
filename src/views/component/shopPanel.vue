@@ -290,7 +290,7 @@ export default {
       this.timeStart = false;
       this.timeo = 30;
     },
-    // 启动自动刷新（每5秒倒计时，归零时执行一次免费刷新）
+    // 启动自动刷新（每5秒倒计时，归零时执行自动刷新，不消耗次数）
     startAutoRefresh() {
       this.stopAutoRefresh();
       if (this.refreshTime >= 10 && this.autoBuy) {
@@ -300,13 +300,13 @@ export default {
           if (this.refreshTime >= 10 && this.autoBuy) {
             this.timeo--;
             if (this.timeo <= 0) {
-              // 倒计时归零，执行免费刷新
-              this.refreshShopItems(true);
-              // 刷新后如果次数仍然满10且自动购买开启，重置倒计时为5秒
+              // 倒计时归零，执行自动刷新（不消耗次数）
+              this.autoRefreshShopItems();
+              // 重置倒计时为5秒
               if (this.refreshTime >= 10 && this.autoBuy) {
                 this.timeo = 5;
               } else {
-                // 次数不足，停止自动刷新，启动恢复倒计时
+                // 条件不满足，停止自动刷新，启动恢复倒计时
                 this.stopAutoRefresh();
                 if (this.refreshTime < 10 && !this.timeStart) {
                   this.startRecoveryTimer();
@@ -332,6 +332,19 @@ export default {
       if (!this.timeInterval) {
         this.timeStart = false;
         this.timeo = 30;
+      }
+    },
+    // 自动刷新商店（不消耗免费刷新次数）
+    autoRefreshShopItems() {
+      // 重新生成商店商品，不改变 refreshTime
+      this.grid = new Array(5).fill({});
+      for (let i = 0; i < 5; i++) {
+        let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
+        this.createShopItem(lv);
+      }
+      // 自动购买符合条件的独特装备
+      if (this.autoBuy) {
+        this.autoBuyItems();
       }
     },
     // 修正自动购买等级（不超过角色等级+2）
