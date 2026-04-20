@@ -173,36 +173,32 @@
 
       </div>
 
-      <!-- 武器槽：添加右键菜单 -->
-      <div class="weapon" @mouseover="showItemInfo($event,'weapon',playerWeapon,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="openEquipmentContextMenu('weapon', $event)">
-        <div class="title" v-if="playerWeapon && playerWeapon.type">
+      <div class="weapon" @mouseover="showItemInfo($event,'weapon',playerWeapon,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerWeapon">
           <div class='icon' :class="{'red-flash':playerWeapon.enchantlvl>=13,unique:playerWeapon.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerWeapon.quality.color}">
             <img :src="playerWeapon.type.iconSrc" alt="">
           </div>
           <div class='name' :style="{color:playerWeapon.quality.color}">{{playerWeapon.type.name}} {{playerWeapon.enchantlvl?'(+'+playerWeapon.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 防具槽 -->
-      <div class="armor" @mouseover="showItemInfo($event,'armor',playerArmor,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="openEquipmentContextMenu('armor', $event)">
-        <div class="title" v-if="playerArmor && playerArmor.type">
+      <div class="armor" @mouseover="showItemInfo($event,'armor',playerArmor,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerArmor">
           <div class='icon' :class="{'red-flash':playerArmor.enchantlvl>=13,unique:playerArmor.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px  '+playerArmor.quality.color}">
             <img :src="playerArmor.type.iconSrc" alt="">
           </div>
           <div class='name' :style="{color:playerArmor.quality.color}">{{playerArmor.type.name}} {{playerArmor.enchantlvl?'(+'+playerArmor.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 项链槽 -->
-      <div class="neck" @mouseover="showItemInfo($event,'neck',playerNeck,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="openEquipmentContextMenu('neck', $event)">
-        <div class="title" v-if="playerNeck && playerNeck.type">
+      <div class="neck" @mouseover="showItemInfo($event,'neck',playerNeck,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerNeck">
           <div class='icon' :class="{'red-flash':playerNeck.enchantlvl>=13,unique:playerNeck.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerNeck.quality.color}">
             <img :src="playerNeck.type.iconSrc" alt="">
           </div>
           <div class='name' :style="{color:playerNeck.quality.color}">{{playerNeck.type.name}} {{playerNeck.enchantlvl?'(+'+playerNeck.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 戒指槽 -->
-      <div class="ring" @mouseover="showItemInfo($event,'ring',playerRing,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="openEquipmentContextMenu('ring', $event)">
-        <div class="title" v-if="playerRing && playerRing.type">
+      <div class="ring" @mouseover="showItemInfo($event,'ring',playerRing,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerRing">
           <div class='icon' :class="{'red-flash':playerRing.enchantlvl>=13,unique:playerRing.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerRing.quality.color}">
             <img :src="playerRing.type.iconSrc" alt="">
           </div>
@@ -257,26 +253,26 @@
         </cTooltip>
         <table class="info" style="width:100%;">
           <thead>
-            <td>名称</th>
-          <td>生命值</th>
-          <td>攻击力</th>
-            <td>受到伤害</th>
-            <td>金币</th>
+            <td>名称</td>
+          <td>生命值</td>
+          <td>攻击力</td>
+            <td>受到伤害</td>
+            <td>金币</td>
           </thead>
           <tr v-for="(m,i) in dungeons.eventType">
-            <td>{{m.name}}</th>
-            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</th>
-            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</th>
-            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</th>
-            <td>{{m.trophy.gold}}</th>
-           </tr>
+            <td>{{m.name}}</td>
+            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
+            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
+            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</td>
+            <td>{{m.trophy.gold}}</td>
+          </tr>
           <tr>
-            <td>合计</th>
-            <td>{{dungeons.totalHP}}</th>
-            <td>/</th>
-            <td>{{-dungeonsSimulator.allGetDamaged}}</th>
-            <td>{{dungeons.totalGold}}</th>
-           </tr>
+            <td>合计</td>
+            <td>{{dungeons.totalHP}}</td>
+            <td>/</td>
+            <td>{{-dungeonsSimulator.allGetDamaged}}</td>
+            <td>{{dungeons.totalGold}}</td>
+          </tr>
         </table>
         <div class="info">
           <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒{{dungeonsSimulator.victory?"胜利":"战败"}}<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span></p>
@@ -480,12 +476,6 @@
     <extras></extras>
     <qa></qa>
     <setting></setting>
-
-    <!-- 装备右键菜单 -->
-    <ul v-show="equipmentContextMenu.visible" :style="{ left: equipmentContextMenu.left + 'px', top: equipmentContextMenu.top + 'px' }" class="contextmenu equipment-contextmenu">
-      <li @click="strengthenEquipmentFromContext">强化</li>
-      <li @click="viewEquipmentFromContext">查看</li>
-    </ul>
   </div>
 </template>
 <script>
@@ -559,14 +549,6 @@ export default {
       saveData: {},
       saveDateString: '',
       debounceTime: {},  //防抖计时器
-      // 装备右键菜单数据
-      equipmentContextMenu: {
-        visible: false,
-        left: 0,
-        top: 0,
-        slot: null,
-        equipment: null
-      }
     };
   },
   components: { weaponPanel, armorPanel, ringPanel, neckPanel, dungeons, backpackPanel, shopPanel, cTooltip, strengthenEquipment, extras, qa, setting, reinPanel },
@@ -628,12 +610,6 @@ export default {
     this.loadGame(sd)
     //生成随机副本
     this.createdDungeons()
-
-    // 全局点击关闭右键菜单
-    document.addEventListener('click', this.closeEquipmentContextMenu);
-  },
-  beforeDestroy() {
-    document.removeEventListener('click', this.closeEquipmentContextMenu);
   },
   computed: {
     attribute() { return this.$store.state.playerAttribute.attribute },
@@ -1312,64 +1288,13 @@ export default {
             `,
         type: 'win'
       });
-    },
-    // 打开装备右键菜单
-    openEquipmentContextMenu(slot, event) {
-      event.stopPropagation();
-      event.preventDefault();
-      let equipment = null;
-      switch (slot) {
-        case 'weapon': equipment = this.playerWeapon; break;
-        case 'armor': equipment = this.playerArmor; break;
-        case 'ring': equipment = this.playerRing; break;
-        case 'neck': equipment = this.playerNeck; break;
-        default: return;
-      }
-      if (!equipment || !equipment.type) {
-        return;
-      }
-      // 计算菜单位置
-      const menuMinWidth = 80;
-      const offsetLeft = this.$el.getBoundingClientRect().left;
-      const offsetWidth = this.$el.offsetWidth;
-      const maxLeft = offsetWidth - menuMinWidth;
-      let left = event.clientX - offsetLeft + 15;
-      this.equipmentContextMenu.left = left > maxLeft ? maxLeft : left;
-      this.equipmentContextMenu.top = event.offsetY;
-      this.equipmentContextMenu.visible = true;
-      this.equipmentContextMenu.slot = slot;
-      this.equipmentContextMenu.equipment = equipment;
-    },
-    // 关闭装备右键菜单
-    closeEquipmentContextMenu() {
-      this.equipmentContextMenu.visible = false;
-      this.equipmentContextMenu.slot = null;
-      this.equipmentContextMenu.equipment = null;
-    },
-    // 强化装备
-    strengthenEquipmentFromContext() {
-      if (!this.equipmentContextMenu.equipment) return;
-      // 设置需要强化的装备到 store
-      this.$store.commit('set_need_strengthen_equipment', this.$deepCopy(this.equipmentContextMenu.equipment));
-      // 打开强化面板
-      this.strengthenEquipmentPanelOpened = true;
-      // 关闭右键菜单
-      this.closeEquipmentContextMenu();
-    },
-    // 查看装备
-    viewEquipmentFromContext() {
-      if (!this.equipmentContextMenu.equipment) return;
-      // 模拟鼠标悬浮显示装备信息
-      let fakeEvent = { pageX: this.equipmentContextMenu.left, pageY: this.equipmentContextMenu.top };
-      let type = this.equipmentContextMenu.slot;
-      this.showItemInfo(fakeEvent, type, this.equipmentContextMenu.equipment, true);
-      this.closeEquipmentContextMenu();
     }
   }
 };
+
+
 </script>
 <style lang="scss" scoped>
-/* 原有样式保持不变 */
 * {
   box-sizing: border-box;
   user-select: none;
@@ -1946,32 +1871,6 @@ a {
     background: #000;
     border: 1px solid #fff;
     white-space: nowrap;
-  }
-}
-/* 装备右键菜单样式 */
-.contextmenu.equipment-contextmenu {
-  margin: 0;
-  background: #000;
-  border: 1px solid #fff;
-  z-index: 3000;
-  position: absolute;
-  list-style-type: none;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 400;
-  color: #fff;
-  box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
-  li {
-    margin: 0;
-    padding: 9px 16px;
-    cursor: pointer;
-    border-top: 1px solid #ccc;
-    margin-top: -1px;
-    font-size: 14px;
-    letter-spacing: 6px;
-    &:hover {
-      color: #ccc;
-    }
   }
 }
 </style>
