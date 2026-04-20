@@ -81,7 +81,7 @@ export default {
   data() {
     // 从 localStorage 安全读取剩余刷新次数（上限改为10）
     let savedRefreshTime = localStorage.getItem('shop_refreshTime');
-    let refreshTime = 10;  // 初始值改为10
+    let refreshTime = 10;
     if (savedRefreshTime !== null) {
       let parsed = parseInt(savedRefreshTime);
       if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
@@ -134,10 +134,10 @@ export default {
       currentItem: {},
       currentItemIndex: "",
       refreshTime: refreshTime,
-      timeo: 30,  // 恢复间隔改为30秒
-      timeStart: false,
-      timeInterval: '',
-      autoBuyTimer: null,  // 用于自动刷新定时器
+      timeo: 30,          // 显示的倒计时秒数（30秒恢复或5秒自动刷新）
+      timeStart: false,   // 是否正在倒计时
+      timeInterval: null, // 用于恢复倒计时的定时器
+      autoBuyTimer: null, // 用于自动刷新倒计时的定时器
       isTouch: false,
       tipsFlag: false,
       tipsFlagComfirm: false,
@@ -160,28 +160,20 @@ export default {
       }
     },
     refreshTime(value) {
-      // 保存到 localStorage（上限改为10）
+      // 保存到 localStorage
       if (value >= 0 && value <= 10) {
         localStorage.setItem('shop_refreshTime', value);
       }
       // 当剩余次数不足10时，停止自动刷新定时器，启动恢复倒计时
       if (value < 10) {
         this.stopAutoBuyTimer();
-        if (this.timeStart) return;
-        this.timeStart = true;
-        this.timeInterval = setInterval(() => {
-          this.timeo--;
-          if (this.timeo <= 0) {
-            this.refreshTime++;
-            this.timeo = 30;
-          }
-        }, 1000);
+        if (!this.timeStart) {
+          this.startRecoveryTimer();
+        }
       } else {
         // 次数已满，停止恢复倒计时
-        this.timeStart = false;
-        this.timeo = 30;
-        clearInterval(this.timeInterval);
-        // 如果自动购买开启，则启动自动刷新定时器（每5秒刷新一次）
+        this.stopRecoveryTimer();
+        // 如果自动购买开启，则启动自动刷新倒计时
         if (this.autoBuy) {
           this.startAutoBuyTimer();
         }
@@ -190,17 +182,13 @@ export default {
     autoBuy(value) {
       localStorage.setItem('shop_autoBuy', value);
       if (value === true && this.refreshTime >= 10) {
-        // 自动购买开启且次数已满，立即刷新一次，并启动定时器
-        this.autoBuyItems();
-        this.refreshShopItems(true);
+        // 开启自动购买且次数已满，启动自动刷新倒计时
         this.startAutoBuyTimer();
       } else if (value === false) {
-        // 关闭自动购买时停止定时器
+        // 关闭自动购买，停止自动刷新定时器，恢复为恢复倒计时（如果次数不满）
         this.stopAutoBuyTimer();
-        // 如果次数满但未开启自动购买，不显示倒计时（或者显示0？保持无倒计时）
-        if (this.refreshTime >= 10) {
-          this.timeStart = false;
-          this.timeo = 30;
+        if (this.refreshTime < 10 && !this.timeStart) {
+          this.startRecoveryTimer();
         }
       }
     },
@@ -257,43 +245,83 @@ export default {
   },
   mounted() {
     this.initShopItems();
-    // 初始剩余次数不足10且倒计时未启动时，手动启动倒计时
-    if (this.refreshTime < 10 && !this.timeStart) {
+    if (this.refreshTime < 10) {
+      // 初始次数不足，启动恢复倒计时
+      if (!this.timeStart) {
+        this.startRecoveryTimer();
+      }
+    } else if (this.refreshTime >= 10 && this.autoBuy) {
+      // 初始次数已满且自动购买开启，启动自动刷新倒计时
+      this.startAutoBuyTimer();
+    }
+  },
+  beforeDestroy() {
+    this.stopRecoveryTimer();
+    this.stopAutoBuyTimer();
+  },
+  methods: {
+    // 启动恢复倒计时（30秒恢复1次）
+    startRecoveryTimer() {
+      this.stopRecoveryTimer();
       this.timeStart = true;
+      this.timeo = 30;
       this.timeInterval = setInterval(() => {
+        if (this.refreshTime >= 10) {
+          // 次数已满，停止恢复倒计时
+          this.stopRecoveryTimer();
+          if (this.autoBuy) {
+            this.startAutoBuyTimer();
+          }
+          return;
+        }
         this.timeo--;
         if (this.timeo <= 0) {
           this.refreshTime++;
           this.timeo = 30;
         }
       }, 1000);
-    } else if (this.refreshTime >= 10 && this.autoBuy) {
-      // 初始时次数满且自动购买开启，启动自动刷新定时器
-      this.startAutoBuyTimer();
-    }
-  },
-  beforeDestroy() {
-    this.stopAutoBuyTimer();
-    clearInterval(this.timeInterval);
-  },
-  methods: {
-    // 启动自动刷新定时器（每5秒刷新一次，直到次数不足或自动购买关闭）
+    },
+    // 停止恢复倒计时
+    stopRecoveryTimer() {
+      if (this.timeInterval) {
+        clearInterval(this.timeInterval);
+        this.timeInterval = null;
+      }
+      this.timeStart = false;
+      this.timeo = 30;
+    },
+    // 启动自动刷新倒计时（5秒倒计时，归零时自动刷新）
     startAutoBuyTimer() {
-      this.stopAutoBuyTimer(); // 确保只有一个
-      this.timeStart = true;
-      this.timeo = 5; // 显示5秒倒计时
-      this.autoBuyTimer = setInterval(() => {
-        if (this.refreshTime >= 10 && this.autoBuy) {
-          // 刷新商店（使用约束模式避免弹窗）
-          this.refreshShopItems(true);
-          // 刷新后次数会减少，如果仍然满10次，继续倒计时；否则定时器会在watch中停止
-          if (this.refreshTime >= 10) {
-            this.timeo = 5; // 重置倒计时显示
+      this.stopAutoBuyTimer(); // 先停止已有的
+      if (this.refreshTime >= 10 && this.autoBuy) {
+        this.timeStart = true;
+        this.timeo = 5;
+        this.autoBuyTimer = setInterval(() => {
+          if (this.refreshTime >= 10 && this.autoBuy) {
+            this.timeo--;
+            if (this.timeo <= 0) {
+              // 倒计时归零，执行自动刷新
+              this.refreshShopItems(true);
+              // 刷新后如果次数仍然满10且自动购买开启，重置倒计时为5秒
+              if (this.refreshTime >= 10 && this.autoBuy) {
+                this.timeo = 5;
+              } else {
+                // 次数不足，停止自动刷新定时器，并启动恢复倒计时
+                this.stopAutoBuyTimer();
+                if (this.refreshTime < 10 && !this.timeStart) {
+                  this.startRecoveryTimer();
+                }
+              }
+            }
+          } else {
+            // 条件不满足，停止定时器
+            this.stopAutoBuyTimer();
+            if (this.refreshTime < 10 && !this.timeStart) {
+              this.startRecoveryTimer();
+            }
           }
-        } else {
-          this.stopAutoBuyTimer();
-        }
-      }, 5000);
+        }, 1000);
+      }
     },
     // 停止自动刷新定时器
     stopAutoBuyTimer() {
@@ -301,7 +329,7 @@ export default {
         clearInterval(this.autoBuyTimer);
         this.autoBuyTimer = null;
       }
-      if (this.refreshTime < 10) {
+      if (!this.timeInterval) {
         this.timeStart = false;
         this.timeo = 30;
       }
@@ -351,7 +379,7 @@ export default {
         });
         return;
       }
-      // 上限改为10
+      // 上限修正
       if (this.refreshTime > 10) {
         this.refreshTime = 10;
       }
@@ -371,6 +399,7 @@ export default {
       if (this.autoBuy) {
         this.autoBuyItems();
       }
+      // 刷新后若次数变为9，自动刷新定时器会在 refreshTime 的 watch 中停止并启动恢复倒计时
     },
     goldRefreshShopItems(constraint) {
       this.tipsFlag = !constraint && this.grid.find(item => {
