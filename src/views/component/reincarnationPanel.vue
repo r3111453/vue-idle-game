@@ -402,20 +402,21 @@ export default {
     },
     resetPoints() {
       if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
-        // 计算当前已分配的点数（基于 attr 中的 point）
-        let spentPoints = 0
-        this.attr.forEach(item => {
-          spentPoints += item.point
-        })
-        const currentRemain = this.$store.state.reincarnation.point
-        const newRemain = currentRemain + spentPoints
-        // 重置所有属性相关数据
-        this.attr.forEach(item => {
-          item.point = 0
-          item.currentValue = 0
-          item.oldValue = 0
-          item.hasPoint = 0
-        })
+        // 直接基于 store 原始属性反推已分配点数，避免依赖组件内部 attr 状态
+        const ra = this.$store.state.reincarnationAttribute;
+        let spentPoints = 0;
+        spentPoints += ra.HP / 10;
+        spentPoints += ra.ATK / 3;
+        spentPoints += ra.CRIT / 0.1;
+        spentPoints += ra.CRITDMG / 1;
+        spentPoints += ra.DEF / 2;
+        spentPoints += ra.BLOC / 2;
+        spentPoints += ra.MOVESPEED ? -(ra.MOVESPEED / 0.06) : 0;
+        spentPoints += ra.BATTLESPEED ? -(ra.BATTLESPEED / 3) : 0;
+        
+        const currentRemain = this.$store.state.reincarnation.point;
+        const newRemain = currentRemain + spentPoints;
+        
         // 清空 store 中的转生属性加成
         this.$store.commit('set_player_rein_attribute', {
           HP: 0,
@@ -426,18 +427,20 @@ export default {
           BLOC: 0,
           MOVESPEED: 0,
           BATTLESPEED: 0,
-        })
+        });
         // 更新剩余点数
         this.$store.commit('set_player_rein', {
           count: this.reinCount,
           point: newRemain
-        })
-        // 重新触发角色属性计算（通过重新装备）
-        this.$store.commit('set_player_weapon', this.$store.state.playerAttribute.weapon)
-        this.$store.commit('set_player_armor', this.$store.state.playerAttribute.armor)
-        this.$store.commit('set_player_ring', this.$store.state.playerAttribute.ring)
-        this.$store.commit('set_player_neck', this.$store.state.playerAttribute.neck)
-        this.$message({ message: '转生点数已重置', type: 'success' })
+        });
+        // 重新从 store 同步组件状态
+        this.initFromStore();
+        // 强制触发角色属性重新计算
+        this.$store.commit('set_player_weapon', this.$store.state.playerAttribute.weapon);
+        this.$store.commit('set_player_armor', this.$store.state.playerAttribute.armor);
+        this.$store.commit('set_player_ring', this.$store.state.playerAttribute.ring);
+        this.$store.commit('set_player_neck', this.$store.state.playerAttribute.neck);
+        this.$message({ message: '转生点数已重置', type: 'success' });
       }
     }
   }
