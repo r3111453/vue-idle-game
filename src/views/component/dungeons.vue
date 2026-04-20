@@ -196,26 +196,17 @@ export default {
     eventEnd() {
       setTimeout(() => {
         if (this.dungeons.type == "endless") {
-          const clearedLevel = this.dungeons.lv;
-          const currentMaxLevel = this.$store.state.playerAttribute.endlessLv;
-          if (clearedLevel > currentMaxLevel) {
-            this.$store.commit("set_endless_lv", clearedLevel);
-            this.$store.commit("set_sys_info", {
-              msg: `无尽挑战成功！刷新最高层数为 ${clearedLevel}`,
-              type: "win",
-            });
-          } else {
-            this.$store.commit("set_sys_info", {
-              msg: `挑战成功，但未超过最高层数 ${currentMaxLevel}`,
-              type: "win",
-            });
-          }
+          // 无尽模式：胜利后无条件增加1层
+          let newLevel = this.$store.state.playerAttribute.endlessLv + 1;
+          this.$store.commit("set_endless_lv", newLevel);
+          this.$store.commit("set_sys_info", {
+            msg: `无尽挑战成功！层数提升至 ${newLevel}`,
+            type: "win",
+          });
           this.$store.commit("set_player_curhp", 'full');
         } else {
           this.$store.commit("set_sys_info", {
-            msg: `
-                副本探索成功！
-              `,
+            msg: `副本探索成功！`,
             type: "win",
           });
         }
@@ -272,6 +263,7 @@ export default {
         monsterDeadTime = (monsterAttribute.HP / playerDPS)
 
       if (monsterDeadTime < playerDeadTime) {
+        // 战斗胜利
         battleTime = monsterDeadTime
         var takeDmg = -battleTime * Number(monsterAttribute.ATK)
         takeDmg = parseInt(takeDmg * reducedDamage)
@@ -308,29 +300,37 @@ export default {
           p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
         }
       } else {
-        this.$store.commit('set_player_curhp', 'dead')
-        clearInterval(this.pro)
-        clearTimeout(this.timeOut)
-        this.pro = {}
-        this.timeOut = {}
-        this.left = 0
-        this.nextEvent = 1
-        p.inDungeons = false
-        this.dungeons = {}
+        // 战斗失败
+        // 先处理无尽降层（必须在清空 dungeons 之前，因为需要判断类型）
+        if (this.dungeons && this.dungeons.type == 'endless') {
+          let newLv = Math.max(1, this.$store.state.playerAttribute.endlessLv - 1);
+          this.$store.commit('set_endless_lv', newLv);
+          this.$store.commit("set_sys_info", {
+            msg: `无尽挑战失败，层数降低至 ${newLv} 层。`,
+            type: 'warning'
+          });
+        }
+
+        this.$store.commit('set_player_curhp', 'dead');
+        clearInterval(this.pro);
+        clearTimeout(this.timeOut);
+        this.pro = {};
+        this.timeOut = {};
+        this.left = 0;
+        this.nextEvent = 1;
+        p.inDungeons = false;
+        this.dungeons = {};  // 最后清空
+
         var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
         takeDmg = parseInt(takeDmg * reducedDamage)
         takeDmg = takeDmg - playerBLOC
         takeDmg = takeDmg<1?1:takeDmg
         this.$store.commit("set_sys_info", {
-          msg: `
-              战斗失败！受到了${takeDmg}点伤害
-            `,
+          msg: `战斗失败！受到了${takeDmg}点伤害`,
           type: 'warning'
         });
         this.$store.commit("set_sys_info", {
-          msg: `
-              你可以尝试强化或者重铸装备之后在来挑战哦
-            `,
+          msg: `你可以尝试强化或者重铸装备之后再来挑战哦`,
           type: 'warning'
         });
       }
