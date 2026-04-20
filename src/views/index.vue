@@ -30,7 +30,7 @@
         </template>
         <template v-slot:tip>
           <p class="info">* 当前生命值/最大生命值</p>
-          <p class="info">* 每秒会回复2%的最大生命值</p>
+          <p class="info">* 每秒会回复3%的最大生命值</p>
           <p class="info">最大生命值=200+({{attribute.MAXHP.info[1]}}+{{attribute.MAXHP.info[0]}})*{{100+attribute.MAXHP.info[2]}}%</p>
         </template>
 
