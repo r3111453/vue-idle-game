@@ -256,12 +256,15 @@ export default {
           shouldRepeat = true;
         }
 
-        // 先清理当前战斗状态（但不清空 dungeons 数据，因为重复挑战时需要）
+        // 先清理当前战斗状态（但不清空 dungeons 数据）
         this.forcedToStopEvent();
 
         if (shouldRepeat) {
-          // 重新开始挑战
-          p.eventBegin();
+          // 重置进度，直接在当前子组件重新开始挑战（不通过父组件 eventBegin）
+          this.left = 0;
+          this.nextEvent = 1;
+          this.dungeons = currentDungeons; // 确保使用原始数据
+          this.evenHandle(); // 直接调用自身的 evenHandle
         } else {
           // 不再挑战，清空副本数据并退出界面
           this.dungeons = {};
