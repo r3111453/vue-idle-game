@@ -79,12 +79,12 @@ import { assist } from "../../assets/js/assist";
 export default {
   name: "shop",
   data() {
-    // 从 localStorage 安全读取剩余刷新次数
+    // 从 localStorage 安全读取剩余刷新次数（上限改为10）
     let savedRefreshTime = localStorage.getItem('shop_refreshTime');
-    let refreshTime = 5;
+    let refreshTime = 10;  // 初始值改为10
     if (savedRefreshTime !== null) {
       let parsed = parseInt(savedRefreshTime);
-      if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) {
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
         refreshTime = parsed;
       } else {
         localStorage.removeItem('shop_refreshTime');
@@ -123,7 +123,6 @@ export default {
     let savedAutoBuy = localStorage.getItem('shop_autoBuy');
     let autoBuy = false;
     if (savedAutoBuy !== null) {
-      // localStorage 存储的是字符串 "true" 或 "false"
       autoBuy = savedAutoBuy === 'true';
     }
 
@@ -135,7 +134,7 @@ export default {
       currentItem: {},
       currentItemIndex: "",
       refreshTime: refreshTime,
-      timeo: 60,
+      timeo: 30,  // 恢复间隔改为30秒
       timeStart: false,
       timeInterval: '',
       isTouch: false,
@@ -160,48 +159,47 @@ export default {
       }
     },
     refreshTime(value) {
-      // 保存到 localStorage（仅当值有效）
-      if (value >= 0 && value <= 5) {
+      // 保存到 localStorage（上限改为10）
+      if (value >= 0 && value <= 10) {
         localStorage.setItem('shop_refreshTime', value);
       }
-      if (value < 5) {
+      // 当剩余次数不足10时启动倒计时
+      if (value < 10) {
         if (this.timeStart) return;
         this.timeStart = true;
         this.timeInterval = setInterval(() => {
           this.timeo--;
           if (this.timeo <= 0) {
             this.refreshTime++;
-            this.timeo = 60;
+            this.timeo = 30;  // 重置为30秒
           }
         }, 1000);
       } else {
         this.timeStart = false;
-        this.timeo = 5;
+        this.timeo = 30;
         clearInterval(this.timeInterval);
-        if (this.autoBuy) {
+        if (this.autoBuy && this.refreshTime >= 10) {
           this.refreshShopItems(true);
         }
       }
     },
     autoBuy(value) {
-      // 保存到 localStorage
       localStorage.setItem('shop_autoBuy', value);
-      if (value === true && this.refreshTime === 5) {
+      // 当自动购买开启且刷新次数已满10次时，立即刷新并购买
+      if (value === true && this.refreshTime >= 10) {
         this.autoBuyItems();
         this.refreshShopItems(true);
       }
     },
-    // 监听角色等级变化，等级加载完成后进行防呆修正（只修正超过上限的情况）
+    // 监听角色等级变化
     '$store.state.playerAttribute.lv': {
       handler() {
         this.checkAndFixAutoBuyLevel();
       },
-      immediate: false  // 不立即执行，等待等级数据从存档加载完成，以保留用户保存的等级值
+      immediate: false
     },
-    // 监听用户手动修改最低等级，同样进行防呆修正
     autoBuyLevel(newVal, oldVal) {
       this.checkAndFixAutoBuyLevel();
-      // 保存到 localStorage
       if (newVal !== undefined && newVal !== null) {
         localStorage.setItem('shop_autoBuyLevel', newVal);
       }
@@ -239,31 +237,26 @@ export default {
         return output > 0 ? "(+" + output + ")" : "";
       };
     },
-    // 商店可能出现装备的最高等级 = 角色等级 + 2
     maxAutoBuyLevel() {
       const playerLv = this.$store.state.playerAttribute.lv || 1;
       return playerLv + 2;
     }
   },
   mounted() {
-    // 初始化商店商品（不消耗免费刷新次数）
     this.initShopItems();
-    // 如果初始 refreshTime < 5 且倒计时未启动，手动启动倒计时
-    if (this.refreshTime < 5 && !this.timeStart) {
+    // 初始剩余次数不足10且倒计时未启动时，手动启动倒计时
+    if (this.refreshTime < 10 && !this.timeStart) {
       this.timeStart = true;
       this.timeInterval = setInterval(() => {
         this.timeo--;
         if (this.timeo <= 0) {
           this.refreshTime++;
-          this.timeo = 60;
+          this.timeo = 30;
         }
       }, 1000);
     }
   },
   methods: {
-    /**
-     * 检查并修正 autoBuyLevel（只修正超过上限或小于1的情况，不主动提高）
-     */
     checkAndFixAutoBuyLevel() {
       const max = this.maxAutoBuyLevel;
       let currentVal = this.autoBuyLevel;
@@ -280,11 +273,7 @@ export default {
           type: 'warning'
         });
       }
-      // 如果当前值小于 max 且大于等于 1，不做任何修改，保留用户设置
     },
-    /**
-     * 初始化商店商品（不消耗次数）
-     */
     initShopItems() {
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
@@ -292,9 +281,6 @@ export default {
         this.createShopItem(lv);
       }
     },
-    /**
-     * 免费刷新商店（消耗1次次数）
-     */
     refreshShopItems(constraint) {
       this.tipsFlag = !constraint && this.grid.find(item => {
         return item.quality && item.quality.name == '独特';
@@ -316,8 +302,9 @@ export default {
         });
         return;
       }
-      if (this.refreshTime > 5) {
-        this.refreshTime = 5;
+      // 上限改为10
+      if (this.refreshTime > 10) {
+        this.refreshTime = 10;
       }
       if (this.refreshTime < 1) {
         this.$store.commit("set_sys_info", {
