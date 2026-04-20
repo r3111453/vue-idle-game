@@ -21,7 +21,6 @@
         <p>当前转生次数：{{reincarnationData.count}}次</p>
         <p>剩余转生点数：{{reincarnationData.point}}</p>
       </div>
-      <!-- 重置配点按钮 -->
       <div class="reset-btn-div">
         <div class="button reset-button" @click="resetPoints">重置配点</div>
       </div>
@@ -47,7 +46,6 @@ export default {
   mixins: [assist],
   data() {
     return {
-      reincarnationPoint: 100,
       reinCount: 0,
       willGetreincarnationPoint: 0,
       lvPoint:0,
@@ -114,15 +112,6 @@ export default {
           currentValue: 0,
           maxPoint: null,
         },
-        // {
-        //   name: 'GOLD',
-        //   showName: '金币获取倍率',
-        //   img: require('../../assets/icons/S_BLOC.png'),
-        //   oldValue: 0,
-        //   point: 0, unity: '',
-        //   currentValue: 0,
-        //   maxPoint: null,
-        // },
         {
           name: 'MOVESPEED',
           showName: '副本行进速度',
@@ -194,7 +183,6 @@ export default {
           break;
       }
     }
-    this.reincarnationPoint = this.reincarnationData.point
     this.reinCount = this.reincarnationData.count
   },
   computed: {
@@ -221,11 +209,10 @@ export default {
           this.clearPlayerInfo()
           this.$store.commit('set_player_rein', {
             count: this.reinCount + 1,
-            point: this.willGetreincarnationPoint + this.reincarnationPoint
+            point: this.willGetreincarnationPoint + this.reincarnationData.point
           })
           this.willGetreincarnationPoint = 0
           this.reinCount = this.reincarnationData.count
-          this.reincarnationPoint = this.reincarnationData.point
         }
       })
     },
@@ -281,19 +268,16 @@ export default {
       }
       if (v.point >= num) {
         v.point = v.point - num
-        this.reincarnationPoint = this.reincarnationPoint + num
+        // 更新 store 中的剩余点数
+        this.$store.commit('set_player_rein', {
+          count: this.reinCount,
+          point: this.reincarnationData.point + num
+        })
       }
-      this.$store.commit('set_player_rein', {
-        count: this.reinCount,
-        point: this.reincarnationPoint
-      })
       this.caculateAttr()
     },
     subtractDown(v,e) {
-      var flag = false;
-      var stop;
       this.subtractTimer1 = setTimeout(()=> {
-        flag = true;
         this.subtractTimer2 = setInterval(()=>{
           this.subtract(v,e)
         },50)
@@ -304,10 +288,7 @@ export default {
       clearInterval(this.subtractTimer2)
     },
     addDown(v,e) {
-      var flag = false;
-      var stop;
       this.addTimer1 = setTimeout(()=> {
-        flag = true;
         this.addTimer2 = setInterval(()=>{
           this.add(v,e)
         },50)
@@ -318,29 +299,24 @@ export default {
       clearInterval(this.addTimer2)
     },
     add(v, e) {
-      console.log(v)
       let num = 1
       if (e.shiftKey) {
         num = 10
       }
-
-      if(v.maxPoint&&v.point + num+v.hasPoint>v.maxPoint){
+      if(v.maxPoint && v.point + num + v.hasPoint > v.maxPoint){
         this.$store.commit("set_sys_info", {
-          msg: `
-              该项最多加点至${v.maxPoint}
-            `,
+          msg: `该项最多加点至${v.maxPoint}`,
           type: 'warning'
         });
         return
       }
-      if (this.reincarnationPoint >= num) {
+      if (this.reincarnationData.point >= num) {
         v.point = v.point + num
-        this.reincarnationPoint = this.reincarnationPoint - num
+        this.$store.commit('set_player_rein', {
+          count: this.reinCount,
+          point: this.reincarnationData.point - num
+        })
       }
-      this.$store.commit('set_player_rein', {
-        count: this.reinCount,
-        point: this.reincarnationPoint
-      })
       this.caculateAttr()
     },
     caculateAttr() {
@@ -394,54 +370,33 @@ export default {
       })
       this.$store.commit('set_player_rein_attribute', data)
     },
-    // 重置配点方法（使用原生 confirm）
     resetPoints() {
-  if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
-    let totalSpent = 0;
-    this.attr.forEach(item => {
-      totalSpent += item.point;
-    });
-    const newPoint = this.reincarnationPoint + totalSpent;
-    this.attr.forEach(item => {
-      item.point = 0;
-      switch (item.name) {
-        case 'HP':
+      if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
+        // 计算已分配的总点数
+        let totalSpent = 0;
+        this.attr.forEach(item => {
+          totalSpent += item.point;
+        });
+        // 当前剩余点数（来自 store）
+        let currentRemain = this.reincarnationData.point;
+        // 新的总剩余点数 = 当前剩余 + 已分配
+        const newRemain = currentRemain + totalSpent;
+        // 重置所有属性加点数为 0
+        this.attr.forEach(item => {
+          item.point = 0;
+          // 重置当前显示值为初始值
           item.currentValue = item.oldValue;
-          break;
-        case 'ATK':
-          item.currentValue = item.oldValue;
-          break;
-        case 'CRIT':
-          item.currentValue = item.oldValue;
-          break;
-        case 'CRITDMG':
-          item.currentValue = item.oldValue;
-          break;
-        case 'DEF':
-          item.currentValue = item.oldValue;
-          break;
-        case 'BLOC':
-          item.currentValue = item.oldValue;
-          break;
-        case 'MOVESPEED':
-          item.currentValue = item.oldValue;
-          break;
-        case 'BATTLESPEED':
-          item.currentValue = item.oldValue;
-          break;
-        default:
-          break;
+        });
+        // 更新 store 中的剩余点数
+        this.$store.commit('set_player_rein', {
+          count: this.reinCount,
+          point: newRemain
+        });
+        // 重新计算属性加成（会将 reincarnationAttribute 清零）
+        this.caculateAttr();
+        this.$message({ message: '转生点数已重置', type: 'success' });
       }
-    });
-    this.reincarnationPoint = newPoint;
-    this.$store.commit('set_player_rein', {
-      count: this.reinCount,
-      point: newPoint
-    });
-    this.caculateAttr();
-    this.$message({ message: '转生点数已重置', type: 'success' });
-  }
-}
+    }
   }
 };
 </script>
@@ -516,8 +471,6 @@ export default {
           input {
             width: 0.8rem;
           }
-          .button {
-          }
         }
       }
     }
@@ -530,7 +483,6 @@ export default {
   border-radius: 10%;
   overflow: hidden;
   position: relative;
-  // background: rgba(0, 0, 0, 0.1);
   z-index: 10;
   i {
     color: #ccc;
