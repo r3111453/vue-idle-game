@@ -135,54 +135,7 @@ export default {
   },
   mounted() {
     this.caculateWillGetreincarnationPoint()
-
-    for (let i in this.reincarnationAttribute) {
-      let item = this.reincarnationAttribute[i]
-      switch (i) {
-        case 'HP':
-          var p = this.attr.filter(({ name }) => name == 'HP')[0];
-          p.oldValue = p.currentValue = item
-          p.hasPoint = item / 10
-          break;
-        case 'ATK':
-          var p = this.attr.filter(({ name }) => name == 'ATK')[0];
-          p.oldValue = p.currentValue = item
-          p.hasPoint = item / 3
-          break;
-        case 'CRIT':
-          var p = this.attr.filter(({ name }) => name == 'CRIT')[0];
-          p.oldValue = p.currentValue = item
-          p.hasPoint = item / 0.1
-          break;
-        case 'CRITDMG':
-          var p = this.attr.filter(({ name }) => name == 'CRITDMG')[0];
-          p.oldValue = p.currentValue = item
-          p.hasPoint = item / 1
-          break;
-        case 'DEF':
-          var p = this.attr.filter(({ name }) => name == 'DEF')[0];
-          p.oldValue = p.currentValue = item
-          p.hasPoint = item / 2
-          break;
-        case 'BLOC':
-          var p = this.attr.filter(({ name }) => name == 'BLOC')[0];
-          p.oldValue = p.currentValue = item
-          p.hasPoint = item / 2
-          break;
-        case 'MOVESPEED':
-          var p = this.attr.filter(({ name }) => name == 'MOVESPEED')[0];
-          p.oldValue = p.currentValue = Number((-(item / 0.06 * 0.01)).toFixed(2))
-          p.hasPoint = -(item / 0.06)
-          break;
-        case 'BATTLESPEED':
-          var p = this.attr.filter(({ name }) => name == 'BATTLESPEED')[0];
-          p.oldValue = p.currentValue = Number((-(item / 3 * 0.01)).toFixed(2))
-          p.hasPoint = -(item / 3)
-          break;
-        default:
-          break;
-      }
-    }
+    this.initAttributes()
     this.reinCount = this.reincarnationData.count
   },
   computed: {
@@ -190,12 +143,59 @@ export default {
     reincarnationAttribute() { return this.$store.state.reincarnationAttribute },
   },
   methods: {
+    initAttributes() {
+      for (let i in this.reincarnationAttribute) {
+        let item = this.reincarnationAttribute[i]
+        switch (i) {
+          case 'HP':
+            var p = this.attr.find(({ name }) => name == 'HP');
+            p.oldValue = p.currentValue = item
+            p.hasPoint = item / 10
+            break;
+          case 'ATK':
+            var p = this.attr.find(({ name }) => name == 'ATK');
+            p.oldValue = p.currentValue = item
+            p.hasPoint = item / 3
+            break;
+          case 'CRIT':
+            var p = this.attr.find(({ name }) => name == 'CRIT');
+            p.oldValue = p.currentValue = item
+            p.hasPoint = item / 0.1
+            break;
+          case 'CRITDMG':
+            var p = this.attr.find(({ name }) => name == 'CRITDMG');
+            p.oldValue = p.currentValue = item
+            p.hasPoint = item / 1
+            break;
+          case 'DEF':
+            var p = this.attr.find(({ name }) => name == 'DEF');
+            p.oldValue = p.currentValue = item
+            p.hasPoint = item / 2
+            break;
+          case 'BLOC':
+            var p = this.attr.find(({ name }) => name == 'BLOC');
+            p.oldValue = p.currentValue = item
+            p.hasPoint = item / 2
+            break;
+          case 'MOVESPEED':
+            var p = this.attr.find(({ name }) => name == 'MOVESPEED');
+            p.oldValue = p.currentValue = Number((-(item / 0.06 * 0.01)).toFixed(2))
+            p.hasPoint = -(item / 0.06)
+            break;
+          case 'BATTLESPEED':
+            var p = this.attr.find(({ name }) => name == 'BATTLESPEED');
+            p.oldValue = p.currentValue = Number((-(item / 3 * 0.01)).toFixed(2))
+            p.hasPoint = -(item / 3)
+            break;
+          default:
+            break;
+        }
+      }
+    },
     reincarnationConfirm() {
       if (this.$store.state.playerAttribute.lv <= 30) {
         this.$store.commit("set_sys_info", {
-          msg: `
-              等级这么低就先别转了吧，超过lv:30再来看看
-            `,
+          msg: "等级这么低就先别转了吧，超过lv:30再来看看",
           type: 'warning'
         });
         return
@@ -263,36 +263,37 @@ export default {
     },
     subtract(v, e) {
       let num = 1
-      if (e.shiftKey) {
-        num = 10
-      }
+      if (e.shiftKey) num = 10
       if (v.point >= num) {
-        v.point = v.point - num
-        // 更新 store 中的剩余点数
+        v.point -= num
         this.$store.commit('set_player_rein', {
           count: this.reinCount,
           point: this.reincarnationData.point + num
         })
+        this.caculateAttr()
       }
-      this.caculateAttr()
     },
     subtractDown(v,e) {
-      this.subtractTimer1 = setTimeout(()=> {
-        this.subtractTimer2 = setInterval(()=>{
-          this.subtract(v,e)
-        },50)
-      }, 500);
+      clearTimeout(this.subtractTimer1)
+      clearInterval(this.subtractTimer2)
+      this.subtractTimer1 = setTimeout(() => {
+        this.subtractTimer2 = setInterval(() => {
+          this.subtract(v, e)
+        }, 50)
+      }, 500)
     },
     subtractUp(v) {
       clearTimeout(this.subtractTimer1)
       clearInterval(this.subtractTimer2)
     },
     addDown(v,e) {
-      this.addTimer1 = setTimeout(()=> {
-        this.addTimer2 = setInterval(()=>{
-          this.add(v,e)
-        },50)
-      }, 500);
+      clearTimeout(this.addTimer1)
+      clearInterval(this.addTimer2)
+      this.addTimer1 = setTimeout(() => {
+        this.addTimer2 = setInterval(() => {
+          this.add(v, e)
+        }, 50)
+      }, 500)
     },
     addUp(v) {
       clearTimeout(this.addTimer1)
@@ -300,24 +301,22 @@ export default {
     },
     add(v, e) {
       let num = 1
-      if (e.shiftKey) {
-        num = 10
-      }
-      if(v.maxPoint && v.point + num + v.hasPoint > v.maxPoint){
+      if (e.shiftKey) num = 10
+      if (v.maxPoint && v.point + num + v.hasPoint > v.maxPoint) {
         this.$store.commit("set_sys_info", {
           msg: `该项最多加点至${v.maxPoint}`,
           type: 'warning'
-        });
+        })
         return
       }
       if (this.reincarnationData.point >= num) {
-        v.point = v.point + num
+        v.point += num
         this.$store.commit('set_player_rein', {
           count: this.reinCount,
           point: this.reincarnationData.point - num
         })
+        this.caculateAttr()
       }
-      this.caculateAttr()
     },
     caculateAttr() {
       var data = {
@@ -330,75 +329,70 @@ export default {
         'MOVESPEED': 0,
         'BATTLESPEED': 0,
       }
-      this.attr.map(item => {
+      this.attr.forEach(item => {
         switch (item.name) {
           case 'HP':
             item.currentValue = item.point * 10 + item.oldValue
             data.HP = item.currentValue
-            break;
+            break
           case 'ATK':
             item.currentValue = item.point * 3 + item.oldValue
             data.ATK = item.currentValue
-            break;
+            break
           case 'CRIT':
             item.currentValue = Number((item.point * 0.1).toFixed(1)) + item.oldValue
             data.CRIT = item.currentValue
-            break;
+            break
           case 'CRITDMG':
             item.currentValue = item.point * 1 + item.oldValue
             data.CRITDMG = item.currentValue
-            break;
+            break
           case 'DEF':
             item.currentValue = item.point * 2 + item.oldValue
             data.DEF = item.currentValue
-            break;
+            break
           case 'BLOC':
             item.currentValue = item.point * 2 + item.oldValue
             data.BLOC = item.currentValue
-            break;
+            break
           case 'MOVESPEED':
             item.currentValue = Number((item.point * 0.01).toFixed(2)) + item.oldValue
             data.MOVESPEED = -((item.point + item.hasPoint) * 0.06)
-            break;
+            break
           case 'BATTLESPEED':
             item.currentValue = Number((item.point * 0.01).toFixed(2)) + item.oldValue
             data.BATTLESPEED = -((item.point + item.hasPoint) * 3)
-            break;
-          default:
-            break;
+            break
         }
       })
       this.$store.commit('set_player_rein_attribute', data)
     },
     resetPoints() {
-  if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
-    // 计算已分配的总点数
-    let totalSpent = 0;
-    this.attr.forEach(item => {
-      totalSpent += item.point;
-    });
-    // 直接从 store 中获取当前剩余点数（避免计算属性缓存问题）
-    const currentRemain = this.$store.state.reincarnation.point;
-    const newRemain = currentRemain + totalSpent;
-    // 重置所有属性的点数和显示值
-    this.attr.forEach(item => {
-      item.point = 0;
-      item.currentValue = item.oldValue;
-    });
-    // 更新 store 中的剩余点数
-    this.$store.commit('set_player_rein', {
-      count: this.reinCount,
-      point: newRemain
-    });
-    // 重新计算属性加成（将转生属性清零）
-    this.caculateAttr();
-    this.$message({ message: '转生点数已重置', type: 'success' });
-    // 强制刷新视图
-    this.$forceUpdate();
+      if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
+        // 计算所有已分配的点数
+        let spentPoints = 0
+        this.attr.forEach(item => {
+          spentPoints += item.point
+        })
+        const currentRemain = this.$store.state.reincarnation.point
+        const newRemain = currentRemain + spentPoints
+        // 重置所有属性的点数和显示值
+        this.attr.forEach(item => {
+          item.point = 0
+          item.currentValue = item.oldValue
+        })
+        // 更新 store 中的剩余点数
+        this.$store.commit('set_player_rein', {
+          count: this.reinCount,
+          point: newRemain
+        })
+        // 重新计算属性加成（将转生属性清零）
+        this.caculateAttr()
+        this.$message({ message: '转生点数已重置', type: 'success' })
+      }
+    }
   }
 }
-  }
-};
 </script>
 <style lang="scss" scoped>
 .reincarnation {
