@@ -148,7 +148,7 @@ export default new Vuex.Store({
     playerAttribute: {
       lv: 1,
       GOLD: 0,
-      healthRecoverySpeed: 1,
+      healthRecoverySpeed: 1.5,  // 每秒恢复 MAXHP/50 * 1.5 = 3% 最大生命值
       endlessLv: 0,
       attribute: {
         CURHP: {
