@@ -191,15 +191,18 @@ export default {
       this.pro = {}
       this.left = 0
       this.nextEvent = 1
-      this.dungeons = {}
+      // 注意：不要清空 this.dungeons，否则重复挑战时数据会丢失
+      // this.dungeons = {}
     },
     eventEnd() {
       // 如果 dungeons 已被清空（例如失败时已清理），则直接返回
       if (!this.dungeons || !this.dungeons.type) {
         return;
       }
+      // 保存当前 dungeons 的引用，因为后续可能需要用于重复挑战
+      let currentDungeons = this.dungeons;
       setTimeout(() => {
-        if (this.dungeons.type == "endless") {
+        if (currentDungeons.type == "endless") {
           // 无尽模式：胜利后无条件增加1层
           let newLevel = this.$store.state.playerAttribute.endlessLv + 1;
           this.$store.commit("set_endless_lv", newLevel);
@@ -218,14 +221,14 @@ export default {
         let p = this.findComponentUpward(this, 'index')
         let backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
 
-        if (this.dungeons.name == '黑色火山' && !this.$store.state.playerAttribute.endlessLv) {
+        if (currentDungeons.name == '黑色火山' && !this.$store.state.playerAttribute.endlessLv) {
           this.$store.commit("set_sys_info", {
             msg: "击败了最后的boss，你通关了！",
             type: 'warning'
           });
         }
 
-        if(this.dungeons.lv>=10&&!this.$store.state.playerAttribute.endlessLv){
+        if(currentDungeons.lv>=10&&!this.$store.state.playerAttribute.endlessLv){
           this.$store.commit("set_sys_info", {
             msg: "开启了无尽挑战，可点击地图右上角副本图标进入",
             type: 'warning'
@@ -236,20 +239,33 @@ export default {
           });
           this.$store.commit('set_endless_lv', 1)
         }
-        this.forcedToStopEvent()
+
         let backpackPanelSign = backpackPanel.itemNum / backpackPanel.grid.length < 0.8
-        if (p.reChallenge && backpackPanelSign) {
-          p.eventBegin()
+        let shouldRepeat = false;
+
+        // 判断是否需要重复挑战（根据不同的模式）
+        if (p.reChallenge && backpackPanelSign && currentDungeons.difficulty == 1) {
+          shouldRepeat = true;
         } else if (p.reEChallenge && p.dungeons && p.dungeons.type=='endless') {
           this.$store.commit("set_endless_lv", this.$store.state.playerAttribute.endlessLv - 1);
-          p.eventBegin()
+          shouldRepeat = true;
         } else if (p.upEChallenge && p.dungeons && p.dungeons.type=='endless') {
           p.endlessLv = this.$store.state.playerAttribute.endlessLv
           p.dungeons.lv = this.$store.state.playerAttribute.endlessLv
           p.showEndlessDungeonsInfo()
-          p.eventBegin()
+          shouldRepeat = true;
+        }
+
+        // 先清理当前战斗状态（但不清空 dungeons 数据，因为重复挑战时需要）
+        this.forcedToStopEvent();
+
+        if (shouldRepeat) {
+          // 重新开始挑战
+          p.eventBegin();
         } else {
-          p.inDungeons = false
+          // 不再挑战，清空副本数据并退出界面
+          this.dungeons = {};
+          p.inDungeons = false;
         }
       }, 100)
     },
