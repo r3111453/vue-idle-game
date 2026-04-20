@@ -65,7 +65,7 @@
           <input type="number" placeholder="100" v-model="autoBuyPriceTimes" min="0" style="width: 0.7rem;margin-left: 0.1rem;"/>
         </div>
       </div>
-      <div class="button" @click="goldRefreshShopItems()">10000金币刷新</div>
+      <div class="button" @click="goldRefreshShopItems()">5000金币刷新</div>
       <div class="button" @click="refreshShopItems()">免费刷新</div>
     </div>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
@@ -344,13 +344,13 @@ export default {
         });
         return;
       }
-      if (this.$store.state.playerAttribute.GOLD < 10000) {
+      if (this.$store.state.playerAttribute.GOLD < 5000) {
         this.$store.commit("set_sys_info", {
           msg: `钱不够啊，想啥呢。`,
           type: "warning",
         });
       } else {
-        this.$store.commit("set_player_gold", -10000);
+        this.$store.commit("set_player_gold", -5000);
         this.grid = new Array(5).fill({});
         for (let i = 0; i < 5; i++) {
           let lv = Math.floor(this.$store.state.playerAttribute.lv + Math.random() * 3);
