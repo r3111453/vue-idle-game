@@ -236,10 +236,10 @@ export default {
         let backpackPanelSign = backpackPanel.itemNum / backpackPanel.grid.length < 0.8
         if (p.reChallenge && backpackPanelSign) {
           p.eventBegin()
-        } else if (p.reEChallenge && p.dungeons && p.dungeons.type=='endless') {
+        } else if (p.reEChallenge&&p.dungeons.type=='endless') {
           this.$store.commit("set_endless_lv", this.$store.state.playerAttribute.endlessLv - 1);
           p.eventBegin()
-        } else if (p.upEChallenge && p.dungeons && p.dungeons.type=='endless') {
+        } else if (p.upEChallenge&&p.dungeons.type=='endless') {
           p.endlessLv = this.$store.state.playerAttribute.endlessLv
           p.dungeons.lv = this.$store.state.playerAttribute.endlessLv
           p.showEndlessDungeonsInfo()
@@ -307,16 +307,6 @@ export default {
           this.$store.commit('set_endless_lv', newLv);
           this.$store.commit("set_sys_info", {
             msg: `无尽挑战失败，层数降低至 ${newLv} 层。`,
-            type: 'warning'
-          });
-        }
-
-        // 中断向上挑战模式（取消勾选，避免失败后继续挑战降层后的层数）
-        if (p.upEChallenge) {
-          p.upEChallenge = false;
-          p.reEChallenge = false;
-          this.$store.commit("set_sys_info", {
-            msg: `向上挑战已中断。`,
             type: 'warning'
           });
         }
