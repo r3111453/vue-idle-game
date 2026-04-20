@@ -173,36 +173,32 @@
 
       </div>
 
-      <!-- 武器槽：添加右键脱下事件，并增强 v-if 判断 -->
-      <div class="weapon" @mouseover="showItemInfo($event,'weapon',playerWeapon,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('weapon', $event)">
-        <div class="title" v-if="playerWeapon && playerWeapon.type">
+      <div class="weapon" @mouseover="showItemInfo($event,'weapon',playerWeapon,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerWeapon">
           <div class='icon' :class="{'red-flash':playerWeapon.enchantlvl>=13,unique:playerWeapon.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerWeapon.quality.color}">
             <img :src="playerWeapon.type.iconSrc" alt="">
           </div>
           <div class='name' :style="{color:playerWeapon.quality.color}">{{playerWeapon.type.name}} {{playerWeapon.enchantlvl?'(+'+playerWeapon.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 防具槽 -->
-      <div class="armor" @mouseover="showItemInfo($event,'armor',playerArmor,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('armor', $event)">
-        <div class="title" v-if="playerArmor && playerArmor.type">
+      <div class="armor" @mouseover="showItemInfo($event,'armor',playerArmor,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerArmor">
           <div class='icon' :class="{'red-flash':playerArmor.enchantlvl>=13,unique:playerArmor.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px  '+playerArmor.quality.color}">
             <img :src="playerArmor.type.iconSrc" alt="">
           </div>
           <div class='name' :style="{color:playerArmor.quality.color}">{{playerArmor.type.name}} {{playerArmor.enchantlvl?'(+'+playerArmor.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 项链槽 -->
-      <div class="neck" @mouseover="showItemInfo($event,'neck',playerNeck,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('neck', $event)">
-        <div class="title" v-if="playerNeck && playerNeck.type">
+      <div class="neck" @mouseover="showItemInfo($event,'neck',playerNeck,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerNeck">
           <div class='icon' :class="{'red-flash':playerNeck.enchantlvl>=13,unique:playerNeck.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerNeck.quality.color}">
             <img :src="playerNeck.type.iconSrc" alt="">
           </div>
           <div class='name' :style="{color:playerNeck.quality.color}">{{playerNeck.type.name}} {{playerNeck.enchantlvl?'(+'+playerNeck.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 戒指槽 -->
-      <div class="ring" @mouseover="showItemInfo($event,'ring',playerRing,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('ring', $event)">
-        <div class="title" v-if="playerRing && playerRing.type">
+      <div class="ring" @mouseover="showItemInfo($event,'ring',playerRing,false)" @mouseleave="closeItemInfo">
+        <div class="title" v-if="playerRing">
           <div class='icon' :class="{'red-flash':playerRing.enchantlvl>=13,unique:playerRing.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerRing.quality.color}">
             <img :src="playerRing.type.iconSrc" alt="">
           </div>
@@ -257,26 +253,26 @@
         </cTooltip>
         <table class="info" style="width:100%;">
           <thead>
-            <tr>名称</th>
-          <td>生命值</th>
-          <td>攻击力</th>
-            <td>受到伤害</th>
-            <td>金币</th>
+            <td>名称</td>
+          <td>生命值</td>
+          <td>攻击力</td>
+            <td>受到伤害</td>
+            <td>金币</td>
           </thead>
           <tr v-for="(m,i) in dungeons.eventType">
-            <td>{{m.name}}</th>
-            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</th>
-            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</th>
-            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</th>
-            <td>{{m.trophy.gold}}</th>
-           </table>
+            <td>{{m.name}}</td>
+            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
+            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
+            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</td>
+            <td>{{m.trophy.gold}}</td>
+          </tr>
           <tr>
-            <td>合计</th>
-            <td>{{dungeons.totalHP}}</th>
-            <td>/</th>
-            <td>{{-dungeonsSimulator.allGetDamaged}}</th>
-            <td>{{dungeons.totalGold}}</th>
-           </tr>
+            <td>合计</td>
+            <td>{{dungeons.totalHP}}</td>
+            <td>/</td>
+            <td>{{-dungeonsSimulator.allGetDamaged}}</td>
+            <td>{{dungeons.totalGold}}</td>
+          </tr>
         </table>
         <div class="info">
           <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒{{dungeonsSimulator.victory?"胜利":"战败"}}<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span></p>
@@ -1292,66 +1288,11 @@ export default {
             `,
         type: 'win'
       });
-    },
-    /**
-     * 右键脱下装备
-     * @param {string} slot - 装备槽位: 'weapon', 'armor', 'ring', 'neck'
-     * @param {Event} event - 右键事件对象
-     */
-    unequipItem(slot, event) {
-      event.stopPropagation();
-      event.preventDefault();
-      try {
-        let currentEquipment = null;
-        switch (slot) {
-          case 'weapon': currentEquipment = this.playerWeapon; break;
-          case 'armor': currentEquipment = this.playerArmor; break;
-          case 'ring': currentEquipment = this.playerRing; break;
-          case 'neck': currentEquipment = this.playerNeck; break;
-          default: return;
-        }
-        if (!currentEquipment || !currentEquipment.type) {
-          this.$store.commit("set_sys_info", { msg: "这里没有装备可以卸下。", type: 'warning' });
-          return;
-        }
-        const backpackPanel = this.findComponentDownward(this, "backpackPanel");
-        if (!backpackPanel) {
-          console.error("未找到背包组件");
-          return;
-        }
-        let emptyIndex = -1;
-        for (let i = 0; i < backpackPanel.grid.length; i++) {
-          if (JSON.stringify(backpackPanel.grid[i]).length <= 3) {
-            emptyIndex = i;
-            break;
-          }
-        }
-        if (emptyIndex === -1) {
-          this.$store.commit("set_sys_info", { msg: "背包已满，无法卸下装备！", type: "warning" });
-          return;
-        }
-        this.$set(backpackPanel.grid, emptyIndex, this.$deepCopy(currentEquipment));
-        // 清空装备槽位：设置为 null 以避免空对象导致模板报错
-        switch (slot) {
-          case 'weapon': this.$store.commit('set_player_weapon', null); break;
-          case 'armor': this.$store.commit('set_player_armor', null); break;
-          case 'ring': this.$store.commit('set_player_ring', null); break;
-          case 'neck': this.$store.commit('set_player_neck', null); break;
-        }
-        this.$nextTick(() => {
-          this.saveGame(false);
-        });
-        this.$store.commit("set_sys_info", {
-          msg: `已卸下 ${currentEquipment.type.name}，放入背包。`,
-          type: "win",
-        });
-      } catch (err) {
-        console.error("卸下装备出错:", err);
-        this.$store.commit("set_sys_info", { msg: "卸下装备失败，请重试。", type: "warning" });
-      }
     }
   }
 };
+
+
 </script>
 <style lang="scss" scoped>
 * {
