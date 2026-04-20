@@ -79,7 +79,7 @@ import { assist } from "../../assets/js/assist";
 export default {
   name: "shop",
   data() {
-    // 从 localStorage 安全读取剩余刷新次数（上限改为10）
+    // 从 localStorage 安全读取剩余刷新次数（上限10）
     let savedRefreshTime = localStorage.getItem('shop_refreshTime');
     let refreshTime = 10;
     if (savedRefreshTime !== null) {
@@ -119,7 +119,7 @@ export default {
       }
     }
 
-    // 读取保存的自动购买开关状态（复选框）
+    // 读取保存的自动购买开关状态
     let savedAutoBuy = localStorage.getItem('shop_autoBuy');
     let autoBuy = false;
     if (savedAutoBuy !== null) {
@@ -134,10 +134,10 @@ export default {
       currentItem: {},
       currentItemIndex: "",
       refreshTime: refreshTime,
-      timeo: 30,          // 显示的倒计时秒数（30秒恢复或5秒自动刷新）
-      timeStart: false,   // 是否正在倒计时
-      timeInterval: null, // 用于恢复倒计时的定时器
-      autoBuyTimer: null, // 用于自动刷新倒计时的定时器
+      timeo: 30,            // 显示的倒计时秒数
+      timeStart: false,     // 是否正在倒计时
+      timeInterval: null,   // 恢复倒计时定时器
+      autoRefreshTimer: null, // 自动刷新定时器
       isTouch: false,
       tipsFlag: false,
       tipsFlagComfirm: false,
@@ -164,42 +164,44 @@ export default {
       if (value >= 0 && value <= 10) {
         localStorage.setItem('shop_refreshTime', value);
       }
-      // 当剩余次数不足10时，停止自动刷新定时器，启动恢复倒计时
+
+      // 次数不足10：停止自动刷新，启动恢复倒计时（30秒恢复1次）
       if (value < 10) {
-        this.stopAutoBuyTimer();
+        this.stopAutoRefresh();
         if (!this.timeStart) {
           this.startRecoveryTimer();
         }
-      } else {
-        // 次数已满，停止恢复倒计时
+      }
+      // 次数达到10：停止恢复倒计时，如果自动购买开启则启动自动刷新倒计时
+      else if (value >= 10) {
         this.stopRecoveryTimer();
-        // 如果自动购买开启，则启动自动刷新倒计时
         if (this.autoBuy) {
-          this.startAutoBuyTimer();
+          this.startAutoRefresh();
         }
       }
     },
     autoBuy(value) {
       localStorage.setItem('shop_autoBuy', value);
       if (value === true && this.refreshTime >= 10) {
-        // 开启自动购买且次数已满，启动自动刷新倒计时
-        this.startAutoBuyTimer();
+        // 开启自动购买且次数已满，启动自动刷新
+        this.startAutoRefresh();
       } else if (value === false) {
-        // 关闭自动购买，停止自动刷新定时器，恢复为恢复倒计时（如果次数不满）
-        this.stopAutoBuyTimer();
+        // 关闭自动购买，停止自动刷新
+        this.stopAutoRefresh();
+        // 如果次数不满10，启动恢复倒计时
         if (this.refreshTime < 10 && !this.timeStart) {
           this.startRecoveryTimer();
         }
       }
     },
-    // 监听角色等级变化
+    // 监听角色等级变化，用于自动购买等级防呆
     '$store.state.playerAttribute.lv': {
       handler() {
         this.checkAndFixAutoBuyLevel();
       },
       immediate: false
     },
-    autoBuyLevel(newVal, oldVal) {
+    autoBuyLevel(newVal) {
       this.checkAndFixAutoBuyLevel();
       if (newVal !== undefined && newVal !== null) {
         localStorage.setItem('shop_autoBuyLevel', newVal);
@@ -247,17 +249,15 @@ export default {
     this.initShopItems();
     if (this.refreshTime < 10) {
       // 初始次数不足，启动恢复倒计时
-      if (!this.timeStart) {
-        this.startRecoveryTimer();
-      }
+      this.startRecoveryTimer();
     } else if (this.refreshTime >= 10 && this.autoBuy) {
-      // 初始次数已满且自动购买开启，启动自动刷新倒计时
-      this.startAutoBuyTimer();
+      // 初始次数已满且自动购买开启，启动自动刷新
+      this.startAutoRefresh();
     }
   },
   beforeDestroy() {
     this.stopRecoveryTimer();
-    this.stopAutoBuyTimer();
+    this.stopAutoRefresh();
   },
   methods: {
     // 启动恢复倒计时（30秒恢复1次）
@@ -270,7 +270,7 @@ export default {
           // 次数已满，停止恢复倒计时
           this.stopRecoveryTimer();
           if (this.autoBuy) {
-            this.startAutoBuyTimer();
+            this.startAutoRefresh();
           }
           return;
         }
@@ -290,32 +290,32 @@ export default {
       this.timeStart = false;
       this.timeo = 30;
     },
-    // 启动自动刷新倒计时（5秒倒计时，归零时自动刷新）
-    startAutoBuyTimer() {
-      this.stopAutoBuyTimer(); // 先停止已有的
+    // 启动自动刷新（每5秒倒计时，归零时执行一次免费刷新）
+    startAutoRefresh() {
+      this.stopAutoRefresh();
       if (this.refreshTime >= 10 && this.autoBuy) {
         this.timeStart = true;
         this.timeo = 5;
-        this.autoBuyTimer = setInterval(() => {
+        this.autoRefreshTimer = setInterval(() => {
           if (this.refreshTime >= 10 && this.autoBuy) {
             this.timeo--;
             if (this.timeo <= 0) {
-              // 倒计时归零，执行自动刷新
+              // 倒计时归零，执行免费刷新
               this.refreshShopItems(true);
               // 刷新后如果次数仍然满10且自动购买开启，重置倒计时为5秒
               if (this.refreshTime >= 10 && this.autoBuy) {
                 this.timeo = 5;
               } else {
-                // 次数不足，停止自动刷新定时器，并启动恢复倒计时
-                this.stopAutoBuyTimer();
+                // 次数不足，停止自动刷新，启动恢复倒计时
+                this.stopAutoRefresh();
                 if (this.refreshTime < 10 && !this.timeStart) {
                   this.startRecoveryTimer();
                 }
               }
             }
           } else {
-            // 条件不满足，停止定时器
-            this.stopAutoBuyTimer();
+            // 条件不满足，停止自动刷新
+            this.stopAutoRefresh();
             if (this.refreshTime < 10 && !this.timeStart) {
               this.startRecoveryTimer();
             }
@@ -323,17 +323,18 @@ export default {
         }, 1000);
       }
     },
-    // 停止自动刷新定时器
-    stopAutoBuyTimer() {
-      if (this.autoBuyTimer) {
-        clearInterval(this.autoBuyTimer);
-        this.autoBuyTimer = null;
+    // 停止自动刷新
+    stopAutoRefresh() {
+      if (this.autoRefreshTimer) {
+        clearInterval(this.autoRefreshTimer);
+        this.autoRefreshTimer = null;
       }
       if (!this.timeInterval) {
         this.timeStart = false;
         this.timeo = 30;
       }
     },
+    // 修正自动购买等级（不超过角色等级+2）
     checkAndFixAutoBuyLevel() {
       const max = this.maxAutoBuyLevel;
       let currentVal = this.autoBuyLevel;
@@ -351,6 +352,7 @@ export default {
         });
       }
     },
+    // 初始化商店商品（不消耗次数）
     initShopItems() {
       this.grid = new Array(5).fill({});
       for (let i = 0; i < 5; i++) {
@@ -358,6 +360,7 @@ export default {
         this.createShopItem(lv);
       }
     },
+    // 免费刷新（消耗1次次数）
     refreshShopItems(constraint) {
       this.tipsFlag = !constraint && this.grid.find(item => {
         return item.quality && item.quality.name == '独特';
@@ -379,7 +382,6 @@ export default {
         });
         return;
       }
-      // 上限修正
       if (this.refreshTime > 10) {
         this.refreshTime = 10;
       }
@@ -399,8 +401,8 @@ export default {
       if (this.autoBuy) {
         this.autoBuyItems();
       }
-      // 刷新后若次数变为9，自动刷新定时器会在 refreshTime 的 watch 中停止并启动恢复倒计时
     },
+    // 金币刷新（消耗5000金币）
     goldRefreshShopItems(constraint) {
       this.tipsFlag = !constraint && this.grid.find(item => {
         return item.quality && item.quality.name == '独特';
@@ -436,6 +438,7 @@ export default {
         }
       }
     },
+    // 创建单个商店商品
     createShopItem(lv) {
       let equip = [0.4, 0.342, 0.25, 0.008];
       let equipQua = -1;
@@ -519,26 +522,21 @@ export default {
       this.buyTheEquipment();
     },
     autoBuyItems() {
-      console.log('=== autoBuyItems 执行 ===');
       this.grid.forEach(function(item, index) {
         if (item.quality && item.quality.name == '独特' && item.lv >= this.autoBuyLevel && item.gold <= this.$store.state.playerAttribute.GOLD / this.autoBuyPriceTimes) {
-          console.log(`\n检查装备: ${item.type.name} (等级${item.lv}, 价格${item.gold})`);
           let allPass = true;
           if (item.type.entry && item.type.entry.length) {
             for (let i = 0; i < item.type.entry.length; i++) {
               let entry = item.type.entry[i];
               let strengthValue = parseFloat(entry.strength);
-              console.log(`  基础词条: ${entry.name}, strength: "${entry.strength}", 解析后: ${strengthValue}`);
               if (isNaN(strengthValue)) strengthValue = 0;
               if (strengthValue < this.autoBuyStrength) {
-                console.log(`    ❌ 基础词条强度 ${strengthValue} < ${this.autoBuyStrength}，放弃购买`);
                 allPass = false;
                 break;
               }
             }
           }
           if (allPass) {
-            console.log(`✅ 所有不可洗词条强度达标，自动购买`);
             this.buyTheEquipmentEX(index);
             let items = [];
             items.push(item);
@@ -547,8 +545,6 @@ export default {
               type: 'trophy',
               equip: items
             });
-          } else {
-            console.log(`❌ 未达标，不购买`);
           }
         }
       }, this);
