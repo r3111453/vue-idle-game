@@ -317,18 +317,7 @@ export default {
         this.nextEvent = 1
         p.inDungeons = false
         this.dungeons = {}
-
-  // 新增：无尽模式失败降低层数
-  if (this.dungeons && this.dungeons.type == 'endless') {
-    let newLv = Math.max(1, this.$store.state.playerAttribute.endlessLv - 1);
-    this.$store.commit('set_endless_lv', newLv);
-    this.$store.commit("set_sys_info", {
-      msg: `无尽挑战失败，层数降低至 ${newLv} 层。`,
-      type: 'warning'
-    });
-  }
-
-  var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
+        var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
         takeDmg = parseInt(takeDmg * reducedDamage)
         takeDmg = takeDmg - playerBLOC
         takeDmg = takeDmg<1?1:takeDmg
