@@ -3,6 +3,8 @@
     <div class="progress-bar"></div>
     <div class="icon-bar">
       <div class="player" :style="{left:left+'%','backgroundPosition':parseInt(left%4)*32+'px 96px'}">
+        <!-- <img src="../../assets/icons/map/player-s.png" alt=""> -->
+        <!-- :style="{background-position:}" -->
       </div>
       <div class="monster" v-for="(v,k) in dungeons.eventType" :key="k" :style="{left:(100/dungeons.eventNum)*(k+1)+'%'}">
         <cTooltip placement="bottom">
@@ -123,6 +125,7 @@ export default {
   },
   mounted() {
     // this.evenHandle()
+
   },
   methods: {
     evenHandle() {
@@ -141,8 +144,10 @@ export default {
               this.eventEnd()
             }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
           }
+
           clearInterval(this.pro)
         }
+
         this.left += 0.5
       }
       this.eventBegin()
@@ -180,9 +185,11 @@ export default {
             this.battleCom(event)
           }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
           break;
+
         default:
           break;
       }
+
     },
     forcedToStopEvent() {
       clearInterval(this.pro)
@@ -194,22 +201,17 @@ export default {
       this.dungeons = {}
     },
     eventEnd() {
+
       setTimeout(() => {
+        // this.battleCom(event)
         if (this.dungeons.type == "endless") {
-          const clearedLevel = this.dungeons.lv;
-          const currentMaxLevel = this.$store.state.playerAttribute.endlessLv;
-          if (clearedLevel > currentMaxLevel) {
-            this.$store.commit("set_endless_lv", clearedLevel);
-            this.$store.commit("set_sys_info", {
-              msg: `无尽挑战成功！刷新最高层数为 ${clearedLevel}`,
-              type: "win",
-            });
-          } else {
-            this.$store.commit("set_sys_info", {
-              msg: `挑战成功，但未超过最高层数 ${currentMaxLevel}`,
-              type: "win",
-            });
-          }
+          this.$store.commit("set_sys_info", {
+            msg: `
+                挑战成功，可以挑战下一层了
+              `,
+            type: "win",
+          });
+          this.$store.commit("set_endless_lv", this.$store.state.playerAttribute.endlessLv + 1);
           this.$store.commit("set_player_curhp", 'full');
         } else {
           this.$store.commit("set_sys_info", {
@@ -224,6 +226,7 @@ export default {
         let backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
 
         if (this.dungeons.name == '黑色火山' && !this.$store.state.playerAttribute.endlessLv) {
+
           this.$store.commit("set_sys_info", {
             msg: "击败了最后的boss，你通关了！",
             type: 'warning'
@@ -254,10 +257,19 @@ export default {
           p.showEndlessDungeonsInfo()
           p.eventBegin()
         } else {
+          //p.dungeons = ''
           p.inDungeons = false
         }
+
+        // if(p.reEChallenge){
+        //   this.$store.commit("set_endless_lv", this.$store.state.playerAttribute.endlessLv - 1);
+        // }
+        // if(p.upEChallenge){
+        // }
+
       }, 100)
     },
+    // 计算战斗过程
     battleCom(event) {
       let playerAttribute = this.$store.state.playerAttribute.attribute,
         battleTime,
@@ -265,12 +277,13 @@ export default {
         reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
         playerDPS = playerAttribute.DPS,
         playerBLOC = playerAttribute.BLOC.value,
-        monsterAttribute = this.$deepCopy(event.attribute),
+        monsterAttribute = this.$deepCopy(event.attribute), //HP: 100,ATK: 1,
         p = this.findComponentUpward(this, 'index')
 
       var playerDeadTime = (playerAttribute.CURHP.value+playerBLOC) / reducedDamage / monsterAttribute.ATK,
         monsterDeadTime = (monsterAttribute.HP / playerDPS)
 
+      // 战斗获胜
       if (monsterDeadTime < playerDeadTime) {
         battleTime = monsterDeadTime
         var takeDmg = -battleTime * Number(monsterAttribute.ATK)
@@ -294,7 +307,9 @@ export default {
             type: 'win'
           });
         }
+        // 计算战利品获取
         this.caculateTrophy(event)
+        // 副本战斗成功时提升玩家等级
         if(this.dungeons.lv>this.$store.state.playerAttribute.lv&&event.type=='boss'){
           this.$store.commit("set_sys_info", {
             msg: `
@@ -304,10 +319,12 @@ export default {
           });
           this.$store.commit('set_player_lv', this.dungeons.lv)
         }
+        // 高难度副本只可以挑战一次
         if(this.dungeons.difficulty!=1){
           p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
         }
       } else {
+        // 玩家死亡
         this.$store.commit('set_player_curhp', 'dead')
         clearInterval(this.pro)
         clearTimeout(this.timeOut)
@@ -333,11 +350,15 @@ export default {
             `,
           type: 'warning'
         });
+
+
       }
     },
+    //战利品计算
     caculateTrophy(event) {
       var items = []
       var lv = this.dungeons.lv
+      // 获取独特装备
       if (event.type == 'boss' && this.dungeons.type != 'endless') {
         var randow = 1 - 0.02*((this.dungeons.difficulty-1)*2+1)
         if (Math.random() > randow) {
@@ -359,6 +380,7 @@ export default {
             var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
             items.push(JSON.parse(item))
           }
+
         }
       }
       var trophy = event.trophy
@@ -369,18 +391,25 @@ export default {
       var equipQua = -1;
       var r = Math.random()
       if (r <= equip[0]) {
+        // 获得破旧装备
         equipQua = 0
       } else if (r < equip[1] + equip[0] && r >= equip[0]) {
+        // 获得普通装备
         equipQua = 1
       }
       else if (r < equip[2] + equip[1] + equip[0] && r >= equip[1] + equip[0]) {
+        // 获得神器装备
         equipQua = 2
       }
       else if (r < equip[3] + equip[2] + equip[1] + equip[0] && r >= equip[2] + equip[1] + equip[0]) {
+        // 获得史诗装备
         equipQua = 3
       } else {
+        // 未获得装备
       }
+      //获得装备时
       if (equipQua != -1) {
+        // this.createEquip(equipQua,lv)
         var index = Math.floor((Math.random() * 4));
         if (index == 0) {
           var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
@@ -415,6 +444,7 @@ export default {
           return
         }
         items.map(item => {
+          // 当开启了自动出售并且新获得的装备品质低于史诗时，自动出售
           if (backpackPanel.autoSell[equipQua]&&item.quality.name!="独特") {
             var gold = item.lv * item.quality.qualityCoefficient * 30
             this.$store.commit("set_player_gold", parseInt(gold));
@@ -434,6 +464,7 @@ export default {
           }
         })
       } else {
+        //金币获取倍率
         var goldObtainRatio = 1
         if (this.dungeons.type == 'endless') {
           var endlessLv = this.$store.state.playerAttribute.endlessLv
@@ -448,9 +479,12 @@ export default {
         });
         this.$store.commit("set_player_gold", parseInt(event.trophy.gold * goldObtainRatio));
       }
+
     }
   }
 };
+
+
 </script>
 <style lang="scss" scoped>
 .dungeons {
@@ -485,6 +519,7 @@ export default {
       z-index: 2;
       height: 48px;
       width: 32px;
+      // background-position: -0px 96px !important;
       background-repeat: no-repeat;
       background: url(../../assets/icons/map/player-s.png);
     }
