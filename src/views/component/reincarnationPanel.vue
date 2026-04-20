@@ -1,6 +1,5 @@
 <template>
   <div class="reincarnation">
-    <!-- <a class="github" target="_blank" @click="navToGithub" title="源码" src="https://github.com/Couy69/vue-idle-game"></a> -->
     <div class="title">
       <p>现在转生可以获得{{willGetreincarnationPoint}}转生点数</p>
       <div class="info">
@@ -21,6 +20,10 @@
       <div class="info">
         <p>当前转生次数：{{reincarnationData.count}}次</p>
         <p>剩余转生点数：{{reincarnationData.point}}</p>
+      </div>
+      <!-- 增加重置配点按钮 -->
+      <div class="reset-btn-div">
+        <div class="button reset-button" @click="resetPoints">重置配点</div>
       </div>
       <div class="panel">
         <div class="item" v-for="(v,k) in attr" :key="k">
@@ -181,15 +184,11 @@ export default {
           var p = this.attr.filter(({ name }) => name == 'MOVESPEED')[0];
           p.oldValue = p.currentValue = Number((-(item / 0.06 * 0.01)).toFixed(2))
           p.hasPoint = -(item / 0.06)
-          // item.currentValue = Number((item.point * 0.01).toFixed(2))
-          // data.MOVESPEED = -(item.point * 0.06)
           break;
         case 'BATTLESPEED':
           var p = this.attr.filter(({ name }) => name == 'BATTLESPEED')[0];
           p.oldValue = p.currentValue = Number((-(item / 3 * 0.01)).toFixed(2))
           p.hasPoint = -(item / 3)
-          // item.currentValue = Number((item.point * 0.01).toFixed(2))
-          // data.BATTLESPEED = -(item.point * 3)
           break;
         default:
           break;
@@ -395,11 +394,66 @@ export default {
       })
       this.$store.commit('set_player_rein_attribute', data)
     },
-
+    // 重置配点方法
+    resetPoints() {
+      this.$confirm('重置后所有已分配的转生点数将返还，确认重置吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 计算已分配的总点数
+        let totalSpent = 0;
+        this.attr.forEach(item => {
+          totalSpent += item.point;
+        });
+        // 将剩余点数加上已分配的点数，恢复总可用点数
+        const newPoint = this.reincarnationPoint + totalSpent;
+        // 重置每个属性的 point 为 0
+        this.attr.forEach(item => {
+          item.point = 0;
+          // 重置 currentValue 为 oldValue
+          switch (item.name) {
+            case 'HP':
+              item.currentValue = item.oldValue;
+              break;
+            case 'ATK':
+              item.currentValue = item.oldValue;
+              break;
+            case 'CRIT':
+              item.currentValue = item.oldValue;
+              break;
+            case 'CRITDMG':
+              item.currentValue = item.oldValue;
+              break;
+            case 'DEF':
+              item.currentValue = item.oldValue;
+              break;
+            case 'BLOC':
+              item.currentValue = item.oldValue;
+              break;
+            case 'MOVESPEED':
+              item.currentValue = item.oldValue;
+              break;
+            case 'BATTLESPEED':
+              item.currentValue = item.oldValue;
+              break;
+            default:
+              break;
+          }
+        });
+        // 更新剩余点数
+        this.reincarnationPoint = newPoint;
+        this.$store.commit('set_player_rein', {
+          count: this.reinCount,
+          point: newPoint
+        });
+        // 重新计算属性加成（清零所有加成）
+        this.caculateAttr();
+        this.$message.success('转生点数已重置');
+      }).catch(() => {});
+    }
   }
 };
-
-
 </script>
 <style lang="scss" scoped>
 .reincarnation {
@@ -435,6 +489,19 @@ export default {
       display: flex;
       justify-content: space-between;
     }
+    .reset-btn-div {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0.1rem 0;
+      .reset-button {
+        background-color: #f56c6c;
+        color: white;
+        border-color: #f56c6c;
+        &:hover {
+          background-color: #f78989;
+        }
+      }
+    }
     .panel {
       padding: 0.05rem 0;
       .item {
@@ -466,7 +533,6 @@ export default {
     }
   }
 }
-
 .fb {
   width: 54px;
   height: 50px;
