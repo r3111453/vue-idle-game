@@ -195,26 +195,30 @@ export default {
     },
     eventEnd() {
       setTimeout(() => {
-        // 在 eventEnd 方法中，找到处理无尽模式的代码块，替换为以下内容：
-
-if (this.dungeons.type == "endless") {
-  // 胜利后无条件增加1层（不再判断是否超过历史最高）
-  let newLevel = this.$store.state.playerAttribute.endlessLv + 1;
-  this.$store.commit("set_endless_lv", newLevel);
-  this.$store.commit("set_sys_info", {
-    msg: `无尽挑战成功！层数提升至 ${newLevel}`,
-    type: "win",
-  });
-  // 回满血
-  this.$store.commit("set_player_curhp", 'full');
-}
-else {
-  // 普通副本的胜利逻辑保持不变
-  this.$store.commit("set_sys_info", {
-    msg: `副本探索成功！`,
-    type: "win",
-  });
-}
+        if (this.dungeons.type == "endless") {
+          const clearedLevel = this.dungeons.lv;
+          const currentMaxLevel = this.$store.state.playerAttribute.endlessLv;
+          if (clearedLevel > currentMaxLevel) {
+            this.$store.commit("set_endless_lv", clearedLevel);
+            this.$store.commit("set_sys_info", {
+              msg: `无尽挑战成功！刷新最高层数为 ${clearedLevel}`,
+              type: "win",
+            });
+          } else {
+            this.$store.commit("set_sys_info", {
+              msg: `挑战成功，但未超过最高层数 ${currentMaxLevel}`,
+              type: "win",
+            });
+          }
+          this.$store.commit("set_player_curhp", 'full');
+        } else {
+          this.$store.commit("set_sys_info", {
+            msg: `
+                副本探索成功！
+              `,
+            type: "win",
+          });
+        }
 
         let p = this.findComponentUpward(this, 'index')
         let backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
