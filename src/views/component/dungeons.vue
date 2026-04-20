@@ -14,7 +14,7 @@
             <p>{{v.name}}</p>
             <p>HP{{v.attribute.HP}}({{v.attribute.HPStrength}})</p>
               <p>ATK{{v.attribute.ATK}}({{v.attribute.ATKStrength}})</p>
-            <p>金钱{{v.trophy.gold}} 独特掉落率{{ (dungeons.type == "endless"?0:(v.type=="boss"?0.02*((dungeons.difficulty-1)*2+1):v.trophy.equip[3]))*100+"%"}}</p>
+            <p>金钱{{v.trophy.gold}} 独特掉落率{{ (dungeons.type == "endless"?0:(v.type=="boss"?0.05*((dungeons.difficulty-1)*2+1):v.trophy.equip[3]))*100+"%"}}</p>
             </div>
           </template>
         </cTooltip>
@@ -361,7 +361,8 @@ export default {
       var items = []
       var lv = this.dungeons.lv
       if (event.type == 'boss' && this.dungeons.type != 'endless') {
-        var randow = 1 - 0.02*((this.dungeons.difficulty-1)*2+1)
+        // 提高独特装备基础掉落率：从 0.02 改为 0.05（普通5%，困难15%，极难25%）
+        var randow = 1 - 0.05 * ((this.dungeons.difficulty - 1) * 2 + 1)
         if (Math.random() > randow) {
           var random = Math.random()
           if (random <= 0.3 && random > 0) {
