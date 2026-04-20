@@ -21,7 +21,7 @@
         <p>当前转生次数：{{reincarnationData.count}}次</p>
         <p>剩余转生点数：{{reincarnationData.point}}</p>
       </div>
-      <!-- 增加重置配点按钮 -->
+      <!-- 重置配点按钮 -->
       <div class="reset-btn-div">
         <div class="button reset-button" @click="resetPoints">重置配点</div>
       </div>
@@ -394,24 +394,16 @@ export default {
       })
       this.$store.commit('set_player_rein_attribute', data)
     },
-    // 重置配点方法
+    // 重置配点方法（使用原生 confirm）
     resetPoints() {
-      this.$confirm('重置后所有已分配的转生点数将返还，确认重置吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 计算已分配的总点数
+      if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
         let totalSpent = 0;
         this.attr.forEach(item => {
           totalSpent += item.point;
         });
-        // 将剩余点数加上已分配的点数，恢复总可用点数
         const newPoint = this.reincarnationPoint + totalSpent;
-        // 重置每个属性的 point 为 0
         this.attr.forEach(item => {
           item.point = 0;
-          // 重置 currentValue 为 oldValue
           switch (item.name) {
             case 'HP':
               item.currentValue = item.oldValue;
@@ -441,16 +433,14 @@ export default {
               break;
           }
         });
-        // 更新剩余点数
         this.reincarnationPoint = newPoint;
         this.$store.commit('set_player_rein', {
           count: this.reinCount,
           point: newPoint
         });
-        // 重新计算属性加成（清零所有加成）
         this.caculateAttr();
         this.$message.success('转生点数已重置');
-      }).catch(() => {});
+      }
     }
   }
 };
