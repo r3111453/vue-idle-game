@@ -85,10 +85,8 @@ export default {
         let attrItem = this.attr.find(a => a.name === i)
         if (!attrItem) continue
         if (i === 'MOVESPEED') {
-          // MOVESPEED 存储值为 - (point * 0.06)
           attrItem.point = Math.round(-item / 0.06)
         } else if (i === 'BATTLESPEED') {
-          // BATTLESPEED 存储值为 - (point * 3)
           attrItem.point = Math.round(-item / 3)
         } else {
           attrItem.point = Math.round(item / attrItem.coeff)
@@ -254,7 +252,7 @@ export default {
     },
     resetPoints() {
       if (confirm('重置后所有已分配的转生点数将返还，确认重置吗？')) {
-        // 计算已使用点数（基于重置前的 store 属性）
+        // 基于重置前的 store 属性计算已使用点数
         const oldAttr = this.$store.state.reincarnationAttribute
         let spent = 0
         spent += oldAttr.HP / 10
@@ -300,5 +298,177 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-/* 样式与原文件完全相同，请保留您原有的样式 */
+.reincarnation {
+  padding: 0.1rem;
+  width: 5rem;
+  .title {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #ccc;
+    .info {
+      padding-left: 0.2rem;
+      p {
+        color: #999;
+        font-size: 0.12rem;
+        margin: 0rem;
+      }
+    }
+    p {
+      margin: 0.1rem;
+      font-size: 0.16rem;
+    }
+    .btn-div {
+      padding: 0.1rem;
+      display: flex;
+      justify-content: flex-end;
+      padding-right: 0.3rem;
+    }
+  }
+  .content {
+    padding: 0.1rem;
+    .info {
+      padding: 0.04rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    .reset-btn-div {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0.1rem 0;
+      .reset-button {
+        background-color: #f56c6c;
+        color: white;
+        border-color: #f56c6c;
+        &:hover {
+          background-color: #f78989;
+        }
+      }
+    }
+    .panel {
+      padding: 0.05rem 0;
+      .item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.06rem;
+        p {
+          display: flex;
+          align-items: center;
+          img {
+            width: 0.25rem;
+            height: 0.25rem;
+          }
+          span {
+            margin-left: 0.06rem;
+          }
+        }
+        .group {
+          display: flex;
+          justify-content: space-between;
+          input {
+            width: 0.8rem;
+          }
+        }
+      }
+    }
+  }
+}
+.fb {
+  width: 54px;
+  height: 50px;
+  line-height: 100px;
+  border-radius: 10%;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+  i {
+    color: #ccc;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  .content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fb-content {
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    background: #061b21;
+    border-radius: 8%;
+    display: flex;
+    z-index: 2;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    display: inline-block;
+    background-color: #3e94ce;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    animation: bgmove 2s linear infinite;
+    @keyframes bgmove {
+      0% {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+      }
+      25% {
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+      }
+      50% {
+        top: calc(100% - 5px);
+        left: 0;
+        width: 100%;
+        height: 5px;
+      }
+      75% {
+        top: 0px;
+        left: calc(100% - 5px);
+        width: 5px;
+        height: 100%;
+      }
+      100% {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+      }
+    }
+  }
+  &::before {
+    content: "";
+    padding: 50%;
+    position: absolute;
+    top: -25%;
+    left: -25%;
+    bottom: -25%;
+    right: -25%;
+    transform-origin: center center;
+    transform: rotate(30deg) scale(2);
+    background: conic-gradient(
+      #3e94ce,
+      #3e94ce8a,
+      rgba(0, 0, 0, 0.06),
+      rgba(0, 0, 0, 0.06)
+    );
+    animation: rotate 2s linear infinite;
+    @keyframes rotate {
+      100% {
+        transform: rotate(-330deg) scale(2);
+      }
+    }
+  }
+}
 </style>
