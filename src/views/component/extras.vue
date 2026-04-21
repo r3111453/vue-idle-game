@@ -57,6 +57,7 @@ export default {
   mixins: [assist],
   data() {
     return {
+      GMmodel: true,  // 原本为 false
       checkedUpdateInfo: false,
       showExtrasInfo: false,
       name: '',
