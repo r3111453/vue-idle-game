@@ -121,6 +121,36 @@ var initial_weapon = {
     }]
   };
 
+// 定义空装备（无属性加成，用于脱下后替换）
+const emptyWeapon = {
+  lv: 1,
+  itemType: 'weapon',
+  quality: { name: '空', qualityCoefficient: 0, color: '#fff', extraEntryNum: 0 },
+  type: { name: '空', des: '', iconSrc: '', entry: [] },
+  extraEntry: []
+};
+const emptyArmor = {
+  lv: 1,
+  itemType: 'armor',
+  quality: { name: '空', qualityCoefficient: 0, color: '#fff', extraEntryNum: 0 },
+  type: { name: '空', des: '', iconSrc: '', entry: [] },
+  extraEntry: []
+};
+const emptyRing = {
+  lv: 1,
+  itemType: 'ring',
+  quality: { name: '空', qualityCoefficient: 0, color: '#fff', extraEntryNum: 0 },
+  type: { name: '空', des: '', iconSrc: '', entry: [] },
+  extraEntry: []
+};
+const emptyNeck = {
+  lv: 1,
+  itemType: 'neck',
+  quality: { name: '空', qualityCoefficient: 0, color: '#fff', extraEntryNum: 0 },
+  type: { name: '空', des: '', iconSrc: '', entry: [] },
+  extraEntry: []
+};
+
 export default new Vuex.Store({
   state: {
     needStrengthenEquipment: {}, //设定当前需要强化的装备
@@ -196,27 +226,40 @@ export default new Vuex.Store({
   },
   mutations: {
     set_player_weapon(state, data) {
-      this.state.playerAttribute.weapon = data
-      vueInstance.$store.commit('set_player_attribute')
+      // 如果传入的数据无效（空对象、null 或缺少 type 字段），则替换为空装备
+      if (!data || !data.type) {
+        data = emptyWeapon;
+      }
+      this.state.playerAttribute.weapon = data;
+      vueInstance.$store.commit('set_player_attribute');
     },
     set_player_armor(state, data) {
-      this.state.playerAttribute.armor = data
-      vueInstance.$store.commit('set_player_attribute')
+      if (!data || !data.type) {
+        data = emptyArmor;
+      }
+      this.state.playerAttribute.armor = data;
+      vueInstance.$store.commit('set_player_attribute');
     },
     set_player_ring(state, data) {
-      this.state.playerAttribute.ring = data
-      vueInstance.$store.commit('set_player_attribute')
+      if (!data || !data.type) {
+        data = emptyRing;
+      }
+      this.state.playerAttribute.ring = data;
+      vueInstance.$store.commit('set_player_attribute');
     },
     set_player_neck(state, data) {
-      this.state.playerAttribute.neck = data || initial_neck
-      vueInstance.$store.commit('set_player_attribute')
+      if (!data || !data.type) {
+        data = emptyNeck;
+      }
+      this.state.playerAttribute.neck = data;
+      vueInstance.$store.commit('set_player_attribute');
     },
     set_player_rein_attribute(state, data) {
-      this.state.reincarnationAttribute = data
-      vueInstance.$store.commit('set_player_attribute')
+      this.state.reincarnationAttribute = data;
+      vueInstance.$store.commit('set_player_attribute');
     },
     set_player_rein(state, data) {
-      this.state.reincarnation = data
+      this.state.reincarnation = data;
     },
     set_player_attribute(state, data) {
       var p = state.playerAttribute
@@ -448,7 +491,6 @@ export default new Vuex.Store({
           CURHP.value = MAXHP.value
         }
       }
-
     }
   },
 })
