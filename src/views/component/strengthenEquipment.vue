@@ -65,6 +65,11 @@
         </template>
       </cTooltip>
 
+      <!-- 一键重铸所有词条按钮 -->
+      <div class="btn-group" style="margin-bottom: 0.1rem;">
+        <div class="button" @click="recastAllEntries">一键重铸所有词条</div>
+      </div>
+
       <div class="extraEntry">
         <div class="extraEntry-item" v-for="(v,k) in equiment.extraEntry" :key="v.id" @click="recastTheEquiment(v,k)" @mouseover="changeRecastStatus(v,k,true)" @mouseleave="changeRecastStatus(v,k,false)">
           <button class="btn btn-snake-border" :class="qualityClass">
@@ -264,7 +269,7 @@ export default {
       this.autoStrengModel = false
       clearInterval(this.autoStrengTime)
     },
-    // 重铸装备
+    // 重铸装备（单个）
     recastTheEquiment(v, k) {
       if (this.$store.state.playerAttribute.GOLD < this.recastNeedGold) {
         this.$store.commit("set_sys_info", {
@@ -291,6 +296,53 @@ export default {
         this.qualityClass = 'S'
       }
       this.changeTheEquiment()
+    },
+    // 一键重铸所有词条
+    recastAllEntries() {
+      if (!this.equiment.extraEntry || this.equiment.extraEntry.length === 0) {
+        this.$store.commit("set_sys_info", {
+          msg: "没有可重铸的词条。",
+          type: "warning",
+        });
+        return;
+      }
+      let totalCost = 0;
+      let recastedCount = 0;
+      for (let i = 0; i < this.equiment.extraEntry.length; i++) {
+        const needGold = this.recastNeedGold;
+        if (this.$store.state.playerAttribute.GOLD < needGold) {
+          this.$store.commit("set_sys_info", {
+            msg: `金币不足，已重铸 ${recastedCount} 个词条后停止。`,
+            type: "warning",
+          });
+          break;
+        }
+        // 执行重铸
+        const newEntry = handle.createRandomEntry(this.equiment.lv, this.equiment.quality.qualityCoefficient);
+        this.$set(this.equiment.extraEntry, i, newEntry);
+        this.$store.commit("set_player_gold", -needGold);
+        totalCost += needGold;
+        recastedCount++;
+        // 更新品质颜色（取最后一个词条的颜色作为显示，与原逻辑一致）
+        const a = parseInt(this.equiment.extraEntry[i].EntryLevel);
+        if (a < 25) this.qualityClass = 'D';
+        else if (a < 50) this.qualityClass = 'C';
+        else if (a < 70) this.qualityClass = 'B';
+        else if (a < 90) this.qualityClass = 'A';
+        else this.qualityClass = 'S';
+      }
+      if (recastedCount > 0) {
+        this.changeTheEquiment();
+        this.$store.commit("set_sys_info", {
+          msg: `一键重铸完成，重铸了 ${recastedCount} 个词条，共花费 ${totalCost} 金币。`,
+          type: "win",
+        });
+      } else {
+        this.$store.commit("set_sys_info", {
+          msg: "一键重铸失败，请检查金币是否充足。",
+          type: "warning",
+        });
+      }
     },
     //根据强化等级变动装备
     changeTheEquimentByLv(lv) {
