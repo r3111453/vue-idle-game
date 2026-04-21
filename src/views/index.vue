@@ -392,7 +392,7 @@
           </div>
         </template>
         <template v-slot:tip>
-          <p class="info">* GM模式</p>
+          <p class="info">* 幸运抽奖</p>
         </template>
       </cTooltip>
 
