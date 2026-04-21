@@ -154,15 +154,26 @@ export default {
     clear(){
       this.grid = new Array(this.capacity).fill({});
     },
-    // 一键出售
+    // 一键出售（修复重复出售问题）
     sell() {
-      this.grid.map((item, index) => {
-        if (JSON.stringify(item) != '{}') {
-          this.currentItemIndex = index
-          this.currentItem = item
-          this.sellTheEquipment(true)
+      // 收集所有非空物品的索引（固定列表，避免遍历过程中数组变化）
+      const indices = [];
+      for (let i = 0; i < this.grid.length; i++) {
+        if (JSON.stringify(this.grid[i]) !== '{}') {
+          indices.push(i);
         }
-      })
+      }
+      // 依次出售
+      for (let i = 0; i < indices.length; i++) {
+        const idx = indices[i];
+        const item = this.grid[idx];
+        // 再次确认该格子还有装备（防止异步导致的改变）
+        if (item && JSON.stringify(item) !== '{}') {
+          this.currentItemIndex = idx;
+          this.currentItem = item;
+          this.sellTheEquipment(true);
+        }
+      }
       // 出售后清理可能的空装备
       this.removeEmptyEquipment();
     },
@@ -230,7 +241,7 @@ export default {
         default:
           break;
       }
-      // 装备后清理可能产生的空装备（例如身上换下来的装备可能是空装备，但不应放入背包，但 store 中已经保证不产生空装备）
+      // 装备后清理可能产生的空装备
       this.removeEmptyEquipment();
     },
     strengthenEquipment(v) {
@@ -239,26 +250,28 @@ export default {
       p.strengthenEquipmentPanelOpened = true
     },
     sellTheEquipment(withoutWarning, sellMsg) {
+      // 防止出售空装备
+      if (!this.currentItem || !this.currentItem.lv) {
+        return;
+      }
       if (this.currentItem.locked) {
         !withoutWarning && this.$store.commit("set_sys_info", {
-          msg: `
-              装备已锁定，请先解锁再出售。
-            `,
+          msg: `装备已锁定，请先解锁再出售。`,
           type: 'warning',
         });
-        return
+        return;
+      }
+      // 再次确认格子中的装备未被改变
+      if (JSON.stringify(this.grid[this.currentItemIndex]) === '{}') {
+        return;
       }
       this.$set(this.grid, this.currentItemIndex, {});
-      var gold = this.currentItem.lv * this.currentItem.quality.qualityCoefficient * 30
+      var gold = this.currentItem.lv * this.currentItem.quality.qualityCoefficient * 30;
       this.$store.commit("set_player_gold", parseInt(gold));
       this.$store.commit("set_sys_info", {
-        msg: `
-              ${sellMsg ? sellMsg : ''}出售装备获得金币${parseInt(gold)}
-            `,
+        msg: `${sellMsg ? sellMsg : ''}出售装备获得金币${parseInt(gold)}`,
         type: 'trophy',
       });
-      // 出售后清理空装备
-      this.removeEmptyEquipment();
     }
   },
 };
