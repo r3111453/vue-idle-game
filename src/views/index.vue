@@ -500,7 +500,7 @@ export default {
   mixins: [assist],
   data() {
     return {
-      GMmodel: false,
+      GMmodel: true,  // 原本为 false
       time: '00:00:00',
       sysInfo: {},
       weaponShow: false,
