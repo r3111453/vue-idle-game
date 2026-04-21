@@ -75,6 +75,8 @@ export default {
   mixins: [assist],
   created() {
     this.grid = new Array(this.capacity).fill({});
+    // 初始化时清理可能存在的空装备
+    this.removeEmptyEquipment();
   },
   watch: {
     visible(value) {
@@ -105,14 +107,31 @@ export default {
     }
   },
   mounted() {
-    // 测试数据（已注释）
+    // 确保加载后清理空装备
+    this.removeEmptyEquipment();
   },
   methods: {
+    // 清理背包中的空装备（quality.name === '空'）
+    removeEmptyEquipment() {
+      // 过滤掉空装备，然后重新填充空对象到末尾
+      const validItems = this.grid.filter(item => {
+        // 保留非空装备（有 lv 属性且 quality.name 不是 '空'）
+        return item.lv && (!item.quality || item.quality.name !== '空');
+      });
+      const newGrid = new Array(this.capacity).fill({});
+      for (let i = 0; i < validItems.length; i++) {
+        newGrid[i] = validItems[i];
+      }
+      this.grid = newGrid;
+    },
     setAutoSell(index){
       this.$set(this.autoSell,index,!this.autoSell[index])
     },
     // 整理背包：根据选择的排序模式进行排序
     neaten() {
+      // 先清理空装备
+      this.removeEmptyEquipment();
+      
       const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
       
       if (this.sortMode === 'type') {
@@ -144,6 +163,8 @@ export default {
           this.sellTheEquipment(true)
         }
       })
+      // 出售后清理可能的空装备
+      this.removeEmptyEquipment();
     },
     openMenu(k, e) {
       this.currentItemIndex = k
@@ -184,6 +205,11 @@ export default {
       this.currentItem.locked = v;
     },
     equipTheEquipment() {
+      // 装备前确保当前背包格子的装备不是空装备
+      if (this.currentItem.quality && this.currentItem.quality.name === '空') {
+        this.$store.commit("set_sys_info", { msg: "无法装备空装备。", type: "warning" });
+        return;
+      }
       switch (this.currentItem.itemType) {
         case 'weapon':
           this.grid[this.currentItemIndex] = this.$store.state.playerAttribute.weapon
@@ -204,6 +230,8 @@ export default {
         default:
           break;
       }
+      // 装备后清理可能产生的空装备（例如身上换下来的装备可能是空装备，但不应放入背包，但 store 中已经保证不产生空装备）
+      this.removeEmptyEquipment();
     },
     strengthenEquipment(v) {
       var p = this.findComponentUpward(this, 'index')
@@ -229,6 +257,8 @@ export default {
             `,
         type: 'trophy',
       });
+      // 出售后清理空装备
+      this.removeEmptyEquipment();
     }
   },
 };
