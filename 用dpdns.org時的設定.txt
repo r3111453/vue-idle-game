@@ -1,6 +1,0 @@
-﻿github的設定
-settings->pages
-Custom domain
-www.r3111453.dpdns.org
-save
-Enforce HTTPS打勾
