@@ -253,26 +253,26 @@
         </cTooltip>
         <table class="info" style="width:100%;">
           <thead>
-            <td>名称</td>
-          <td>生命值</td>
-          <td>攻击力</td>
-            <td>受到伤害</td>
-            <td>金币</td>
+            <tr>名称</th>
+          <td>生命值</th>
+          <td>攻击力</th>
+            <td>受到伤害</th>
+            <td>金币</th>
           </thead>
           <tr v-for="(m,i) in dungeons.eventType">
-            <td>{{m.name}}</td>
-            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
-            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
-            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</td>
-            <td>{{m.trophy.gold}}</td>
-          </tr>
+            <td>{{m.name}}</th>
+            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</th>
+            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</th>
+            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</th>
+            <td>{{m.trophy.gold}}</th>
+           </td>
           <tr>
-            <td>合计</td>
-            <td>{{dungeons.totalHP}}</td>
-            <td>/</td>
-            <td>{{-dungeonsSimulator.allGetDamaged}}</td>
-            <td>{{dungeons.totalGold}}</td>
-          </tr>
+            <td>合计</th>
+            <td>{{dungeons.totalHP}}</th>
+            <td>/</th>
+            <td>{{-dungeonsSimulator.allGetDamaged}}</th>
+            <td>{{dungeons.totalGold}}</th>
+           </tr>
         </table>
         <div class="info">
           <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒{{dungeonsSimulator.victory?"胜利":"战败"}}<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span></p>
@@ -457,19 +457,29 @@
         <div class="button" @click="importSaveData">导入</div>
       </div>
     </div>
+    <!-- 每小时抽抽乐面板（替换原 GM 面板） -->
     <div class="dialog-backpackPanel gm-panel" v-if="GMOpened">
       <div class="title">
-        <span>GM面板</span>
+        <span>🎲 每小时抽抽乐</span>
         <i class="close" @click="closePanel"></i>
       </div>
-      <div class="content">
-        <div class="body">
-          <span class="prompt-message">* 随机生成一套指定等级与质量的装备</span>
-          lv:<input v-model="GMEquipLv" type="number" placeholder="装备等级1~110">
-          稀有度：<input v-model="GMEquipQu" type="number" placeholder="装备质量0~4">
-          增加金币：<input v-model="GMGold" type="number" placeholder="增加金币">
-          玩家等级：<input v-model="GMPlayerLv" type="number" placeholder="玩家等级：">
-          <div class="button" @click="createGMEquip">确定</div>
+      <div class="content" style="padding: 0.2rem;">
+        <div class="draw-info" style="text-align: center; margin-bottom: 0.2rem;">
+          <div v-if="drawCooldownRemaining > 0" style="color: #ffaa00;">
+            距离下次抽奖还有：{{ formatTime(drawCooldownRemaining) }}
+          </div>
+          <div v-else style="color: #2fe20f;">
+            可以抽奖啦！点击下方按钮试试手气~
+          </div>
+        </div>
+        <div class="draw-btn" style="display: flex; justify-content: center; margin-bottom: 0.2rem;">
+          <div class="button" @click="performDraw" :disabled="drawCooldownRemaining > 0" style="padding: 0.1rem 0.3rem;">
+            🎁 抽一次（每小时1次）
+          </div>
+        </div>
+        <div class="draw-result" v-if="lastDrawReward" style="background: rgba(0,0,0,0.6); padding: 0.1rem; border-radius: 4px; text-align: center;">
+          <span>✨ 恭喜获得：</span>
+          <span style="color: #ffd966;">{{ lastDrawReward }}</span>
         </div>
       </div>
     </div>
@@ -549,6 +559,12 @@ export default {
       saveData: {},
       saveDateString: '',
       debounceTime: {},  //防抖计时器
+      // 抽抽乐相关
+      lastDrawTimestamp: 0,        // 上次抽奖的时间戳（毫秒）
+      drawCooldownSeconds: 3600,   // 冷却时间（秒）
+      drawCooldownRemaining: 0,    // 剩余冷却秒数
+      drawCooldownTimer: null,     // 定时器句柄
+      lastDrawReward: '',          // 上次抽奖结果文本
     };
   },
   components: { weaponPanel, armorPanel, ringPanel, neckPanel, dungeons, backpackPanel, shopPanel, cTooltip, strengthenEquipment, extras, qa, setting, reinPanel },
@@ -610,6 +626,13 @@ export default {
     this.loadGame(sd)
     //生成随机副本
     this.createdDungeons()
+    // 初始化抽奖冷却
+    this.initDrawCooldown()
+  },
+  beforeDestroy() {
+    if (this.drawCooldownTimer) {
+      clearInterval(this.drawCooldownTimer);
+    }
   },
   computed: {
     attribute() { return this.$store.state.playerAttribute.attribute },
@@ -1288,13 +1311,112 @@ export default {
             `,
         type: 'win'
       });
+    },
+    // 抽抽乐方法
+    initDrawCooldown() {
+      const saved = localStorage.getItem('lastDrawTimestamp');
+      if (saved) {
+        this.lastDrawTimestamp = parseInt(saved, 10);
+        this.updateDrawCooldown();
+      }
+    },
+    updateDrawCooldown() {
+      const now = Date.now();
+      const elapsed = (now - this.lastDrawTimestamp) / 1000;
+      const remaining = this.drawCooldownSeconds - elapsed;
+      if (remaining > 0) {
+        this.drawCooldownRemaining = Math.ceil(remaining);
+        if (!this.drawCooldownTimer) {
+          this.drawCooldownTimer = setInterval(() => {
+            if (this.drawCooldownRemaining > 0) {
+              this.drawCooldownRemaining--;
+            } else {
+              clearInterval(this.drawCooldownTimer);
+              this.drawCooldownTimer = null;
+            }
+          }, 1000);
+        }
+      } else {
+        this.drawCooldownRemaining = 0;
+        if (this.drawCooldownTimer) {
+          clearInterval(this.drawCooldownTimer);
+          this.drawCooldownTimer = null;
+        }
+      }
+    },
+    performDraw() {
+      if (this.drawCooldownRemaining > 0) {
+        this.$store.commit("set_sys_info", { msg: "抽奖冷却中，请稍后再试～", type: "warning" });
+        return;
+      }
+      const rand = Math.random();
+      let rewardMsg = '';
+      if (rand < 0.25) {
+        // 转生点数
+        const points = Math.floor(Math.random() * 50) + 1;
+        const currentRein = this.$store.state.reincarnation;
+        this.$store.commit('set_player_rein', {
+          count: currentRein.count,
+          point: currentRein.point + points
+        });
+        rewardMsg = `转生点数 +${points}`;
+      } else if (rand < 0.5) {
+        // 玩家等级提升
+        const levels = Math.floor(Math.random() * 5) + 1;
+        const newLv = this.playerLv + levels;
+        this.$store.commit('set_player_lv', newLv);
+        rewardMsg = `玩家等级 +${levels} (当前 ${newLv} 级)`;
+      } else if (rand < 0.75) {
+        // 随机独特装备
+        const equipType = ['weaponPanel', 'armorPanel', 'ringPanel', 'neckPanel'][Math.floor(Math.random() * 4)];
+        const comp = this.findComponentDownward(this, equipType);
+        if (comp) {
+          const lv = Math.max(1, this.playerLv + Math.floor(Math.random() * 6) - 3);
+          const itemStr = comp.createNewItem(4, lv);
+          const item = JSON.parse(itemStr);
+          const backpackPanel = this.findComponentDownward(this, "backpackPanel");
+          if (backpackPanel) {
+            let added = false;
+            for (let i = 0; i < backpackPanel.grid.length; i++) {
+              if (JSON.stringify(backpackPanel.grid[i]).length <= 3) {
+                this.$set(backpackPanel.grid, i, item);
+                added = true;
+                break;
+              }
+            }
+            if (added) {
+              rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})`;
+            } else {
+              rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})，但背包已满，未能获得！`;
+            }
+          } else {
+            rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})，但背包组件未找到！`;
+          }
+        } else {
+          rewardMsg = `独特装备生成失败，组件未找到`;
+        }
+      } else {
+        // 金币
+        const gold = Math.floor(Math.random() * 1000000) + 10000;
+        this.$store.commit('set_player_gold', gold);
+        rewardMsg = `金币 +${gold.toLocaleString()}`;
+      }
+      this.lastDrawReward = rewardMsg;
+      this.$store.commit("set_sys_info", { msg: `🎉 抽奖结果：${rewardMsg}`, type: "win" });
+      this.lastDrawTimestamp = Date.now();
+      localStorage.setItem('lastDrawTimestamp', this.lastDrawTimestamp);
+      this.updateDrawCooldown();
+    },
+    formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
   }
 };
-
-
 </script>
 <style lang="scss" scoped>
+/* 样式保持不变（与原文件相同） */
 * {
   box-sizing: border-box;
   user-select: none;
