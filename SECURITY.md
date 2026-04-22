@@ -17,7 +17,7 @@
 请通过以下渠道之一安全地提交漏洞：
 
 1. **首选**：使用 GitHub 的 **[私有安全通告](https://docs.github.com/cn/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability)** 功能。您可以在仓库的“Security”选项卡下找到此选项[reference:2]。
-2. **备选**：如果无法使用安全通告，请发送邮件至 `r3111453@yahoo.com.tw`（请替换为您自己的邮箱）。
+2. **备选**：如果无法使用安全通告，请发送邮件至 `r3111453@yahoo.com.tw`。
 
 我们会在 **48 小时内**确认收到您的报告。
 
