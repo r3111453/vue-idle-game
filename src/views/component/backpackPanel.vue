@@ -135,7 +135,8 @@ export default {
       const items = this.grid.filter(item => JSON.stringify(item) !== '{}');
       
       if (this.sortMode === 'type') {
-        const typeOrder = { weapon: 1, armor: 2, ring: 3, neck: 4 };
+        // 按照 武器 → 防具 → 项链 → 戒指 的顺序排列（与身上装备槽位顺序一致）
+        const typeOrder = { weapon: 1, armor: 2, neck: 3, ring: 4 };
         items.sort((a, b) => (typeOrder[a.itemType] || 5) - (typeOrder[b.itemType] || 5));
       } else if (this.sortMode === 'quality') {
         const qualityOrder = { '独特': 4, '史诗': 3, '神器': 2, '普通': 1, '破旧': 0 };
