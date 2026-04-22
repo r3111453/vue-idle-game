@@ -632,22 +632,7 @@ export default {
     this.createdDungeons()
     // 初始化抽奖冷却
     this.initDrawCooldown()
-
-  // ========== 新增：每周备份提醒 ==========
-  const lastBackupReminder = localStorage.getItem('lastBackupReminder');
-  const now = Date.now();
-  const oneWeek = 7 * 24 * 60 * 60 * 1000; // 一週
-
-  if (!lastBackupReminder || now - lastBackupReminder > oneWeek) {
-    this.$message({
-      message: '為了避免存檔遺失，建議您定期點擊「導出存檔」進行備份。',
-      title: '備份提醒',
-      closeBtnText: '稍後',
-      confirmBtnText: '我知道了',
-    });
-    localStorage.setItem('lastBackupReminder', now);
-  }
-},
+  },
   beforeDestroy() {
     if (this.drawCooldownTimer) {
       clearInterval(this.drawCooldownTimer);
