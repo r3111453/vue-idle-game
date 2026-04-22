@@ -85,7 +85,7 @@
               <span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span>
             </div>
           </button>
-          <!-- 目标词条选择下拉框 - 区分固定值和百分比 -->
+          <!-- 目标词条选择下拉框 -->
           <select v-model="targetEntryNames[k]" class="target-select" :disabled="autoRecastStatus[k]">
             <option value="">不限</option>
             <option value="攻击力">攻击力</option>
@@ -129,7 +129,7 @@ export default {
       qualityClass: '',
       qualityProbability: [0.25, 0.55, 0.15, 0.05,],
       simulateNeedTimes:0,
-      simulateNeedMoney: 0,  // 改为数字 0
+      simulateNeedMoney: 0,
       quality: [{
         name: '破旧',
         qualityCoefficient: 0.7,
@@ -152,10 +152,8 @@ export default {
         probability: '0.05',
         color: '#f78918', extraEntryNum: 4,
       }],
-      // 自动重铸状态
       autoRecastStatus: {},
       autoRecastTimers: {},
-      // 目标词条名称
       targetEntryNames: {},
     };
   },
@@ -209,7 +207,6 @@ export default {
       if (!this.equiment.enchantlvl) {
         this.$set(this.equiment, 'enchantlvl', 0)
       }
-      // 重置自动重铸状态
       this.autoRecastStatus = {};
       this.targetEntryNames = {};
       this.stopAllAutoRecast();
@@ -217,12 +214,10 @@ export default {
   },
   methods: {
     changeRecastStatus(v, k, status) {
-      // 设置是否处于重置状态中
       this.qualityClass = ''
       v.recastStatus = status
       this.$set(this.equiment.extraEntry, k, v)
     },
-    // 强化装备
     startStreng(auto) {
       if (this.strengTime&&this.equiment.enchantlvl>=12) {
         this.$store.commit("set_sys_info", {
@@ -235,9 +230,8 @@ export default {
         clearInterval(this.autoStrengTime)
         return
       }
-      // 自动强化需要金币倍率
       var ra = auto ? 2 : 1
-      var needGold = this.strengthenNeedGold * 1  //ra
+      var needGold = this.strengthenNeedGold * 1
       if (this.$store.state.playerAttribute.GOLD < needGold) {
         this.stopAutoStreng()
         this.$store.commit("set_sys_info", {
@@ -265,10 +259,8 @@ export default {
       }
       let r = Math.random()
       if (r < probabilityOfSuccess) {
-        // 强化成功
         lv++
       } else {
-        // 强化失败
         if (lv >= 5) {
           lv = lv - 1
         }
@@ -298,13 +290,33 @@ export default {
       this.autoStrengModel = false
       clearInterval(this.autoStrengTime)
     },
-    // 检查词条是否符合目标（精确匹配，区分固定值和百分比）
+    // 检查词条是否符合目标（通过 type 判断是否是百分比）
     isEntryMatchTarget(entry, targetName) {
-      if (!targetName) return true; // 没有设置目标，继续重铸
-      // 精确匹配词条名称（下拉框已经区分了固定值和百分比）
-      return entry.name === targetName;
+      if (!targetName) return true;
+      
+      // 如果目标是百分比类型（名称包含"百分比"）
+      if (targetName.includes('百分比')) {
+        // 只匹配百分比词条，通过 entry.type 判断
+        const isPercent = entry.type === 'ATKPERCENT' || 
+                          entry.type === 'DEFPERCENT' || 
+                          entry.type === 'HPPERCENT' || 
+                          entry.type === 'BLOCPERCENT';
+        
+        // 提取基础名称（去掉"百分比"）
+        const baseName = targetName.replace('百分比', '');
+        
+        // 检查是否是百分比类型，且名称匹配
+        return isPercent && entry.name === baseName;
+      } else {
+        // 目标是固定值类型，只匹配非百分比词条
+        const isNotPercent = entry.type !== 'ATKPERCENT' && 
+                             entry.type !== 'DEFPERCENT' && 
+                             entry.type !== 'HPPERCENT' && 
+                             entry.type !== 'BLOCPERCENT';
+        
+        return isNotPercent && entry.name === targetName;
+      }
     },
-    // 重铸装备（单个）
     recastTheEquiment(v, k) {
       if (this.$store.state.playerAttribute.GOLD < this.recastNeedGold) {
         this.$store.commit("set_sys_info", {
@@ -333,7 +345,6 @@ export default {
       this.changeTheEquiment()
       return true;
     },
-    // 一键重铸所有词条
     recastAllEntries() {
       if (!this.equiment.extraEntry || this.equiment.extraEntry.length === 0) {
         this.$store.commit("set_sys_info", {
@@ -353,13 +364,11 @@ export default {
           });
           break;
         }
-        // 执行重铸
         const newEntry = handle.createRandomEntry(this.equiment.lv, this.equiment.quality.qualityCoefficient);
         this.$set(this.equiment.extraEntry, i, newEntry);
         this.$store.commit("set_player_gold", -needGold);
         totalCost += needGold;
         recastedCount++;
-        // 更新品质颜色（取最后一个词条的颜色作为显示，与原逻辑一致）
         const a = parseInt(this.equiment.extraEntry[i].EntryLevel);
         if (a < 25) this.qualityClass = 'D';
         else if (a < 50) this.qualityClass = 'C';
@@ -380,24 +389,18 @@ export default {
         });
       }
     },
-    // 切换自动重铸
     toggleAutoRecast(index) {
       if (this.autoRecastStatus[index]) {
-        // 停止自动重铸
         this.stopAutoRecast(index);
       } else {
-        // 开始自动重铸
         this.startAutoRecast(index);
       }
     },
-    // 开始自动重铸（直到目标词条出现）
     startAutoRecast(index) {
-      // 先停止已有的定时器
       this.stopAutoRecast(index);
       
       this.autoRecastStatus[index] = true;
       
-      // 定义重铸逻辑
       const doRecast = () => {
         if (!this.autoRecastStatus[index]) return;
         
@@ -409,9 +412,8 @@ export default {
         
         const targetName = this.targetEntryNames[index];
         
-        // 检查当前词条是否已经是目标词条（精确匹配）
+        // 使用新的匹配方法
         if (this.isEntryMatchTarget(v, targetName)) {
-          // 已达到目标，停止自动重铸
           this.$store.commit("set_sys_info", {
             msg: `已获得目标词条「${targetName}」，自动重铸已停止。`,
             type: "win",
@@ -420,7 +422,6 @@ export default {
           return;
         }
         
-        // 检查金币
         if (this.$store.state.playerAttribute.GOLD < this.recastNeedGold) {
           this.$store.commit("set_sys_info", {
             msg: `金币不足，自动重铸已停止。`,
@@ -430,17 +431,14 @@ export default {
           return;
         }
         
-        // 执行重铸
         const success = this.recastTheEquiment(v, index);
         if (!success) {
           this.stopAutoRecast(index);
         }
       };
       
-      // 立即执行一次检查
       doRecast();
       
-      // 设置定时器，每0.8秒重铸一次
       this.autoRecastTimers[index] = setInterval(() => {
         if (this.autoRecastStatus[index]) {
           doRecast();
@@ -449,7 +447,6 @@ export default {
         }
       }, 800);
     },
-    // 停止自动重铸
     stopAutoRecast(index) {
       this.autoRecastStatus[index] = false;
       if (this.autoRecastTimers[index]) {
@@ -457,7 +454,6 @@ export default {
         this.autoRecastTimers[index] = null;
       }
     },
-    // 停止所有自动重铸
     stopAllAutoRecast() {
       for (let i in this.autoRecastTimers) {
         if (this.autoRecastTimers[i]) {
@@ -467,11 +463,9 @@ export default {
       }
       this.autoRecastStatus = {};
     },
-    //根据强化等级变动装备
     changeTheEquimentByLv(lv) {
       this.equiment.enchantlvl = lv
     },
-    //修改成功时保存这个装备
     changeTheEquiment() {
       var backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
       var index = this.findComponentUpward(this, 'index')
