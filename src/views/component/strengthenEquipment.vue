@@ -85,7 +85,21 @@
               <span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span>
             </div>
           </button>
-          <!-- 添加自动重铸按钮 -->
+          <!-- 目标词条选择下拉框 -->
+          <select v-model="targetEntryNames[k]" class="target-select" :disabled="autoRecastStatus[k]">
+            <option value="">不限</option>
+            <option value="攻击力">攻击力</option>
+            <option value="防御力">防御力</option>
+            <option value="生命值">生命值</option>
+            <option value="暴击率">暴击率</option>
+            <option value="暴击伤害">暴击伤害</option>
+            <option value="格挡">格挡</option>
+            <option value="攻击力百分比">攻击力百分比</option>
+            <option value="防御力百分比">防御力百分比</option>
+            <option value="生命值百分比">生命值百分比</option>
+            <option value="格挡百分比">格挡百分比</option>
+          </select>
+          <!-- 自动重铸按钮 -->
           <div class="auto-recast-btn" @click="toggleAutoRecast(k)" :class="{active: autoRecastStatus[k]}">
             {{ autoRecastStatus[k] ? '停止' : '自动' }}
           </div>
@@ -141,6 +155,8 @@ export default {
       // 自动重铸状态
       autoRecastStatus: {},
       autoRecastTimers: {},
+      // 目标词条名称
+      targetEntryNames: {},
     };
   },
   mounted() {
@@ -195,6 +211,7 @@ export default {
       }
       // 重置自动重铸状态
       this.autoRecastStatus = {};
+      this.targetEntryNames = {};
       this.stopAllAutoRecast();
     }
   },
@@ -280,6 +297,11 @@ export default {
     stopAutoStreng() {
       this.autoStrengModel = false
       clearInterval(this.autoStrengTime)
+    },
+    // 检查词条是否符合目标
+    isEntryMatchTarget(entry, targetName) {
+      if (!targetName) return true; // 没有设置目标，继续重铸
+      return entry.name === targetName;
     },
     // 重铸装备（单个）
     recastTheEquiment(v, k) {
@@ -367,19 +389,32 @@ export default {
         this.startAutoRecast(index);
       }
     },
-    // 开始自动重铸
+    // 开始自动重铸（直到目标词条出现）
     startAutoRecast(index) {
       // 先停止已有的定时器
       this.stopAutoRecast(index);
       
       this.autoRecastStatus[index] = true;
       
-      // 立即执行一次重铸
+      // 定义重铸逻辑
       const doRecast = () => {
         if (!this.autoRecastStatus[index]) return;
         
         const v = this.equiment.extraEntry[index];
         if (!v) {
+          this.stopAutoRecast(index);
+          return;
+        }
+        
+        const targetName = this.targetEntryNames[index];
+        
+        // 检查当前词条是否已经是目标词条
+        if (targetName && v.name === targetName) {
+          // 已达到目标，停止自动重铸
+          this.$store.commit("set_sys_info", {
+            msg: `已获得目标词条「${targetName}」，自动重铸已停止。`,
+            type: "win",
+          });
           this.stopAutoRecast(index);
           return;
         }
@@ -401,17 +436,17 @@ export default {
         }
       };
       
-      // 立即执行一次
+      // 立即执行一次检查
       doRecast();
       
-      // 设置定时器，每1.5秒重铸一次
+      // 设置定时器，每0.8秒重铸一次
       this.autoRecastTimers[index] = setInterval(() => {
         if (this.autoRecastStatus[index]) {
           doRecast();
         } else {
           this.stopAutoRecast(index);
         }
-      }, 1500);
+      }, 800);
     },
     // 停止自动重铸
     stopAutoRecast(index) {
@@ -560,6 +595,7 @@ export default {
       justify-content: flex-start;
       align-items: center;
       gap: 0.1rem;
+      flex-wrap: wrap;
       & > div {
         display: flex;
         justify-content: center;
@@ -588,8 +624,22 @@ $blue: #ccc;
   display: flex;
   align-items: center;
   gap: 0.05rem;
+  flex-wrap: wrap;
   &:hover {
     // box-shadow: 0 0 2px 2px #6094b1;
+  }
+}
+.target-select {
+  background: #333;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 0.04rem 0.08rem;
+  font-size: 0.12rem;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 .auto-recast-btn {
