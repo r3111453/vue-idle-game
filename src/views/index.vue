@@ -593,46 +593,58 @@ export default {
 
   },
   mounted() {
-    // 自动回血
-    this.autoHealthRecovery = setInterval(() => {
-      this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
-      //console.log(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02));
-      if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
-        if(this.reChallengeEx){
-          //console.log(new Date().getTime()/1000);
-          this.eventBegin();
-        }else{
-          this.reChallengeExR=false;
-        }
+  // 自动回血
+  this.autoHealthRecovery = setInterval(() => {
+    this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+    if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+      if(this.reChallengeEx){
+        this.eventBegin();
+      }else{
+        this.reChallengeExR=false;
       }
-    }, 1000)
-
-
-    // 自动保存
-    setInterval(() => {
-      this.saveGame()
-    }, 5 * 60 * 1000)
-
-    this.sysInfo = this.$store.state.sysInfo
-    this.weapon = this.playerWeapon
-    this.armor = this.playerArmor
-    this.ring = this.playerRing
-    this.neck = this.playerNeck
-
-    //TODO:重新装备一次来解决不显示装备对比信息不显示的bug，不是最好但是是最快的
-    {
-      this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
-      this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
-      this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
-      this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
     }
-    var sd = localStorage.getItem('_sd')
-    this.loadGame(sd)
-    //生成随机副本
-    this.createdDungeons()
-    // 初始化抽奖冷却
-    this.initDrawCooldown()
-  },
+  }, 1000)
+
+  // 自动保存
+  setInterval(() => {
+    this.saveGame()
+  }, 5 * 60 * 1000)
+
+  this.sysInfo = this.$store.state.sysInfo
+  this.weapon = this.playerWeapon
+  this.armor = this.playerArmor
+  this.ring = this.playerRing
+  this.neck = this.playerNeck
+
+  //TODO:重新装备一次来解决不显示装备对比信息不显示的bug
+  {
+    this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
+    this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
+    this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
+    this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
+  }
+  var sd = localStorage.getItem('_sd')
+  this.loadGame(sd)
+  //生成随机副本
+  this.createdDungeons()
+  // 初始化抽奖冷却
+  this.initDrawCooldown()
+
+  // ========== 新增：每周备份提醒 ==========
+  const lastBackupReminder = localStorage.getItem('lastBackupReminder');
+  const now = Date.now();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000; // 一週
+
+  if (!lastBackupReminder || now - lastBackupReminder > oneWeek) {
+    this.$message({
+      message: '為了避免存檔遺失，建議您定期點擊「導出存檔」進行備份。',
+      title: '備份提醒',
+      closeBtnText: '稍後',
+      confirmBtnText: '我知道了',
+    });
+    localStorage.setItem('lastBackupReminder', now);
+  }
+},
   beforeDestroy() {
     if (this.drawCooldownTimer) {
       clearInterval(this.drawCooldownTimer);
