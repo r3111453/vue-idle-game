@@ -14,25 +14,28 @@
 **请勿使用公共 Issue 来报告安全漏洞！**
 
 ### 📬 如何报告
+
 请通过以下渠道之一安全地提交漏洞：
 
-1. **首选**：使用 GitHub 的 **[私有安全通告](https://docs.github.com/cn/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability)** 功能。您可以在仓库的“Security”选项卡下找到此选项[reference:2]。
-2. **备选**：如果无法使用安全通告，请发送邮件至 `r3111453@yahoo.com.tw`。
+1. **首选**：使用 GitHub 的 **[私有安全通告](https://docs.github.com/cn/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability)** 功能（在仓库的 "Security" 选项卡下）
+2. **备选**：发送邮件至 `r3111453@yahoo.com.tw`
 
 我们会在 **48 小时内**确认收到您的报告。
 
 ### 📝 报告时应包含的信息
+
 - 漏洞的清晰描述
 - 可复现问题的步骤或最小化代码示例
 - 该漏洞可能造成的影响
 - （可选）您建议的修复方案
 
 ### 🤝 安全承诺
+
 我们将遵循以下原则：
 - 及时确认您的报告
 - 持续更新漏洞的处理进展
-- 修复完成后，我们会发布安全公告，并可能公开致谢报告者
-- 整个过程将严格保密，直到问题被修复[reference:3]
+- 修复完成后发布安全公告，并公开致谢报告者
+- 整个过程严格保密，直到问题被修复
 
 ## 致谢
 
