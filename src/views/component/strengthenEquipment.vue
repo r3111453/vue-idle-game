@@ -62,6 +62,7 @@
         <template v-slot:tip>
           <p class="info">* 花费金币重铸装备词条</p>
           <p class="info">* 重铸时词条颜色与百分比值显示了该词条的等级</p>
+          <p class="info">* 词条品质：D级(0-24)、C级(25-49)、B级(50-69)、A级(70-89)、S级(90-100)</p>
         </template>
       </cTooltip>
 
@@ -72,7 +73,7 @@
 
       <div class="extraEntry">
         <div class="extraEntry-item" v-for="(v,k) in equiment.extraEntry" :key="v.id">
-          <button class="btn btn-snake-border" :class="qualityClass">
+          <button class="btn btn-snake-border" :class="getEntryQualityClass(v.EntryLevel)">
             <div class="btn-borders">
               <div class="border-top"></div>
               <div class="border-right"></div>
@@ -82,12 +83,13 @@
             <div v-if="v.recastStatus" class="recast-info"><span :class="{red:userGold<recastNeedGold}"></span>点击花费{{recastNeedGold}}金币重铸</div>
             <div v-else>
               {{v.name}} : {{v.showVal}} {{plusValue(v)}}
-              <span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span>
+              <span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{getEntryQualityName(v.EntryLevel)}} {{v.strength}})</span>
             </div>
           </button>
-          <!-- 目标词条选择下拉框 -->
+          
+          <!-- 目标词条类型选择下拉框 -->
           <select v-model="targetEntryNames[k]" class="target-select" :disabled="autoRecastStatus[k]">
-            <option value="">不限</option>
+            <option value="">不限类型</option>
             <option value="攻击力">攻击力</option>
             <option value="攻击力百分比">攻击力百分比</option>
             <option value="防御力">防御力</option>
@@ -99,6 +101,17 @@
             <option value="格挡">格挡</option>
             <option value="格挡百分比">格挡百分比</option>
           </select>
+          
+          <!-- 目标词条品质选择下拉框（新增） -->
+          <select v-model="targetQualityLevels[k]" class="target-quality-select" :disabled="autoRecastStatus[k]">
+            <option value="">不限品质</option>
+            <option value="D">D级及以上 (0-24)</option>
+            <option value="C">C级及以上 (25-49)</option>
+            <option value="B">B级及以上 (50-69)</option>
+            <option value="A">A级及以上 (70-89)</option>
+            <option value="S">S级及以上 (90-100)</option>
+          </select>
+          
           <!-- 自动重铸按钮 -->
           <div class="auto-recast-btn" @click="toggleAutoRecast(k)" :class="{active: autoRecastStatus[k]}">
             {{ autoRecastStatus[k] ? '停止' : '自动' }}
@@ -155,6 +168,7 @@ export default {
       autoRecastStatus: {},
       autoRecastTimers: {},
       targetEntryNames: {},
+      targetQualityLevels: {}, // 新增：目标品质等级
     };
   },
   mounted() {
@@ -209,10 +223,44 @@ export default {
       }
       this.autoRecastStatus = {};
       this.targetEntryNames = {};
+      this.targetQualityLevels = {}; // 重置品质目标
       this.stopAllAutoRecast();
     }
   },
   methods: {
+    // 根据 EntryLevel 获取品质等级名称
+    getEntryQualityName(entryLevel) {
+      const level = parseInt(entryLevel);
+      if (level < 25) return 'D';
+      if (level < 50) return 'C';
+      if (level < 70) return 'B';
+      if (level < 90) return 'A';
+      return 'S';
+    },
+    // 根据 EntryLevel 获取品质样式类
+    getEntryQualityClass(entryLevel) {
+      const level = parseInt(entryLevel);
+      if (level < 25) return 'D';
+      if (level < 50) return 'C';
+      if (level < 70) return 'B';
+      if (level < 90) return 'A';
+      return 'S';
+    },
+    // 检查词条品质是否达到目标（达到或超过）
+    isQualityMatchTarget(entryLevel, targetQuality) {
+      if (!targetQuality) return true; // 没有设置品质目标，视为符合
+      
+      const level = parseInt(entryLevel);
+      const qualityToMinLevel = {
+        'D': 0,
+        'C': 25,
+        'B': 50,
+        'A': 70,
+        'S': 90
+      };
+      const minRequiredLevel = qualityToMinLevel[targetQuality];
+      return level >= minRequiredLevel;
+    },
     changeRecastStatus(v, k, status) {
       this.qualityClass = ''
       v.recastStatus = status
@@ -290,32 +338,33 @@ export default {
       this.autoStrengModel = false
       clearInterval(this.autoStrengTime)
     },
-    // 检查词条是否符合目标（通过 type 判断是否是百分比）
-    isEntryMatchTarget(entry, targetName) {
-      if (!targetName) return true;
-      
-      // 如果目标是百分比类型（名称包含"百分比"）
-      if (targetName.includes('百分比')) {
-        // 只匹配百分比词条，通过 entry.type 判断
-        const isPercent = entry.type === 'ATKPERCENT' || 
-                          entry.type === 'DEFPERCENT' || 
-                          entry.type === 'HPPERCENT' || 
-                          entry.type === 'BLOCPERCENT';
-        
-        // 提取基础名称（去掉"百分比"）
-        const baseName = targetName.replace('百分比', '');
-        
-        // 检查是否是百分比类型，且名称匹配
-        return isPercent && entry.name === baseName;
-      } else {
-        // 目标是固定值类型，只匹配非百分比词条
-        const isNotPercent = entry.type !== 'ATKPERCENT' && 
-                             entry.type !== 'DEFPERCENT' && 
-                             entry.type !== 'HPPERCENT' && 
-                             entry.type !== 'BLOCPERCENT';
-        
-        return isNotPercent && entry.name === targetName;
+    // 检查词条是否符合目标（类型 + 品质）
+    isEntryMatchTarget(entry, targetName, targetQuality) {
+      // 检查类型
+      let typeMatched = true;
+      if (targetName) {
+        // 如果目标是百分比类型（名称包含"百分比"）
+        if (targetName.includes('百分比')) {
+          const isPercent = entry.type === 'ATKPERCENT' || 
+                            entry.type === 'DEFPERCENT' || 
+                            entry.type === 'HPPERCENT' || 
+                            entry.type === 'BLOCPERCENT';
+          const baseName = targetName.replace('百分比', '');
+          typeMatched = isPercent && entry.name === baseName;
+        } else {
+          // 目标是固定值类型，只匹配非百分比词条
+          const isNotPercent = entry.type !== 'ATKPERCENT' && 
+                               entry.type !== 'DEFPERCENT' && 
+                               entry.type !== 'HPPERCENT' && 
+                               entry.type !== 'BLOCPERCENT';
+          typeMatched = isNotPercent && entry.name === targetName;
+        }
       }
+      
+      // 检查品质
+      const qualityMatched = this.isQualityMatchTarget(entry.EntryLevel, targetQuality);
+      
+      return typeMatched && qualityMatched;
     },
     recastTheEquiment(v, k) {
       if (this.$store.state.playerAttribute.GOLD < this.recastNeedGold) {
@@ -330,18 +379,6 @@ export default {
       let newEntry = handle.createRandomEntry(this.equiment.lv, this.equiment.quality.qualityCoefficient)
       this.$set(this.equiment.extraEntry, k, newEntry);
       this.$store.commit("set_player_gold", -parseInt(this.recastNeedGold));
-      var a = parseInt(this.equiment.extraEntry[k].EntryLevel)
-      if (a < 25) {
-        this.qualityClass = 'D'
-      } else if (a < 50 && a >= 25) {
-        this.qualityClass = 'C'
-      } else if (a < 70 && a >= 50) {
-        this.qualityClass = 'B'
-      } else if (a < 90 && a >= 70) {
-        this.qualityClass = 'A'
-      } else {
-        this.qualityClass = 'S'
-      }
       this.changeTheEquiment()
       return true;
     },
@@ -369,12 +406,6 @@ export default {
         this.$store.commit("set_player_gold", -needGold);
         totalCost += needGold;
         recastedCount++;
-        const a = parseInt(this.equiment.extraEntry[i].EntryLevel);
-        if (a < 25) this.qualityClass = 'D';
-        else if (a < 50) this.qualityClass = 'C';
-        else if (a < 70) this.qualityClass = 'B';
-        else if (a < 90) this.qualityClass = 'A';
-        else this.qualityClass = 'S';
       }
       if (recastedCount > 0) {
         this.changeTheEquiment();
@@ -411,11 +442,16 @@ export default {
         }
         
         const targetName = this.targetEntryNames[index];
+        const targetQuality = this.targetQualityLevels[index];
         
-        // 使用新的匹配方法
-        if (this.isEntryMatchTarget(v, targetName)) {
+        // 检查是否符合目标（类型 + 品质）
+        if (this.isEntryMatchTarget(v, targetName, targetQuality)) {
+          let msg = `已获得目标词条`;
+          if (targetName) msg += `「${targetName}」`;
+          if (targetQuality) msg += `，品质达到${targetQuality}级及以上`;
+          msg += `，自动重铸已停止。`;
           this.$store.commit("set_sys_info", {
-            msg: `已获得目标词条「${targetName}」，自动重铸已停止。`,
+            msg: msg,
             type: "win",
           });
           this.stopAutoRecast(index);
@@ -628,6 +664,19 @@ $blue: #ccc;
   background: #333;
   color: #fff;
   border: 1px solid #666;
+  border-radius: 4px;
+  padding: 0.04rem 0.08rem;
+  font-size: 0.12rem;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+.target-quality-select {
+  background: #333;
+  color: #fff;
+  border: 1px solid #f78918;
   border-radius: 4px;
   padding: 0.04rem 0.08rem;
   font-size: 0.12rem;
