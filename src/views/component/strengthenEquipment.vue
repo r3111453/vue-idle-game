@@ -85,7 +85,7 @@
               <span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span>
             </div>
           </button>
-          <!-- 目标词条选择下拉框 -->
+          <!-- 目标词条选择下拉框 - 区分固定值和百分比 -->
           <select v-model="targetEntryNames[k]" class="target-select" :disabled="autoRecastStatus[k]">
             <option value="">不限</option>
             <option value="攻击力">攻击力</option>
@@ -298,9 +298,10 @@ export default {
       this.autoStrengModel = false
       clearInterval(this.autoStrengTime)
     },
-    // 检查词条是否符合目标
+    // 检查词条是否符合目标（精确匹配，区分固定值和百分比）
     isEntryMatchTarget(entry, targetName) {
       if (!targetName) return true; // 没有设置目标，继续重铸
+      // 精确匹配词条名称（下拉框已经区分了固定值和百分比）
       return entry.name === targetName;
     },
     // 重铸装备（单个）
@@ -408,8 +409,8 @@ export default {
         
         const targetName = this.targetEntryNames[index];
         
-        // 检查当前词条是否已经是目标词条
-        if (targetName && v.name === targetName) {
+        // 检查当前词条是否已经是目标词条（精确匹配）
+        if (this.isEntryMatchTarget(v, targetName)) {
           // 已达到目标，停止自动重铸
           this.$store.commit("set_sys_info", {
             msg: `已获得目标词条「${targetName}」，自动重铸已停止。`,
