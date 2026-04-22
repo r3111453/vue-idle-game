@@ -71,7 +71,7 @@
       </div>
 
       <div class="extraEntry">
-        <div class="extraEntry-item" v-for="(v,k) in equiment.extraEntry" :key="v.id" @click="recastTheEquiment(v,k)" @mouseover="changeRecastStatus(v,k,true)" @mouseleave="changeRecastStatus(v,k,false)">
+        <div class="extraEntry-item" v-for="(v,k) in equiment.extraEntry" :key="v.id">
           <button class="btn btn-snake-border" :class="qualityClass">
             <div class="btn-borders">
               <div class="border-top"></div>
@@ -80,9 +80,15 @@
               <div class="border-left"></div>
             </div>
             <div v-if="v.recastStatus" class="recast-info"><span :class="{red:userGold<recastNeedGold}"></span>点击花费{{recastNeedGold}}金币重铸</div>
-            <div v-else>{{v.name}} : {{v.showVal}} {{plusValue(v)}}<span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span></div>
+            <div v-else>
+              {{v.name}} : {{v.showVal}} {{plusValue(v)}}
+              <span style="font-size:.12rem;margin-left:.06rem;margin-left:auto;">({{v.strength}})</span>
+            </div>
           </button>
-
+          <!-- 添加自动重铸按钮 -->
+          <div class="auto-recast-btn" @click="toggleAutoRecast(k)" :class="{active: autoRecastStatus[k]}">
+            {{ autoRecastStatus[k] ? '停止' : '自动' }}
+          </div>
         </div>
       </div>
     </div>
@@ -132,6 +138,9 @@ export default {
         probability: '0.05',
         color: '#f78918', extraEntryNum: 4,
       }],
+      // 自动重铸状态
+      autoRecastStatus: {},
+      autoRecastTimers: {},
     };
   },
   mounted() {
@@ -184,6 +193,9 @@ export default {
       if (!this.equiment.enchantlvl) {
         this.$set(this.equiment, 'enchantlvl', 0)
       }
+      // 重置自动重铸状态
+      this.autoRecastStatus = {};
+      this.stopAllAutoRecast();
     }
   },
   methods: {
@@ -278,7 +290,7 @@ export default {
             `,
           type: "warning",
         });
-        return
+        return false;
       }
       let newEntry = handle.createRandomEntry(this.equiment.lv, this.equiment.quality.qualityCoefficient)
       this.$set(this.equiment.extraEntry, k, newEntry);
@@ -296,6 +308,7 @@ export default {
         this.qualityClass = 'S'
       }
       this.changeTheEquiment()
+      return true;
     },
     // 一键重铸所有词条
     recastAllEntries() {
@@ -343,6 +356,80 @@ export default {
           type: "warning",
         });
       }
+    },
+    // 切换自动重铸
+    toggleAutoRecast(index) {
+      if (this.autoRecastStatus[index]) {
+        // 停止自动重铸
+        this.stopAutoRecast(index);
+      } else {
+        // 开始自动重铸
+        this.startAutoRecast(index);
+      }
+    },
+    // 开始自动重铸
+    startAutoRecast(index) {
+      // 先停止已有的定时器
+      this.stopAutoRecast(index);
+      
+      this.autoRecastStatus[index] = true;
+      
+      // 立即执行一次重铸
+      const doRecast = () => {
+        if (!this.autoRecastStatus[index]) return;
+        
+        const v = this.equiment.extraEntry[index];
+        if (!v) {
+          this.stopAutoRecast(index);
+          return;
+        }
+        
+        // 检查金币
+        if (this.$store.state.playerAttribute.GOLD < this.recastNeedGold) {
+          this.$store.commit("set_sys_info", {
+            msg: `金币不足，自动重铸已停止。`,
+            type: "warning",
+          });
+          this.stopAutoRecast(index);
+          return;
+        }
+        
+        // 执行重铸
+        const success = this.recastTheEquiment(v, index);
+        if (!success) {
+          this.stopAutoRecast(index);
+        }
+      };
+      
+      // 立即执行一次
+      doRecast();
+      
+      // 设置定时器，每1.5秒重铸一次
+      this.autoRecastTimers[index] = setInterval(() => {
+        if (this.autoRecastStatus[index]) {
+          doRecast();
+        } else {
+          this.stopAutoRecast(index);
+        }
+      }, 1500);
+    },
+    // 停止自动重铸
+    stopAutoRecast(index) {
+      this.autoRecastStatus[index] = false;
+      if (this.autoRecastTimers[index]) {
+        clearInterval(this.autoRecastTimers[index]);
+        this.autoRecastTimers[index] = null;
+      }
+    },
+    // 停止所有自动重铸
+    stopAllAutoRecast() {
+      for (let i in this.autoRecastTimers) {
+        if (this.autoRecastTimers[i]) {
+          clearInterval(this.autoRecastTimers[i]);
+          this.autoRecastTimers[i] = null;
+        }
+      }
+      this.autoRecastStatus = {};
     },
     //根据强化等级变动装备
     changeTheEquimentByLv(lv) {
@@ -470,7 +557,9 @@ export default {
     color: #68d5ed;
     div {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.1rem;
       & > div {
         display: flex;
         justify-content: center;
@@ -496,12 +585,35 @@ $blue: #ccc;
 .extraEntry-item {
   border-radius: 4px;
   margin: 0.03rem;
+  display: flex;
+  align-items: center;
+  gap: 0.05rem;
   &:hover {
     // box-shadow: 0 0 2px 2px #6094b1;
   }
 }
+.auto-recast-btn {
+  cursor: pointer;
+  padding: 0.04rem 0.08rem;
+  background: #333;
+  border-radius: 4px;
+  font-size: 0.12rem;
+  color: #fff;
+  transition: 0.2s;
+  white-space: nowrap;
+  &:hover {
+    background: #555;
+  }
+  &.active {
+    background: #f56c6c;
+    color: white;
+    &:hover {
+      background: #f78989;
+    }
+  }
+}
 .btn {
-  width: 100%;
+  flex: 1;
   position: relative;
   padding: 0.1rem 0.3rem;
   font-family: Lato, sans-serif;
