@@ -1172,33 +1172,34 @@ export default {
       this.dungeonsSimulator.perActionTime = perActionTime
       
       let isDead = false
-      for(let i = 0; i < this.dungeons.eventNum; i++){
-        this.dungeonsSimulator.costTime += perActionTime
-        if(i > 0){
-          let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
-          playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
-        }
-        let monsterAttribute = this.dungeons.eventType[i].attribute
-        let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-            monsterDeadTime = monsterAttribute.HP / playerDPS
-        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
-        
-        let remainingHP = playerHP + takeDmg
-        
-        if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
-          isDead = true
-          this.dungeonsSimulator.perGetDamaged[i] = takeDmg
-          this.dungeonsSimulator.allGetDamaged += takeDmg
-          for(let j = i + 1; j < this.dungeons.eventNum; j++){
-            this.dungeonsSimulator.perGetDamaged[j] = 0
-          }
-          break
-        }
-        
-        this.dungeonsSimulator.perGetDamaged[i] = takeDmg
-        this.dungeonsSimulator.allGetDamaged += takeDmg
-        playerHP = remainingHP
-      }
+for(let i = 0; i < this.dungeons.eventNum; i++){
+  this.dungeonsSimulator.costTime += perActionTime
+  if(i > 0){
+    let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
+    playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+  }
+  let monsterAttribute = this.dungeons.eventType[i].attribute
+  let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+      monsterDeadTime = monsterAttribute.HP / playerDPS
+  let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+  
+  // 如果玩家會死亡
+  if(monsterDeadTime >= playerDeadTime){
+    isDead = true
+    this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+    this.dungeonsSimulator.allGetDamaged += takeDmg
+    for(let j = i + 1; j < this.dungeons.eventNum; j++){
+      this.dungeonsSimulator.perGetDamaged[j] = 0
+    }
+    break
+  }
+  
+  // 正常情況：扣除血量
+  let remainingHP = playerHP + takeDmg  // takeDmg 是負數
+  this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+  this.dungeonsSimulator.allGetDamaged += takeDmg
+  playerHP = remainingHP
+}
       
       if(isDead){
         this.dungeonsSimulator.victory = false
