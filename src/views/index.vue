@@ -1218,6 +1218,15 @@ takeDmg = takeDmg < 1 ? 1 : takeDmg
     // 使用與實際戰鬥相同的時間比較方式
     let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK
     let monsterDeadTime = monsterAttribute.HP / playerDPS
+
+    // ========== 加入以下除錯資訊 ==========
+  console.log(`\n=== 第 ${i+1} 隻怪 ===`)
+  console.log(`玩家當前 HP: ${playerHP}`)
+  console.log(`怪物攻擊力: ${monsterAttribute.ATK}`)
+  console.log(`玩家死亡時間: ${playerDeadTime.toFixed(3)} 秒`)
+  console.log(`怪物死亡時間: ${monsterDeadTime.toFixed(3)} 秒`)
+  console.log(`比較結果: ${monsterDeadTime < playerDeadTime ? '勝利' : '失敗'}`)
+  // ========== 除錯資訊結束 ==========
     
     if (monsterDeadTime < playerDeadTime) {
       // 戰鬥勝利：計算受到的傷害
@@ -1232,6 +1241,7 @@ takeDmg = takeDmg < 1 ? 1 : takeDmg
       playerHP = remainingHP
     } else {
       // 戰鬥失敗：玩家死亡
+      console.log(`!!! 第 ${i+1} 隻怪戰鬥失敗，玩家死亡 !!!`)
       this.dungeonsSimulator.isPlayerDead = true
       this.dungeonsSimulator.deathIndex = i
       // 計算死亡時受到的傷害（取整）
