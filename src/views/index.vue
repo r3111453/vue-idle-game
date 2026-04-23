@@ -1111,7 +1111,7 @@ export default {
     
     if(monsterDeadTime >= playerDeadTime){
       isDead = true
-      this.dungeonsSimulator.perGetDamaged[i] = 1  // 死亡標記
+      this.dungeonsSimulator.perGetDamaged[i] = 9999  // 改為 9999
       this.dungeonsSimulator.allGetDamaged += takeDmg
       for(let j = i + 1; j < this.dungeons.eventNum; j++){
         this.dungeonsSimulator.perGetDamaged[j] = 0
@@ -1155,7 +1155,7 @@ export default {
   }
   
   // 最後再強制檢查一次（雙重保險）
-  if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)){
+  if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999)){
     this.dungeonsSimulator.victory = false
   }
 },
@@ -1202,7 +1202,7 @@ export default {
     // 如果玩家會死亡
     if(monsterDeadTime >= playerDeadTime){
       isDead = true
-      this.dungeonsSimulator.perGetDamaged[i] = 1  // 死亡標記
+      this.dungeonsSimulator.perGetDamaged[i] = 9999  // 改為 9999
       this.dungeonsSimulator.allGetDamaged += takeDmg
       for(let j = i + 1; j < this.dungeons.eventNum; j++){
         this.dungeonsSimulator.perGetDamaged[j] = 0
@@ -1248,7 +1248,7 @@ export default {
   }
   
   // 最後再強制檢查一次（雙重保險）
-  if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)){
+  if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999)){
     this.dungeonsSimulator.victory = false
   }
 },
