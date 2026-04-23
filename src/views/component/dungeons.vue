@@ -127,6 +127,11 @@ export default {
   methods: {
     // 新增：獲取顯示用的金幣數量（與實際掉落一致）
     getDisplayGold(monster) {
+      // 安全檢查：如果 dungeons 不存在或沒有 type，直接返回基礎金幣
+  if (!this.dungeons || !this.dungeons.type) {
+    return monster.trophy.gold * 4;
+  }
+      
       let baseGold = monster.trophy.gold * 4; // 基礎 4 倍（動畫補償）
       
       // 無盡模式：根據層數決定倍數（與 caculateTrophy 中的邏輯一致）
@@ -141,6 +146,11 @@ export default {
     },
     // 新增：獲取顯示用的獨特掉落率
     getDisplayDropRate(monster) {
+      // 安全檢查：如果 dungeons 不存在或沒有 type，直接返回 0%
+  if (!this.dungeons || !this.dungeons.type) {
+    return '0%';
+  }
+      
       // 無盡模式不掉落獨特裝備
       if (this.dungeons.type == 'endless') {
         return '0%';
