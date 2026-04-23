@@ -1125,7 +1125,7 @@ export default {
   }
   
   // 先執行保險檢查
-  let hasDeathMark = this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)
+  let hasDeathMark = this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999)
   
   if(isDead || hasDeathMark){
     this.dungeonsSimulator.victory = false
@@ -1218,7 +1218,7 @@ export default {
   }
   
   // 先執行保險檢查
-  let hasDeathMark = this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)
+  let hasDeathMark = this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999)
   
   if(isDead || hasDeathMark){
     this.dungeonsSimulator.victory = false
