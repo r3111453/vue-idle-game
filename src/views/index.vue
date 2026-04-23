@@ -257,26 +257,27 @@
         </cTooltip>
         <table class="info" style="width:100%;">
           <thead>
-            <td>名称</th>
-          <td>生命值</th>
-          <td>攻击力</th>
-            <td>受到伤害</th>
-            <td>金币</th>
+            <tr><th>名称</th>
+              <th>生命值</th>
+              <th>攻击力</th>
+              <th>受到伤害</th>
+              <th>金币</th>
+            </tr>
           </thead>
           <tr v-for="(m,i) in dungeons.eventType">
-            <td>{{m.name}}</th>
-            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</th>
-            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</th>
-            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</th>
+            <td>{{m.name}}</td>
+            <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
+            <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
+            <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</td>
             <td>{{ getDisplayGoldForIndex(m) }}</td>
-           </td>
+          </tr>
           <tr>
-            <td>合计</th>
-            <td>{{dungeons.totalHP}}</th>
-            <td>/</th>
-            <td>{{-dungeonsSimulator.allGetDamaged}}</th>
-            <td>{{dungeons.totalGold}}</th>
-           </td>
+            <td>合计</td>
+            <td>{{dungeons.totalHP}}</td>
+            <td>/</td>
+            <td>{{-dungeonsSimulator.allGetDamaged}}</td>
+            <td>{{dungeons.totalGold}}</td>
+          </tr>
         </table>
         <div class="info">
           <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒{{dungeonsSimulator.victory?"胜利":"战败"}}<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span></p>
@@ -1066,167 +1067,157 @@ export default {
       this.GMOpened = false
     },
     showDungeonsInfo(k) {
-  // var b = this.findComponentDownward(this, 'dungeons')
-  this.dungeons = this.dungeonsArr[k]
-  this.dungeons.moveTime = 200  // 👈 加上這行
-  if (this.dungeons.difficulty != 1) {
-    this.reChallenge = false
-    this.reChallengeEx=false;
-    this.reChallengeExR=false;
-  }
-  this.dungeonsSimulator.victory=true;
-  this.dungeonsSimulator.recoveryToMaxHP=false;
-  this.dungeonsSimulator.costTime=0;
-  this.dungeonsSimulator.lastHP=0;
-  this.dungeonsSimulator.maxFightCount=0;
-  this.dungeonsSimulator.perGetDamaged=[0,0,0,0,0];
-  this.dungeonsSimulator.allGetDamaged=0;
-  let playerAttribute = this.$store.state.playerAttribute.attribute,
-      healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
-      reincarnationAttribute=this.$store.state.reincarnationAttribute;
-  let reducedDamage =playerAttribute.REDUCDMG,
-      playerDPS = playerAttribute.DPS,
-      playerBLOC = playerAttribute.BLOC.value,
-      playerMaxHP = playerAttribute.MAXHP.value,
-      playerHP = playerAttribute.MAXHP.value,
-      battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
-      perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime;
-
-  // 👇 在這裡加上這一行 👇
-console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttribute.MOVESPEED, 'battleTime:', battleTime, 'perActionTime:', perActionTime);
-  
-  this.dungeonsSimulator.perActionTime = perActionTime;
-  
-  // 👇 修改這裡的 for 迴圈 👇
-  let isDead = false;  // 標記是否死亡
-  for(let i=0;i<this.dungeons.eventNum;i++){
-    this.dungeonsSimulator.costTime+=perActionTime;
-    if(i>0){
-      let newHP=playerHP+ playerMaxHP*0.02*Math.ceil(perActionTime);
-      playerHP = newHP<playerMaxHP?newHP:playerMaxHP;
-    }
-    let monsterAttribute=this.dungeons.eventType[i].attribute;
-    let playerDeadTime = (playerHP+playerBLOC) / reducedDamage / monsterAttribute.ATK,
-        monsterDeadTime = (monsterAttribute.HP / playerDPS);
-    let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK)*reducedDamage)+playerBLOC;
-    
-    // 如果玩家會死亡，標記並記錄受到的傷害，然後跳出迴圈
-    if(monsterDeadTime >= playerDeadTime){
-      isDead = true;
-      this.dungeonsSimulator.perGetDamaged[i] = takeDmg;
-      this.dungeonsSimulator.allGetDamaged += takeDmg;
-      // 後面的怪就不用算了
-      for(let j=i+1; j<this.dungeons.eventNum; j++){
-        this.dungeonsSimulator.perGetDamaged[j] = 0;
+      // var b = this.findComponentDownward(this, 'dungeons')
+      this.dungeons = this.dungeonsArr[k]
+      this.dungeons.moveTime = 200
+      if (this.dungeons.difficulty != 1) {
+        this.reChallenge = false
+        this.reChallengeEx = false
+        this.reChallengeExR = false
       }
-      break;
-    }
-    
-    this.dungeonsSimulator.perGetDamaged[i]=takeDmg;
-    this.dungeonsSimulator.allGetDamaged+=takeDmg;
-    playerHP+=takeDmg;
-  }
-  
-  // 👇 根據是否死亡設定勝利狀態 👇
-  if(isDead){
-    this.dungeonsSimulator.victory = false;
-    this.dungeonsSimulator.recoveryToMaxHP = false;
-    this.dungeonsSimulator.lastHP = 0;
-    this.dungeonsSimulator.maxFightCount = 0;
-  } else {
-    this.dungeonsSimulator.victory=true;
-    this.dungeonsSimulator.lastHP=playerHP.toFixed(1);
-    for(let i=0;i<this.dungeons.eventNum;i++){
-      let newHP=playerMaxHP*0.02*Math.floor(perActionTime)+playerHP;
-      if(newHP>=playerMaxHP){
-        this.dungeonsSimulator.recoveryToMaxHP=true;
-        return;
+      this.dungeonsSimulator.victory = true
+      this.dungeonsSimulator.recoveryToMaxHP = false
+      this.dungeonsSimulator.costTime = 0
+      this.dungeonsSimulator.lastHP = 0
+      this.dungeonsSimulator.maxFightCount = 0
+      this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
+      this.dungeonsSimulator.allGetDamaged = 0
+      let playerAttribute = this.$store.state.playerAttribute.attribute,
+        healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+        reincarnationAttribute = this.$store.state.reincarnationAttribute
+      let reducedDamage = playerAttribute.REDUCDMG,
+        playerDPS = playerAttribute.DPS,
+        playerBLOC = playerAttribute.BLOC.value,
+        playerMaxHP = playerAttribute.MAXHP.value,
+        playerHP = playerAttribute.MAXHP.value,
+        battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
+        perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime
+      
+      this.dungeonsSimulator.perActionTime = perActionTime
+      
+      let isDead = false
+      for(let i = 0; i < this.dungeons.eventNum; i++){
+        this.dungeonsSimulator.costTime += perActionTime
+        if(i > 0){
+          let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
+          playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+        }
+        let monsterAttribute = this.dungeons.eventType[i].attribute
+        let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+            monsterDeadTime = monsterAttribute.HP / playerDPS
+        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+        
+        let remainingHP = playerHP + takeDmg
+        
+        if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
+          isDead = true
+          this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+          this.dungeonsSimulator.allGetDamaged += takeDmg
+          for(let j = i + 1; j < this.dungeons.eventNum; j++){
+            this.dungeonsSimulator.perGetDamaged[j] = 0
+          }
+          break
+        }
+        
+        this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+        this.dungeonsSimulator.allGetDamaged += takeDmg
+        playerHP = remainingHP
       }
-      playerHP = newHP+this.dungeonsSimulator.perGetDamaged[i]>0?this.dungeonsSimulator.perGetDamaged[i]:0;
-    }
-    this.dungeonsSimulator.maxFightCount=Math.ceil(this.dungeonsSimulator.lastHP/(this.dungeonsSimulator.lastHP-playerHP));
-  }
-},
+      
+      if(isDead){
+        this.dungeonsSimulator.victory = false
+        this.dungeonsSimulator.recoveryToMaxHP = false
+        this.dungeonsSimulator.lastHP = 0
+        this.dungeonsSimulator.maxFightCount = 0
+      } else {
+        this.dungeonsSimulator.victory = true
+        this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
+        for(let i = 0; i < this.dungeons.eventNum; i++){
+          let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + playerHP
+          if(newHP >= playerMaxHP){
+            this.dungeonsSimulator.recoveryToMaxHP = true
+            return
+          }
+          playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
+        }
+        this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
+      }
+    },
     showEndlessDungeonsInfo() {
       this.reChallenge = false
       this.reChallengeEx = false
       this.reChallengeExR = false
       this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
-      this.dungeons.moveTime = 200  // 👈 加上這行
+      this.dungeons.moveTime = 200
       this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
       this.dungeons.type = 'endless'
-      this.dungeonsSimulator.victory=true;
-      this.dungeonsSimulator.recoveryToMaxHP=false;
-      this.dungeonsSimulator.costTime=0;
-      this.dungeonsSimulator.lastHP=0;
-      this.dungeonsSimulator.maxFightCount=0;
-      this.dungeonsSimulator.perGetDamaged=[0,0,0,0,0];
-      this.dungeonsSimulator.allGetDamaged=0;
+      this.dungeonsSimulator.victory = true
+      this.dungeonsSimulator.recoveryToMaxHP = false
+      this.dungeonsSimulator.costTime = 0
+      this.dungeonsSimulator.lastHP = 0
+      this.dungeonsSimulator.maxFightCount = 0
+      this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
+      this.dungeonsSimulator.allGetDamaged = 0
       let playerAttribute = this.$store.state.playerAttribute.attribute,
-          healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
-          reincarnationAttribute=this.$store.state.reincarnationAttribute;
-      let reducedDamage =playerAttribute.REDUCDMG,
-          playerDPS = playerAttribute.DPS,
-          playerBLOC = playerAttribute.BLOC.value,
-          playerMaxHP = playerAttribute.MAXHP.value,
-          playerHP = playerAttribute.MAXHP.value,
-          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
-          perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime;
-
-      // 👇 在這裡加上這一行 👇
-console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttribute.MOVESPEED, 'battleTime:', battleTime, 'perActionTime:', perActionTime);
+        healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+        reincarnationAttribute = this.$store.state.reincarnationAttribute
+      let reducedDamage = playerAttribute.REDUCDMG,
+        playerDPS = playerAttribute.DPS,
+        playerBLOC = playerAttribute.BLOC.value,
+        playerMaxHP = playerAttribute.MAXHP.value,
+        playerHP = playerAttribute.MAXHP.value,
+        battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
+        perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime
       
-      this.dungeonsSimulator.perActionTime = perActionTime;
-
-let isDead = false;
-for(let i=0;i<this.dungeons.eventNum;i++){
-  this.dungeonsSimulator.costTime+=perActionTime;
-  if(i>0){
-    let newHP=playerHP+ playerMaxHP*0.02*Math.ceil(perActionTime);
-    playerHP = newHP<playerMaxHP?newHP:playerMaxHP;
-  }
-  let monsterAttribute=this.dungeons.eventType[i].attribute;
-  let playerDeadTime = (playerHP+playerBLOC) / reducedDamage / monsterAttribute.ATK,
-      monsterDeadTime = (monsterAttribute.HP / playerDPS);
-  let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK)*reducedDamage) + playerBLOC;
-  
-  // 注意：takeDmg 是負數（代表扣血），所以用 += 或 -= 需要小心
-  // 更好的寫法：直接計算剩餘血量
-  let remainingHP = playerHP + takeDmg;  // takeDmg 是負數
-  
-  if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
-    isDead = true;
-    this.dungeonsSimulator.perGetDamaged[i] = takeDmg;
-    this.dungeonsSimulator.allGetDamaged += takeDmg;
-    for(let j=i+1; j<this.dungeons.eventNum; j++){
-      this.dungeonsSimulator.perGetDamaged[j] = 0;
-    }
-    break;
-  }
-  
-  this.dungeonsSimulator.perGetDamaged[i] = takeDmg;
-  this.dungeonsSimulator.allGetDamaged += takeDmg;
-  playerHP = remainingHP;
-}
-
-if(isDead){
-  this.dungeonsSimulator.victory = false;
-  this.dungeonsSimulator.recoveryToMaxHP = false;
-  this.dungeonsSimulator.lastHP = 0;
-  this.dungeonsSimulator.maxFightCount = 0;
-} else {
-  this.dungeonsSimulator.victory = true;
-  this.dungeonsSimulator.lastHP = playerHP.toFixed(1);
-  for(let i=0;i<this.dungeons.eventNum;i++){
-    let newHP=playerMaxHP*0.02*Math.floor(perActionTime)+playerHP;
-    if(newHP>=playerMaxHP){
-      this.dungeonsSimulator.recoveryToMaxHP=true;
-      return;
-    }
-    playerHP = newHP+this.dungeonsSimulator.perGetDamaged[i]>0?this.dungeonsSimulator.perGetDamaged[i]:0;
-  }
-  this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP/(this.dungeonsSimulator.lastHP-playerHP));
-}
+      this.dungeonsSimulator.perActionTime = perActionTime
+      
+      let isDead = false
+      for(let i = 0; i < this.dungeons.eventNum; i++){
+        this.dungeonsSimulator.costTime += perActionTime
+        if(i > 0){
+          let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
+          playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+        }
+        let monsterAttribute = this.dungeons.eventType[i].attribute
+        let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+            monsterDeadTime = monsterAttribute.HP / playerDPS
+        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+        
+        let remainingHP = playerHP + takeDmg
+        
+        if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
+          isDead = true
+          this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+          this.dungeonsSimulator.allGetDamaged += takeDmg
+          for(let j = i + 1; j < this.dungeons.eventNum; j++){
+            this.dungeonsSimulator.perGetDamaged[j] = 0
+          }
+          break
+        }
+        
+        this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+        this.dungeonsSimulator.allGetDamaged += takeDmg
+        playerHP = remainingHP
+      }
+      
+      if(isDead){
+        this.dungeonsSimulator.victory = false
+        this.dungeonsSimulator.recoveryToMaxHP = false
+        this.dungeonsSimulator.lastHP = 0
+        this.dungeonsSimulator.maxFightCount = 0
+      } else {
+        this.dungeonsSimulator.victory = true
+        this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
+        for(let i = 0; i < this.dungeons.eventNum; i++){
+          let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + playerHP
+          if(newHP >= playerMaxHP){
+            this.dungeonsSimulator.recoveryToMaxHP = true
+            return
+          }
+          playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
+        }
+        this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
+      }
     },
     closeDungeonsInfo() {
       this.dungeons = ''
@@ -1237,11 +1228,11 @@ if(isDead){
       b.evenHandle()
       // this.dungeons = ''
       this.inDungeons = true
-      this.reChallengeExR=this.reChallengeEx;
+      this.reChallengeExR = this.reChallengeEx
     },
     eventEnd() {
-      this.inDungeons = false;
-      this.reChallengeEx=false;
+      this.inDungeons = false
+      this.reChallengeEx = false
       this.dungeons = ''
 
       var b = this.findComponentDownward(this, 'dungeons')
@@ -1252,7 +1243,7 @@ if(isDead){
               手动中断了挑战
             `,
         type: 'warning'
-      });
+      })
       setTimeout(() => {
 
       })
@@ -1279,17 +1270,16 @@ if(isDead){
       switch (type) {
         case 'backpack':
           this.backpackPanelOpened = !this.backpackPanelOpened
-          break;
+          break
         case 'shop':
           this.shopPanelOpened = !this.shopPanelOpened
-          break;
+          break
         case 'rein':
           this.reinPanelOpened = !this.reinPanelOpened
-          break;
+          break
         default:
-          break;
+          break
       }
-
     },
     closePanel() {
       this.backpackPanelOpened = this.shopPanelOpened = this.importSaveDataPanelOpened = this.exportSaveDataPanelOpened = this.strengthenEquipmentPanelOpened = this.reinPanelOpened = false
@@ -1299,34 +1289,31 @@ if(isDead){
       let equimentPanel = this.findComponentDownward(
         this,
         "equimentPanel",
-      );
+      )
       equimentPanel.stopAutoStreng()
     },
 
-// 👇 在這裡加上這個方法 👇
-getDisplayGoldForIndex(monster) {
-  let baseGold = monster.trophy.gold * 4; // 基礎 4 倍（動畫補償）
-  
-  // 無盡模式：根據層數決定倍數
-  if (this.dungeons && this.dungeons.type == 'endless') {
-    let endlessLv = this.$store.state.playerAttribute.endlessLv;
-    let ratio = (endlessLv >= 10) ? 2.6 : 1.5;
-    return Math.floor(baseGold * ratio);
-  }
-  
-  return baseGold;
-},
-// 👆 加到這裡 👆
-
-initial() {
-      let html = document.documentElement;
-      let wW = html.clientHeight;
-      let designSize = 1000; //设计高度
-      if (!this.fullScreen) {
-        wW = html.clientHeight;
+    getDisplayGoldForIndex(monster) {
+      let baseGold = monster.trophy.gold * 4
+      
+      if (this.dungeons && this.dungeons.type == 'endless') {
+        let endlessLv = this.$store.state.playerAttribute.endlessLv
+        let ratio = (endlessLv >= 10) ? 2.6 : 1.5
+        return Math.floor(baseGold * ratio)
       }
-      let rem = (wW * 100) / designSize;
-      document.documentElement.style.fontSize = rem + "px";
+      
+      return baseGold
+    },
+
+    initial() {
+      let html = document.documentElement
+      let wW = html.clientHeight
+      let designSize = 1000
+      if (!this.fullScreen) {
+        wW = html.clientHeight
+      }
+      let rem = (wW * 100) / designSize
+      document.documentElement.style.fontSize = rem + "px"
 
       if (document.documentElement.clientWidth < 768) {
         this.$store.commit('set_operator_schema', true)
@@ -1361,25 +1348,25 @@ initial() {
         case 'weapon':
           this.weapon = item
           this.weaponShow = true
-          break;
+          break
         case 'armor':
           this.armor = item
           this.armorShow = true
-          break;
+          break
         case 'ring':
           this.ring = item
           this.ringShow = true
-          break;
+          break
         case 'neck':
           this.neck = item
           this.neckShow = true
-          break;
+          break
         default:
-          break;
+          break
       }
     },
     closeItemInfo() {
-      this.needComparison = true;
+      this.needComparison = true
       this.weaponShow = this.armorShow = this.ringShow = this.neckShow = false
     },
     setSysInfo() {
@@ -1388,162 +1375,154 @@ initial() {
               副本探索成功！
             `,
         type: 'win'
-      });
+      })
     },
-    // 抽抽乐方法
     initDrawCooldown() {
-      const saved = localStorage.getItem('lastDrawTimestamp');
+      const saved = localStorage.getItem('lastDrawTimestamp')
       if (saved) {
-        this.lastDrawTimestamp = parseInt(saved, 10);
-        this.updateDrawCooldown();
+        this.lastDrawTimestamp = parseInt(saved, 10)
+        this.updateDrawCooldown()
       }
     },
     updateDrawCooldown() {
-      const now = Date.now();
-      const elapsed = (now - this.lastDrawTimestamp) / 1000;
-      const remaining = this.drawCooldownSeconds - elapsed;
+      const now = Date.now()
+      const elapsed = (now - this.lastDrawTimestamp) / 1000
+      const remaining = this.drawCooldownSeconds - elapsed
       if (remaining > 0) {
-        this.drawCooldownRemaining = Math.ceil(remaining);
+        this.drawCooldownRemaining = Math.ceil(remaining)
         if (!this.drawCooldownTimer) {
           this.drawCooldownTimer = setInterval(() => {
             if (this.drawCooldownRemaining > 0) {
-              this.drawCooldownRemaining--;
+              this.drawCooldownRemaining--
             } else {
-              clearInterval(this.drawCooldownTimer);
-              this.drawCooldownTimer = null;
+              clearInterval(this.drawCooldownTimer)
+              this.drawCooldownTimer = null
             }
-          }, 1000);
+          }, 1000)
         }
       } else {
-        this.drawCooldownRemaining = 0;
+        this.drawCooldownRemaining = 0
         if (this.drawCooldownTimer) {
-          clearInterval(this.drawCooldownTimer);
-          this.drawCooldownTimer = null;
+          clearInterval(this.drawCooldownTimer)
+          this.drawCooldownTimer = null
         }
       }
     },
     performDraw() {
       if (this.drawCooldownRemaining > 0) {
-        this.$store.commit("set_sys_info", { msg: "抽奖冷却中，请稍后再试～", type: "warning" });
-        return;
+        this.$store.commit("set_sys_info", { msg: "抽奖冷却中，请稍后再试～", type: "warning" })
+        return
       }
-      const rand = Math.random();
-      let rewardMsg = '';
+      const rand = Math.random()
+      let rewardMsg = ''
       if (rand < 0.25) {
-        // 转生点数
-        const points = Math.floor(Math.random() * 50) + 1;
-        const currentRein = this.$store.state.reincarnation;
+        const points = Math.floor(Math.random() * 50) + 1
+        const currentRein = this.$store.state.reincarnation
         this.$store.commit('set_player_rein', {
           count: currentRein.count,
           point: currentRein.point + points
-        });
-        rewardMsg = `转生点数 +${points}`;
+        })
+        rewardMsg = `转生点数 +${points}`
       } else if (rand < 0.5) {
-        // 玩家等级提升
-        const levels = Math.floor(Math.random() * 5) + 1;
-        const newLv = this.playerLv + levels;
-        this.$store.commit('set_player_lv', newLv);
-        rewardMsg = `玩家等级 +${levels} (当前 ${newLv} 级)`;
+        const levels = Math.floor(Math.random() * 5) + 1
+        const newLv = this.playerLv + levels
+        this.$store.commit('set_player_lv', newLv)
+        rewardMsg = `玩家等级 +${levels} (当前 ${newLv} 级)`
       } else if (rand < 0.75) {
-        // 随机独特装备
-        const equipType = ['weaponPanel', 'armorPanel', 'ringPanel', 'neckPanel'][Math.floor(Math.random() * 4)];
-        const comp = this.findComponentDownward(this, equipType);
+        const equipType = ['weaponPanel', 'armorPanel', 'ringPanel', 'neckPanel'][Math.floor(Math.random() * 4)]
+        const comp = this.findComponentDownward(this, equipType)
         if (comp) {
-          const lv = Math.max(1, this.playerLv + Math.floor(Math.random() * 6) - 3);
-          const itemStr = comp.createNewItem(4, lv);
-          const item = JSON.parse(itemStr);
-          const backpackPanel = this.findComponentDownward(this, "backpackPanel");
+          const lv = Math.max(1, this.playerLv + Math.floor(Math.random() * 6) - 3)
+          const itemStr = comp.createNewItem(4, lv)
+          const item = JSON.parse(itemStr)
+          const backpackPanel = this.findComponentDownward(this, "backpackPanel")
           if (backpackPanel) {
-            let added = false;
+            let added = false
             for (let i = 0; i < backpackPanel.grid.length; i++) {
               if (JSON.stringify(backpackPanel.grid[i]).length <= 3) {
-                this.$set(backpackPanel.grid, i, item);
-                added = true;
-                break;
+                this.$set(backpackPanel.grid, i, item)
+                added = true
+                break
               }
             }
             if (added) {
-              rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})`;
+              rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})`
             } else {
-              rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})，但背包已满，未能获得！`;
+              rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})，但背包已满，未能获得！`
             }
           } else {
-            rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})，但背包组件未找到！`;
+            rewardMsg = `独特装备：${item.type.name} (Lv.${item.lv})，但背包组件未找到！`
           }
         } else {
-          rewardMsg = `独特装备生成失败，组件未找到`;
+          rewardMsg = `独特装备生成失败，组件未找到`
         }
       } else {
-        // 金币
-        const gold = Math.floor(Math.random() * 1000000) + 10000;
-        this.$store.commit('set_player_gold', gold);
-        rewardMsg = `金币 +${gold.toLocaleString()}`;
+        const gold = Math.floor(Math.random() * 1000000) + 10000
+        this.$store.commit('set_player_gold', gold)
+        rewardMsg = `金币 +${gold.toLocaleString()}`
       }
-      this.lastDrawReward = rewardMsg;
-      this.$store.commit("set_sys_info", { msg: `🎉 抽奖结果：${rewardMsg}`, type: "win" });
-      this.lastDrawTimestamp = Date.now();
-      localStorage.setItem('lastDrawTimestamp', this.lastDrawTimestamp);
-      this.updateDrawCooldown();
+      this.lastDrawReward = rewardMsg
+      this.$store.commit("set_sys_info", { msg: `🎉 抽奖结果：${rewardMsg}`, type: "win" })
+      this.lastDrawTimestamp = Date.now()
+      localStorage.setItem('lastDrawTimestamp', this.lastDrawTimestamp)
+      this.updateDrawCooldown()
     },
     formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      const mins = Math.floor(seconds / 60)
+      const secs = seconds % 60
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     },
-    // 脱下装备
     unequipItem(slot, event) {
-      event.stopPropagation();
-      event.preventDefault();
+      event.stopPropagation()
+      event.preventDefault()
       try {
-        let currentEquipment = null;
+        let currentEquipment = null
         switch (slot) {
-          case 'weapon': currentEquipment = this.playerWeapon; break;
-          case 'armor': currentEquipment = this.playerArmor; break;
-          case 'ring': currentEquipment = this.playerRing; break;
-          case 'neck': currentEquipment = this.playerNeck; break;
-          default: return;
+          case 'weapon': currentEquipment = this.playerWeapon; break
+          case 'armor': currentEquipment = this.playerArmor; break
+          case 'ring': currentEquipment = this.playerRing; break
+          case 'neck': currentEquipment = this.playerNeck; break
+          default: return
         }
         if (!currentEquipment || !currentEquipment.type) {
-          this.$store.commit("set_sys_info", { msg: "这里没有装备可以卸下。", type: 'warning' });
-          return;
+          this.$store.commit("set_sys_info", { msg: "这里没有装备可以卸下。", type: 'warning' })
+          return
         }
-        const backpackPanel = this.findComponentDownward(this, "backpackPanel");
+        const backpackPanel = this.findComponentDownward(this, "backpackPanel")
         if (!backpackPanel) {
-          console.error("未找到背包组件");
-          return;
+          console.error("未找到背包组件")
+          return
         }
-        let emptyIndex = -1;
+        let emptyIndex = -1
         for (let i = 0; i < backpackPanel.grid.length; i++) {
           if (JSON.stringify(backpackPanel.grid[i]).length <= 3) {
-            emptyIndex = i;
-            break;
+            emptyIndex = i
+            break
           }
         }
         if (emptyIndex === -1) {
-          this.$store.commit("set_sys_info", { msg: "背包已满，无法卸下装备！", type: "warning" });
-          return;
+          this.$store.commit("set_sys_info", { msg: "背包已满，无法卸下装备！", type: "warning" })
+          return
         }
-        // 放入背包（深拷贝）
-        this.$set(backpackPanel.grid, emptyIndex, this.$deepCopy(currentEquipment));
-        // 清空装备槽位（传入空对象，store 会处理为无属性空装备）
+        this.$set(backpackPanel.grid, emptyIndex, this.$deepCopy(currentEquipment))
         switch (slot) {
-          case 'weapon': this.$store.commit('set_player_weapon', {}); break;
-          case 'armor': this.$store.commit('set_player_armor', {}); break;
-          case 'ring': this.$store.commit('set_player_ring', {}); break;
-          case 'neck': this.$store.commit('set_player_neck', {}); break;
+          case 'weapon': this.$store.commit('set_player_weapon', {}); break
+          case 'armor': this.$store.commit('set_player_armor', {}); break
+          case 'ring': this.$store.commit('set_player_ring', {}); break
+          case 'neck': this.$store.commit('set_player_neck', {}); break
         }
-        this.saveGame(false);
+        this.saveGame(false)
         this.$store.commit("set_sys_info", {
           msg: `已卸下 ${currentEquipment.type.name}，放入背包。`,
           type: "win",
-        });
+        })
       } catch (err) {
-        console.error("卸下装备出错:", err);
-        this.$store.commit("set_sys_info", { msg: "卸下装备失败，请重试。", type: "warning" });
+        console.error("卸下装备出错:", err)
+        this.$store.commit("set_sys_info", { msg: "卸下装备失败，请重试。", type: "warning" })
       }
     }
   }
-};
+}
 </script>
 <style lang="scss" scoped>
 /* 样式保持不变（与原文件相同） */
