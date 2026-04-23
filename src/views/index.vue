@@ -1067,180 +1067,191 @@ export default {
       this.GMOpened = false
     },
     showDungeonsInfo(k) {
-      // var b = this.findComponentDownward(this, 'dungeons')
-      this.dungeons = this.dungeonsArr[k]
-      this.dungeons.moveTime = 200
-      if (this.dungeons.difficulty != 1) {
-        this.reChallenge = false
-        this.reChallengeEx = false
-        this.reChallengeExR = false
-      }
-      this.dungeonsSimulator.victory = true
-      this.dungeonsSimulator.recoveryToMaxHP = false
-      this.dungeonsSimulator.costTime = 0
-      this.dungeonsSimulator.lastHP = 0
-      this.dungeonsSimulator.maxFightCount = 0
-      this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
-      this.dungeonsSimulator.allGetDamaged = 0
-      let playerAttribute = this.$store.state.playerAttribute.attribute,
-        healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
-        reincarnationAttribute = this.$store.state.reincarnationAttribute
-      let reducedDamage = playerAttribute.REDUCDMG,
-        playerDPS = playerAttribute.DPS,
-        playerBLOC = playerAttribute.BLOC.value,
-        playerMaxHP = playerAttribute.MAXHP.value,
-        playerHP = playerAttribute.MAXHP.value,
-        battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
-        perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime
-      
-      this.dungeonsSimulator.perActionTime = perActionTime
-      
-      let isDead = false
-      for(let i = 0; i < this.dungeons.eventNum; i++){
-        this.dungeonsSimulator.costTime += perActionTime
-        if(i > 0){
-          let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
-          playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
-        }
-        let monsterAttribute = this.dungeons.eventType[i].attribute
-        let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-            monsterDeadTime = monsterAttribute.HP / playerDPS
-        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
-        
-        let remainingHP = playerHP + takeDmg
-        
-        if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
-          isDead = true
-          this.dungeonsSimulator.perGetDamaged[i] = 1  // 改為 1
-          this.dungeonsSimulator.allGetDamaged += takeDmg
-          for(let j = i + 1; j < this.dungeons.eventNum; j++){
-            this.dungeonsSimulator.perGetDamaged[j] = 0
-          }
-          break
-        }
-        
-        this.dungeonsSimulator.perGetDamaged[i] = takeDmg
-        this.dungeonsSimulator.allGetDamaged += takeDmg
-        playerHP = remainingHP
-      }
-      
-            if(isDead){
-        this.dungeonsSimulator.victory = false
-        this.dungeonsSimulator.recoveryToMaxHP = false
-        this.dungeonsSimulator.lastHP = 0
-        this.dungeonsSimulator.maxFightCount = 0
-      } else {
-        this.dungeonsSimulator.victory = true
-        this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-        for(let i = 0; i < this.dungeons.eventNum; i++){
-          let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + playerHP
-          if(newHP >= playerMaxHP){
-            this.dungeonsSimulator.recoveryToMaxHP = true
-            return
-          }
-          playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
-        }
-        this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
-      }
-      
-      // 🛡️ 最後一道保險
-      if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)){
-        this.dungeonsSimulator.victory = false
-      }
-    },
-    showEndlessDungeonsInfo() {
-      this.reChallenge = false
-      this.reChallengeEx = false
-      this.reChallengeExR = false
-      this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
-      this.dungeons.moveTime = 200
-      this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
-      this.dungeons.type = 'endless'
-      this.dungeonsSimulator.victory = true
-      this.dungeonsSimulator.recoveryToMaxHP = false
-      this.dungeonsSimulator.costTime = 0
-      this.dungeonsSimulator.lastHP = 0
-      this.dungeonsSimulator.maxFightCount = 0
-      this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
-      this.dungeonsSimulator.allGetDamaged = 0
-      let playerAttribute = this.$store.state.playerAttribute.attribute,
-        healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
-        reincarnationAttribute = this.$store.state.reincarnationAttribute
-      let reducedDamage = playerAttribute.REDUCDMG,
-        playerDPS = playerAttribute.DPS,
-        playerBLOC = playerAttribute.BLOC.value,
-        playerMaxHP = playerAttribute.MAXHP.value,
-        playerHP = playerAttribute.MAXHP.value,
-        battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
-        perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime
-      
-      this.dungeonsSimulator.perActionTime = perActionTime
-      
-      let isDead = false
-for(let i = 0; i < this.dungeons.eventNum; i++){
-  this.dungeonsSimulator.costTime += perActionTime
-  if(i > 0){
-    let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
-    playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+  // var b = this.findComponentDownward(this, 'dungeons')
+  this.dungeons = this.dungeonsArr[k]
+  this.dungeons.moveTime = 200
+  if (this.dungeons.difficulty != 1) {
+    this.reChallenge = false
+    this.reChallengeEx = false
+    this.reChallengeExR = false
   }
-  let monsterAttribute = this.dungeons.eventType[i].attribute
-  let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-      monsterDeadTime = monsterAttribute.HP / playerDPS
-  let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+  this.dungeonsSimulator.victory = true
+  this.dungeonsSimulator.recoveryToMaxHP = false
+  this.dungeonsSimulator.costTime = 0
+  this.dungeonsSimulator.lastHP = 0
+  this.dungeonsSimulator.maxFightCount = 0
+  this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
+  this.dungeonsSimulator.allGetDamaged = 0
+  let playerAttribute = this.$store.state.playerAttribute.attribute,
+    healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+    reincarnationAttribute = this.$store.state.reincarnationAttribute
+  let reducedDamage = playerAttribute.REDUCDMG,
+    playerDPS = playerAttribute.DPS,
+    playerBLOC = playerAttribute.BLOC.value,
+    playerMaxHP = playerAttribute.MAXHP.value,
+    playerHP = playerAttribute.MAXHP.value,
+    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
+    perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime
   
-  // 如果玩家會死亡
-  if(monsterDeadTime >= playerDeadTime){
-    isDead = true
+  this.dungeonsSimulator.perActionTime = perActionTime
+  
+  let isDead = false
+  for(let i = 0; i < this.dungeons.eventNum; i++){
+    this.dungeonsSimulator.costTime += perActionTime
+    if(i > 0){
+      let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
+      playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+    }
+    let monsterAttribute = this.dungeons.eventType[i].attribute
+    let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+        monsterDeadTime = monsterAttribute.HP / playerDPS
+    let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+    
+    let remainingHP = playerHP + takeDmg
+    
+    if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
+      isDead = true
+      this.dungeonsSimulator.perGetDamaged[i] = 1  // 死亡標記
+      this.dungeonsSimulator.allGetDamaged += takeDmg
+      for(let j = i + 1; j < this.dungeons.eventNum; j++){
+        this.dungeonsSimulator.perGetDamaged[j] = 0
+      }
+      break
+    }
+    
     this.dungeonsSimulator.perGetDamaged[i] = takeDmg
     this.dungeonsSimulator.allGetDamaged += takeDmg
-    for(let j = i + 1; j < this.dungeons.eventNum; j++){
-      this.dungeonsSimulator.perGetDamaged[j] = 0
-    }
-    break
+    playerHP = remainingHP
   }
   
-  // 正常情況：扣除血量
-  let remainingHP = playerHP + takeDmg  // takeDmg 是負數
-  this.dungeonsSimulator.perGetDamaged[i] = takeDmg
-  this.dungeonsSimulator.allGetDamaged += takeDmg
-  playerHP = remainingHP
-}
-      
-      console.log('=== 除錯開始 ===')
-console.log('isDead:', isDead)
-console.log('victory 設定前:', this.dungeonsSimulator.victory)
-
-      if(isDead){
-        console.log('進入死亡分支')
-        this.dungeonsSimulator.victory = false
-        console.log('victory 設為:', this.dungeonsSimulator.victory)
-        this.dungeonsSimulator.recoveryToMaxHP = false
-        this.dungeonsSimulator.lastHP = 0
-        this.dungeonsSimulator.maxFightCount = 0
-      } else {
-        console.log('進入勝利分支')
-        this.dungeonsSimulator.victory = true
-        console.log('victory 設為:', this.dungeonsSimulator.victory)
-        this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-        for(let i = 0; i < this.dungeons.eventNum; i++){
-          let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + playerHP
-          if(newHP >= playerMaxHP){
-            this.dungeonsSimulator.recoveryToMaxHP = true
-            return
-          }
-          playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
-        }
-        this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
+  // 先執行保險檢查
+  let hasDeathMark = this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)
+  
+  if(isDead || hasDeathMark){
+    this.dungeonsSimulator.victory = false
+    this.dungeonsSimulator.recoveryToMaxHP = false
+    this.dungeonsSimulator.lastHP = 0
+    this.dungeonsSimulator.maxFightCount = 0
+  } else {
+    this.dungeonsSimulator.victory = true
+    this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
+    
+    let canRecovery = false
+    let tempHP = playerHP
+    for(let i = 0; i < this.dungeons.eventNum; i++){
+      let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + tempHP
+      if(newHP >= playerMaxHP){
+        canRecovery = true
+        break
       }
-      
-      // 🛡️ 最後一道保險：只要有任何一欄顯示「死亡」，就強制設為戰敗
-      if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999 || dmg === 1 || dmg > 0)){
-        this.dungeonsSimulator.victory = false
-        console.log('🛡️ 保險觸發：強制設定 victory = false')
+      tempHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
+    }
+    
+    if(canRecovery){
+      this.dungeonsSimulator.recoveryToMaxHP = true
+    } else {
+      this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - tempHP))
+    }
+  }
+  
+  // 最後再強制檢查一次（雙重保險）
+  if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)){
+    this.dungeonsSimulator.victory = false
+  }
+},
+    showEndlessDungeonsInfo() {
+  this.reChallenge = false
+  this.reChallengeEx = false
+  this.reChallengeExR = false
+  this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
+  this.dungeons.moveTime = 200
+  this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
+  this.dungeons.type = 'endless'
+  this.dungeonsSimulator.victory = true
+  this.dungeonsSimulator.recoveryToMaxHP = false
+  this.dungeonsSimulator.costTime = 0
+  this.dungeonsSimulator.lastHP = 0
+  this.dungeonsSimulator.maxFightCount = 0
+  this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
+  this.dungeonsSimulator.allGetDamaged = 0
+  let playerAttribute = this.$store.state.playerAttribute.attribute,
+    healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+    reincarnationAttribute = this.$store.state.reincarnationAttribute
+  let reducedDamage = playerAttribute.REDUCDMG,
+    playerDPS = playerAttribute.DPS,
+    playerBLOC = playerAttribute.BLOC.value,
+    playerMaxHP = playerAttribute.MAXHP.value,
+    playerHP = playerAttribute.MAXHP.value,
+    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
+    perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 10 + battleTime
+  
+  this.dungeonsSimulator.perActionTime = perActionTime
+  
+  let isDead = false
+  for(let i = 0; i < this.dungeons.eventNum; i++){
+    this.dungeonsSimulator.costTime += perActionTime
+    if(i > 0){
+      let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
+      playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+    }
+    let monsterAttribute = this.dungeons.eventType[i].attribute
+    let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+        monsterDeadTime = monsterAttribute.HP / playerDPS
+    let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+    
+    // 如果玩家會死亡
+    if(monsterDeadTime >= playerDeadTime){
+      isDead = true
+      this.dungeonsSimulator.perGetDamaged[i] = 1  // 死亡標記
+      this.dungeonsSimulator.allGetDamaged += takeDmg
+      for(let j = i + 1; j < this.dungeons.eventNum; j++){
+        this.dungeonsSimulator.perGetDamaged[j] = 0
       }
-      
-      console.log('=== showEndlessDungeonsInfo 結束，最終 victory =', this.dungeonsSimulator.victory)
-    },
+      break
+    }
+    
+    // 正常情況：扣除血量
+    let remainingHP = playerHP + takeDmg  // takeDmg 是負數
+    this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+    this.dungeonsSimulator.allGetDamaged += takeDmg
+    playerHP = remainingHP
+  }
+  
+  // 先執行保險檢查
+  let hasDeathMark = this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)
+  
+  if(isDead || hasDeathMark){
+    this.dungeonsSimulator.victory = false
+    this.dungeonsSimulator.recoveryToMaxHP = false
+    this.dungeonsSimulator.lastHP = 0
+    this.dungeonsSimulator.maxFightCount = 0
+  } else {
+    this.dungeonsSimulator.victory = true
+    this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
+    
+    let canRecovery = false
+    let tempHP = playerHP
+    for(let i = 0; i < this.dungeons.eventNum; i++){
+      let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + tempHP
+      if(newHP >= playerMaxHP){
+        canRecovery = true
+        break
+      }
+      tempHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
+    }
+    
+    if(canRecovery){
+      this.dungeonsSimulator.recoveryToMaxHP = true
+    } else {
+      this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - tempHP))
+    }
+  }
+  
+  // 最後再強制檢查一次（雙重保險）
+  if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)){
+    this.dungeonsSimulator.victory = false
+  }
+},
     closeDungeonsInfo() {
       this.dungeons = ''
     },
