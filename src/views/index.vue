@@ -825,7 +825,7 @@ export default {
                 this.reChallengeExR=false;
               }
             }
-          }, 1000)
+          }, 3000)
         }
         return
       }
