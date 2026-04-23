@@ -451,25 +451,27 @@ export default {
     if(this.dungeons.type == 'endless'){
       return
     }
-    items.map(item => {
-      if (backpackPanel.autoSell[equipQua]&&item.quality.name!="獨特") {
-        var gold = item.lv * item.quality.qualityCoefficient * 30
-        this.$store.commit("set_player_gold", parseInt(gold));
-        this.$store.commit("set_sys_info", {
-          msg: `
-            自動出售裝備獲得金幣：${parseInt(gold)}
-          `,
-          type: 'trophy',
-        });
-      } else {
-        for (let i = 0; i < backpackPanel.grid.length; i++) {
-          if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-            this.$set(backpackPanel.grid, i, item)
-            break;
-          }
-        }
+    // 修改後
+items.map(item => {
+  if (backpackPanel.autoSell[equipQua] && item.quality.name != "獨特") {
+    var gold = item.lv * item.quality.qualityCoefficient * 30 * timeCompensation  // ← 加上 * timeCompensation
+    this.$store.commit("set_player_gold", parseInt(gold));
+    this.$store.commit("set_sys_info", {
+      msg: `
+        自動出售裝備獲得金幣：${parseInt(gold)}
+      `,
+      type: 'trophy',
+    });
+  } else {
+    // 放入背包的邏輯不變
+    for (let i = 0; i < backpackPanel.grid.length; i++) {
+      if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+        this.$set(backpackPanel.grid, i, item)
+        break;
       }
-    })
+    }
+  }
+})
   } else {
     var goldObtainRatio = 1
     if (this.dungeons.type == 'endless') {
