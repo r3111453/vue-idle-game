@@ -14,7 +14,7 @@
             <p>{{v.name}}</p>
             <p>HP{{v.attribute.HP}}({{v.attribute.HPStrength}})</p>
               <p>ATK{{v.attribute.ATK}}({{v.attribute.ATKStrength}})</p>
-            <p>金钱{{v.trophy.gold}} 独特掉落率{{ (dungeons.type == "endless"?0:(v.type=="boss"?Math.min(0.05*((dungeons.difficulty-1)*2+1)*4, 95):v.trophy.equip[3]))*100+"%"}}</p>
+            <p>金钱{{v.trophy.gold * 4}} 独特掉落率{{ (dungeons.type == "endless"?0:(v.type=="boss"?Math.min(0.05*((dungeons.difficulty-1)*2+1)*4, 95):v.trophy.equip[3]))*100+"%"}}</p>
             </div>
           </template>
         </cTooltip>
