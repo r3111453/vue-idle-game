@@ -268,7 +268,7 @@
             <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</th>
             <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</th>
             <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</th>
-            <td>{{m.trophy.gold}}</th>
+            <td>{{m.trophy.gold * 4}}</td>
            </td>
           <tr>
             <td>合计</th>
