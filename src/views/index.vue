@@ -1205,35 +1205,51 @@ takeDmg = takeDmg > -1 ? -1 : takeDmg
       this.dungeonsSimulator.perActionTime = perActionTime
       
       for(let i = 0; i < this.dungeons.eventNum; i++){
-        this.dungeonsSimulator.costTime += perActionTime
-        if(i > 0){
-          let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
-          playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
-        }
-        let monsterAttribute = this.dungeons.eventType[i].attribute
-        let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-            monsterDeadTime = monsterAttribute.HP / playerDPS
-        // 按照實際戰鬥的計算順序（先取整再加格擋）
-let rawDamage = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage
-let takeDmg = parseInt(rawDamage) + playerBLOC
-takeDmg = takeDmg > -1 ? -1 : takeDmg
-        
-        let remainingHP = playerHP + takeDmg
-        if(remainingHP <= 0){
-          this.dungeonsSimulator.isPlayerDead = true
-          this.dungeonsSimulator.deathIndex = i
-          this.dungeonsSimulator.perGetDamaged[i] = takeDmg
-          this.dungeonsSimulator.allGetDamaged += takeDmg
-          for(let j = i + 1; j < this.dungeons.eventNum; j++){
-            this.dungeonsSimulator.perGetDamaged[j] = 0
-          }
-          break
-        }
-        
-        this.dungeonsSimulator.perGetDamaged[i] = takeDmg
-        this.dungeonsSimulator.allGetDamaged += takeDmg
-        playerHP = remainingHP
-      }
+  this.dungeonsSimulator.costTime += perActionTime
+  if(i > 0){
+    let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
+    playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+  }
+  let monsterAttribute = this.dungeons.eventType[i].attribute
+  let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+      monsterDeadTime = monsterAttribute.HP / playerDPS
+  
+  // 按照實際戰鬥的計算順序
+  let rawDamage = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage
+  let takeDmg = parseInt(rawDamage) + playerBLOC
+  takeDmg = takeDmg > -1 ? -1 : takeDmg
+  
+  // ========== 加入以下除錯資訊 ==========
+  console.log(`\n=== 第 ${i+1} 隻怪，怪物名稱：${monsterAttribute.name || '未知'} ===`)
+  console.log(`玩家當前 HP: ${playerHP.toFixed(1)}`)
+  console.log(`怪物攻擊力: ${monsterAttribute.ATK}`)
+  console.log(`玩家減傷: ${reducedDamage}`)
+  console.log(`玩家格擋: ${playerBLOC}`)
+  console.log(`怪物死亡時間: ${monsterDeadTime.toFixed(3)} 秒`)
+  console.log(`原始傷害 rawDamage: ${rawDamage.toFixed(3)}`)
+  console.log(`parseInt(rawDamage): ${parseInt(rawDamage)}`)
+  console.log(`加上格擋後取整: ${parseInt(rawDamage) + playerBLOC}`)
+  console.log(`最終 takeDmg: ${takeDmg}`)
+  console.log(`剩餘 HP: ${(playerHP + takeDmg).toFixed(1)}`)
+  console.log(`是否死亡: ${(playerHP + takeDmg) <= 0 ? '是' : '否'}`)
+  // ========== 除錯資訊結束 ==========
+  
+  let remainingHP = playerHP + takeDmg
+  if(remainingHP <= 0){
+    this.dungeonsSimulator.isPlayerDead = true
+    this.dungeonsSimulator.deathIndex = i
+    this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+    this.dungeonsSimulator.allGetDamaged += takeDmg
+    for(let j = i + 1; j < this.dungeons.eventNum; j++){
+      this.dungeonsSimulator.perGetDamaged[j] = 0
+    }
+    break
+  }
+  
+  this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+  this.dungeonsSimulator.allGetDamaged += takeDmg
+  playerHP = remainingHP
+}
       
       if(this.dungeonsSimulator.isPlayerDead){
         this.dungeonsSimulator.victory = false
