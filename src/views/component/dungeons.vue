@@ -452,9 +452,10 @@ export default {
       return
     }
     // 修改後
+// ✅ 正確：保持原價
 items.map(item => {
   if (backpackPanel.autoSell[equipQua] && item.quality.name != "獨特") {
-    var gold = item.lv * item.quality.qualityCoefficient * 30 * timeCompensation  // ← 加上 * timeCompensation
+    var gold = item.lv * item.quality.qualityCoefficient * 30  // ← 拿掉 * timeCompensation
     this.$store.commit("set_player_gold", parseInt(gold));
     this.$store.commit("set_sys_info", {
       msg: `
@@ -463,7 +464,6 @@ items.map(item => {
       type: 'trophy',
     });
   } else {
-    // 放入背包的邏輯不變
     for (let i = 0; i < backpackPanel.grid.length; i++) {
       if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
         this.$set(backpackPanel.grid, i, item)
