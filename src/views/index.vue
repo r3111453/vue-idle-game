@@ -1109,7 +1109,8 @@ export default {
     
     let remainingHP = playerHP + takeDmg
     
-    if(monsterDeadTime >= playerDeadTime){
+    let remainingHP = playerHP + takeDmg
+if(remainingHP <= 0){
       isDead = true
       this.dungeonsSimulator.perGetDamaged[i] = 9999  // 改為 9999
       this.dungeonsSimulator.allGetDamaged += takeDmg
@@ -1200,7 +1201,8 @@ export default {
     let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
     
     // 如果玩家會死亡
-    if(monsterDeadTime >= playerDeadTime){
+    let remainingHP = playerHP + takeDmg
+if(remainingHP <= 0){
       isDead = true
       this.dungeonsSimulator.perGetDamaged[i] = 9999  // 改為 9999
       this.dungeonsSimulator.allGetDamaged += takeDmg
