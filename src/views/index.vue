@@ -1111,8 +1111,14 @@ export default {
             monsterDeadTime = monsterAttribute.HP / playerDPS
         let rawDmg = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage + playerBLOC
 let takeDmg = Math.ceil(rawDmg)
-        
-        let remainingHP = playerHP + takeDmg
+  
+  // 加入這行 alert（只對第一隻怪顯示，避免彈出太多）
+  if(i === 0) {
+    alert(`怪物攻擊:${monsterAttribute.ATK}\n玩家減傷:${reducedDamage}\n玩家格擋:${playerBLOC}\n原始傷害:${-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage}\nrawDmg:${rawDmg}\ntakeDmg:${takeDmg}\n顯示傷害:${Math.abs(takeDmg)}`)
+  }
+  // ========== alert 結束 ==========
+  
+  let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
           this.dungeonsSimulator.isPlayerDead = true
           this.dungeonsSimulator.deathIndex = i
