@@ -277,7 +277,7 @@
             <td>{{dungeons.totalHP}}</td>
             <td>/</td>
             <td>{{-dungeonsSimulator.allGetDamaged}}</td>
-            <td>{{dungeons.totalGold}}</td>
+            <td>{{ dungeons.eventType.reduce((sum, m) => sum + getDisplayGoldForIndex(m), 0) }}</td>
           </tr>
         </table>
         <div class="info">
