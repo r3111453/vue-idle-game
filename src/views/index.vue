@@ -1091,6 +1091,10 @@ export default {
           playerHP = playerAttribute.MAXHP.value,
           battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
           perActionTime=0.4*(this.dungeons.moveTime+reincarnationAttribute.MOVESPEED)+battleTime;
+
+      // 👇 在這裡加上這一行 👇
+console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttribute.MOVESPEED, 'battleTime:', battleTime, 'perActionTime:', perActionTime);
+      
       this.dungeonsSimulator.perActionTime = perActionTime;
       for(let i=0;i<this.dungeons.eventNum;i++){
         this.dungeonsSimulator.costTime+=perActionTime;
@@ -1150,6 +1154,10 @@ export default {
           playerHP = playerAttribute.MAXHP.value,
           battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
           perActionTime=0.4*(this.dungeons.moveTime+reincarnationAttribute.MOVESPEED)+battleTime;
+
+      // 👇 在這裡加上這一行 👇
+console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttribute.MOVESPEED, 'battleTime:', battleTime, 'perActionTime:', perActionTime);
+      
       this.dungeonsSimulator.perActionTime = perActionTime;
       for(let i=0;i<this.dungeons.eventNum;i++){
         this.dungeonsSimulator.costTime+=perActionTime;
