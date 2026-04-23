@@ -269,7 +269,7 @@
             <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
             <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
             <td v-if="dungeonsSimulator.isPlayerDead && i >= dungeonsSimulator.deathIndex">死亡</td>
-            <td v-else>{{ Math.abs(dungeonsSimulator.perGetDamaged[i]) }}</td>
+            <td v-else>{{ dungeonsSimulator.perGetDamaged[i] >= 0 ? dungeonsSimulator.perGetDamaged[i] : -dungeonsSimulator.perGetDamaged[i] }}</td>
             <td>{{ getDisplayGoldForIndex(m) }}</td>
           </tr>
           <tr>
@@ -1109,8 +1109,7 @@ export default {
         let monsterAttribute = this.dungeons.eventType[i].attribute
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
-        let rawDamage = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage
-let takeDmg = Math.floor(rawDamage) + playerBLOC
+        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
         
         let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
@@ -1196,8 +1195,7 @@ let takeDmg = Math.floor(rawDamage) + playerBLOC
         let monsterAttribute = this.dungeons.eventType[i].attribute
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
-        let rawDamage = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage
-let takeDmg = Math.floor(rawDamage) + playerBLOC
+        let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
         
         let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
