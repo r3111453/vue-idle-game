@@ -1214,7 +1214,7 @@ takeDmg = takeDmg < 1 ? 1 : takeDmg
     
     // 回血：使用上一場的實際戰鬥時間
     if(i > 0 && previousBattleTime > 0){
-      let healAmount = playerMaxHP * 0.03 * previousBattleTime
+      let healAmount = playerMaxHP * 0.05 * previousBattleTime
       playerHP = playerHP + healAmount
       if(playerHP > playerMaxHP) playerHP = playerMaxHP
       console.log(`第 ${i} 隻怪打完後，恢復 ${healAmount.toFixed(1)} HP，當前 HP: ${playerHP.toFixed(1)}`)
