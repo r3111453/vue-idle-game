@@ -1110,7 +1110,7 @@ export default {
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
         let rawDmg = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage + playerBLOC
-let takeDmg = Math.ceil(rawDmg)
+let takeDmg = rawDmg > 0 ? 0 : Math.ceil(rawDmg)
   
   // 加入這行 alert（只對第一隻怪顯示，避免彈出太多）
   if(i === 0) {
@@ -1203,7 +1203,7 @@ let takeDmg = Math.ceil(rawDmg)
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
         let rawDmg = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage + playerBLOC
-let takeDmg = Math.ceil(rawDmg)
+let takeDmg = rawDmg > 0 ? 0 : Math.ceil(rawDmg)
         
         let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
