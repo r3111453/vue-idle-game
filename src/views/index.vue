@@ -277,7 +277,7 @@
             <td>{{dungeons.totalHP}}</td>
             <td>/</td>
             <td>{{-dungeonsSimulator.allGetDamaged}}</td>
-            <td>{{dungeons.totalGold}}</td>
+            <td v-else>{{ dungeons.displayTotalGold }}</td>
           </tr>
         </table>
         <div class="info">
@@ -1161,6 +1161,15 @@ let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
           this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - tempHP))
         }
       }
+
+            // 計算正確的金幣總和（乘以4倍）
+      let totalGold = 0
+      for(let i = 0; i < this.dungeons.eventNum; i++){
+        let monster = this.dungeons.eventType[i]
+        let baseGold = monster.trophy.gold * 4
+        totalGold += baseGold
+      }
+      this.dungeons.displayTotalGold = totalGold
     },
     showEndlessDungeonsInfo() {
       this.reChallenge = false
