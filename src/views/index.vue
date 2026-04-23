@@ -268,7 +268,7 @@
             <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</th>
             <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</th>
             <td>{{dungeonsSimulator.perGetDamaged[i]<0?-dungeonsSimulator.perGetDamaged[i]:"死亡"}}</th>
-            <td>{{m.trophy.gold * 4}}</td>
+            <td>{{ getDisplayGoldForIndex(m) }}</td>
            </td>
           <tr>
             <td>合计</th>
@@ -1256,7 +1256,23 @@ export default {
       );
       equimentPanel.stopAutoStreng()
     },
-    initial() {
+
+// 👇 在這裡加上這個方法 👇
+getDisplayGoldForIndex(monster) {
+  let baseGold = monster.trophy.gold * 4; // 基礎 4 倍（動畫補償）
+  
+  // 無盡模式：根據層數決定倍數
+  if (this.dungeons && this.dungeons.type == 'endless') {
+    let endlessLv = this.$store.state.playerAttribute.endlessLv;
+    let ratio = (endlessLv >= 10) ? 2.6 : 1.5;
+    return Math.floor(baseGold * ratio);
+  }
+  
+  return baseGold;
+},
+// 👆 加到這裡 👆
+
+initial() {
       let html = document.documentElement;
       let wW = html.clientHeight;
       let designSize = 1000; //设计高度
