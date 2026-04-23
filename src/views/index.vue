@@ -1113,9 +1113,9 @@ export default {
 let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
   
   // 加入這行 alert（只對第一隻怪顯示，避免彈出太多）
-  if(i === 0) {
-    alert(`怪物攻擊:${monsterAttribute.ATK}\n玩家減傷:${reducedDamage}\n玩家格擋:${playerBLOC}\n原始傷害:${-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage}\nrawDmg:${rawDmg}\ntakeDmg:${takeDmg}\n顯示傷害:${Math.abs(takeDmg)}`)
-  }
+  //if(i === 0) {
+    //alert(`怪物攻擊:${monsterAttribute.ATK}\n玩家減傷:${reducedDamage}\n玩家格擋:${playerBLOC}\n原始傷害:${-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage}\nrawDmg:${rawDmg}\ntakeDmg:${takeDmg}\n顯示傷害:${Math.abs(takeDmg)}`)
+  //}
   // ========== alert 結束 ==========
   
   let remainingHP = playerHP + takeDmg
