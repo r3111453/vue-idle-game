@@ -1107,7 +1107,7 @@ export default {
         monsterDeadTime = monsterAttribute.HP / playerDPS
     let takeDmg = parseInt(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
     
-    let remainingHP = playerHP + takeDmg
+    
     
     let remainingHP = playerHP + takeDmg
 if(remainingHP <= 0){
@@ -1213,7 +1213,7 @@ if(remainingHP <= 0){
     }
     
     // 正常情況：扣除血量
-    let remainingHP = playerHP + takeDmg  // takeDmg 是負數
+    //let remainingHP = playerHP + takeDmg  // takeDmg 是負數
     this.dungeonsSimulator.perGetDamaged[i] = takeDmg
     this.dungeonsSimulator.allGetDamaged += takeDmg
     playerHP = remainingHP
