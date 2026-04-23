@@ -1201,13 +1201,21 @@ for(let i = 0; i < this.dungeons.eventNum; i++){
   playerHP = remainingHP
 }
       
-      if(isDead){
+      console.log('=== 除錯開始 ===')
+console.log('isDead:', isDead)
+console.log('victory 設定前:', this.dungeonsSimulator.victory)
+
+if(isDead){
+        console.log('進入死亡分支')
         this.dungeonsSimulator.victory = false
+        console.log('victory 設為:', this.dungeonsSimulator.victory)
         this.dungeonsSimulator.recoveryToMaxHP = false
         this.dungeonsSimulator.lastHP = 0
         this.dungeonsSimulator.maxFightCount = 0
       } else {
+        console.log('進入勝利分支')
         this.dungeonsSimulator.victory = true
+        console.log('victory 設為:', this.dungeonsSimulator.victory)
         this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
         for(let i = 0; i < this.dungeons.eventNum; i++){
           let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + playerHP
@@ -1215,6 +1223,7 @@ for(let i = 0; i < this.dungeons.eventNum; i++){
             this.dungeonsSimulator.recoveryToMaxHP = true
             return
           }
+          console.log('最終 victory:', this.dungeonsSimulator.victory)
           playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
         }
         this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
