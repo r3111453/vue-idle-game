@@ -1258,14 +1258,16 @@ let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
         }
       }
 
-            // 計算正確的金幣總和（乘以4倍）
-      let totalGold = 0
-      for(let i = 0; i < this.dungeons.eventNum; i++){
-        let monster = this.dungeons.eventType[i]
-        let baseGold = monster.trophy.gold * 4
-        totalGold += baseGold
-      }
-      this.dungeons.displayTotalGold = totalGold
+            // 計算正確的金幣總和（無盡模式需要乘以倍率）
+let totalGold = 0
+let endlessLv = this.$store.state.playerAttribute.endlessLv
+let ratio = (endlessLv >= 10) ? 2.6 : 1.5
+for(let i = 0; i < this.dungeons.eventNum; i++){
+  let monster = this.dungeons.eventType[i]
+  let baseGold = monster.trophy.gold * 4
+  totalGold += Math.floor(baseGold * ratio)
+}
+this.dungeons.displayTotalGold = totalGold
     },
     closeDungeonsInfo() {
       this.dungeons = ''
