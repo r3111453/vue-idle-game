@@ -14,7 +14,7 @@
             <p>{{v.name}}</p>
             <p>HP{{v.attribute.HP}}({{v.attribute.HPStrength}})</p>
               <p>ATK{{v.attribute.ATK}}({{v.attribute.ATKStrength}})</p>
-            <p>金钱{{v.trophy.gold * 4}} 独特掉落率{{ (dungeons.type == "endless"?0:(v.type=="boss"?Math.min(0.05*((dungeons.difficulty-1)*2+1)*4, 95):v.trophy.equip[3]))*100+"%"}}</p>
+            <p>金钱{{ getDisplayGold(v) }} 独特掉落率{{ getDisplayDropRate(v) }}</p>
             </div>
           </template>
         </cTooltip>
@@ -125,6 +125,36 @@ export default {
     // this.evenHandle()
   },
   methods: {
+    // 新增：獲取顯示用的金幣數量（與實際掉落一致）
+    getDisplayGold(monster) {
+      let baseGold = monster.trophy.gold * 4; // 基礎 4 倍（動畫補償）
+      
+      // 無盡模式：根據層數決定倍數（與 caculateTrophy 中的邏輯一致）
+      if (this.dungeons.type == 'endless') {
+        let endlessLv = this.$store.state.playerAttribute.endlessLv;
+        // 層數 >= 10 時使用 2.6 倍，否則使用 1.5 倍
+        let ratio = (endlessLv >= 10) ? 2.6 : 1.5;
+        return Math.floor(baseGold * ratio);
+      }
+      
+      return baseGold;
+    },
+    // 新增：獲取顯示用的獨特掉落率
+    getDisplayDropRate(monster) {
+      // 無盡模式不掉落獨特裝備
+      if (this.dungeons.type == 'endless') {
+        return '0%';
+      }
+      
+      // BOSS 獨特掉落率（已提高 4 倍）
+      if (monster.type == 'boss') {
+        let rate = Math.min(0.05 * ((this.dungeons.difficulty - 1) * 2 + 1) * 4, 95);
+        return rate + '%';
+      }
+      
+      // 一般怪物掉落率（顯示原始值，因為不會掉獨特）
+      return (monster.trophy.equip[3] * 100) + '%';
+    },
     evenHandle() {
       let startEnent = () => {
         if (this.left >= this.nextEvent * 100 / this.dungeons.eventNum) {
