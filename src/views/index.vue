@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="main" @contextmenu.prevent="contextmenu($event)">
     <div class="user-status">
 
