@@ -455,7 +455,7 @@ export default {
 // ✅ 正確：保持原價
 items.map(item => {
   if (backpackPanel.autoSell[equipQua] && item.quality.name != "獨特") {
-    var gold = item.lv * item.quality.qualityCoefficient * 30  // ← 拿掉 * timeCompensation
+    var gold = item.lv * item.quality.qualityCoefficient * 30 * timeCompensation
     this.$store.commit("set_player_gold", parseInt(gold));
     this.$store.commit("set_sys_info", {
       msg: `
