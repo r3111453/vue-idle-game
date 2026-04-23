@@ -1172,7 +1172,18 @@ let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
       this.dungeons.displayTotalGold = totalGold
     },
     showEndlessDungeonsInfo() {
-      this.reChallenge = false
+  // 在方法最開頭加入
+  console.log('=== 玩家屬性 ===')
+  console.log('DPS:', this.attribute.DPS)
+  console.log('攻擊力:', this.attribute.ATK.value)
+  console.log('暴擊率:', this.attribute.CRIT.value)
+  console.log('暴擊傷害:', this.attribute.CRITDMG.value)
+  console.log('減傷:', this.attribute.REDUCDMG)
+  console.log('格擋:', this.attribute.BLOC.value)
+  console.log('最大HP:', this.attribute.MAXHP.value)
+  console.log('================')
+  
+  this.reChallenge = false
       this.reChallengeEx = false
       this.reChallengeExR = false
       this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
