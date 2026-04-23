@@ -36,7 +36,7 @@ export default {
       battleComTime: {},
       nextEvent: 1,
       battleTime:2000,
-      moveTime:50,
+      moveTime: 200,     // ✅ 移动间隔改为 200 毫秒 (降低更新频率)
       dungeons: {
         battleTime: 2000,
         name: '史莱姆森林',
