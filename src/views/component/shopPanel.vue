@@ -295,7 +295,7 @@ export default {
       this.stopAutoRefresh();
       if (this.refreshTime >= 10 && this.autoBuy) {
         this.timeStart = true;
-        this.timeo = 5;
+        this.timeo = 30;
         this.autoRefreshTimer = setInterval(() => {
           if (this.refreshTime >= 10 && this.autoBuy) {
             this.timeo--;
@@ -304,7 +304,7 @@ export default {
               this.autoRefreshShopItems();
               // 重置倒计时为5秒
               if (this.refreshTime >= 10 && this.autoBuy) {
-                this.timeo = 5;
+                this.timeo = 30;
               } else {
                 // 条件不满足，停止自动刷新，启动恢复倒计时
                 this.stopAutoRefresh();
@@ -453,7 +453,7 @@ export default {
     },
     // 创建单个商店商品
     createShopItem(lv) {
-      let equip = [0.4, 0.342, 0.25, 0.008];
+      let equip = [0.4, 0.342, 0.21, 0.048];
       let equipQua = -1;
       let r = Math.random();
       if (r <= equip[0]) {
