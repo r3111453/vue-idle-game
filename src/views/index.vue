@@ -269,7 +269,7 @@
             <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
             <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
             <td v-if="dungeonsSimulator.isPlayerDead && i >= dungeonsSimulator.deathIndex">死亡</td>
-            <td v-else>{{ Math.abs(dungeonsSimulator.perGetDamaged[i]) }}</td>
+            <td v-else>{{ dungeonsSimulator.perGetDamaged[i] > 0 ? dungeonsSimulator.perGetDamaged[i] : -dungeonsSimulator.perGetDamaged[i] }}</td>
             <td>{{ getDisplayGoldForIndex(m) }}</td>
           </tr>
           <tr>
@@ -1237,8 +1237,15 @@ takeDmg = takeDmg < 1 ? 1 : takeDmg
       // 計算死亡時受到的傷害（取整）
       let battleTime = playerDeadTime
       let rawDamage = -battleTime * Number(monsterAttribute.ATK) * reducedDamage
+      // 戰鬥失敗：玩家死亡
+  console.log(`!!! 第 ${i+1} 隻怪戰鬥失敗，玩家死亡 !!!`)
+  console.log(`playerDeadTime: ${playerDeadTime}, monsterDeadTime: ${monsterDeadTime}`)
+  console.log(`原始 damage: ${rawDamage}`)
+  console.log(`parseInt(rawDamage): ${parseInt(rawDamage)}`)
+  console.log(`減去格擋後: ${parseInt(rawDamage) - playerBLOC}`)
       let takeDmg = parseInt(rawDamage) - playerBLOC
 takeDmg = takeDmg < 1 ? 1 : takeDmg
+      console.log(`最終 takeDmg: ${takeDmg}`)
       this.dungeonsSimulator.perGetDamaged[i] = takeDmg
       this.dungeonsSimulator.allGetDamaged += takeDmg
       for(let j = i + 1; j < this.dungeons.eventNum; j++){
