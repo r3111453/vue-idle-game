@@ -1109,7 +1109,7 @@ export default {
         let monsterAttribute = this.dungeons.eventType[i].attribute
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
-        let takeDmg = Math.floor(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+        let takeDmg = Math.ceil(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
         
         let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
@@ -1195,7 +1195,7 @@ export default {
         let monsterAttribute = this.dungeons.eventType[i].attribute
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
-        let takeDmg = Math.floor(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
+        let takeDmg = Math.ceil(-monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage) + playerBLOC
         
         let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
