@@ -364,120 +364,129 @@ export default {
       }
     },
     caculateTrophy(event) {
-      var items = []
-      var lv = this.dungeons.lv
-      if (event.type == 'boss' && this.dungeons.type != 'endless') {
-        // 提高独特装备基础掉落率：普通5%，困难15%，极难25%
-        var randow = 1 - 0.05 * ((this.dungeons.difficulty - 1) * 2 + 1)
-        if (Math.random() > randow) {
-          var random = Math.random()
-          if (random <= 0.3 && random > 0) {
-            var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
-            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-            items.push(JSON.parse(item))
-          } else if (random <= 0.5 && random > 0.3) {
-            var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
-            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-            items.push(JSON.parse(item))
-          }else if (random <= 0.75 && random > 0.5) {
-            var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
-            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-            items.push(JSON.parse(item))
-          } else {
-            var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
-            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-            items.push(JSON.parse(item))
-          }
-        }
-      }
-      var trophy = event.trophy
-      var equip = [
-        0.25, 0.25, 0.25, 0.25
-      ]
-      var equip = trophy.equip
-      var equipQua = -1;
-      var r = Math.random()
-      if (r <= equip[0]) {
-        equipQua = 0
-      } else if (r < equip[1] + equip[0] && r >= equip[0]) {
-        equipQua = 1
-      }
-      else if (r < equip[2] + equip[1] + equip[0] && r >= equip[1] + equip[0]) {
-        equipQua = 2
-      }
-      else if (r < equip[3] + equip[2] + equip[1] + equip[0] && r >= equip[2] + equip[1] + equip[0]) {
-        equipQua = 3
-      } else {
-      }
-      if (equipQua != -1) {
-        var index = Math.floor((Math.random() * 4));
-        if (index == 0) {
-          var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
-          var item = b.createNewItem(equipQua, lv)
-        } else if (index == 1) {
-          var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
-          var item = b.createNewItem(equipQua, lv)
-        }else if (index == 2) {
-          var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
-          var item = b.createNewItem(equipQua, lv)
-        } else {
-          var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
-          var item = b.createNewItem(equipQua, lv)
-        }
+  var items = []
+  var lv = this.dungeons.lv
+  let timeCompensation = 4;  // 動畫從 50ms → 200ms，慢了 4 倍
+  
+  if (event.type == 'boss' && this.dungeons.type != 'endless') {
+    // 提高獨特裝備基礎掉落率：普通20%，困難60%，極難100%（原5%/15%/25% *4）
+    var baseRate = 0.05 * ((this.dungeons.difficulty - 1) * 2 + 1);
+    var newRate = Math.min(baseRate * timeCompensation, 0.95);
+    var randow = 1 - newRate;
+    if (Math.random() > randow) {
+      var random = Math.random()
+      if (random <= 0.3 && random > 0) {
+        var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
+        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
         items.push(JSON.parse(item))
-        var backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
-        var goldObtainRatio = 1
-        if (this.dungeons.type == 'endless') {
-          var endlessLv = this.$store.state.playerAttribute.endlessLv
-          goldObtainRatio = 1.5
-          items = []
-        }
-        this.$store.commit("set_sys_info", {
-          msg: `
-              获得了:金币${parseInt(event.trophy.gold * goldObtainRatio)}
-            `,
-          type: 'trophy',
-          equip: items
-        });
-        this.$store.commit("set_player_gold", parseInt(event.trophy.gold * goldObtainRatio));
-        if(this.dungeons.type == 'endless'){
-          return
-        }
-        items.map(item => {
-          if (backpackPanel.autoSell[equipQua]&&item.quality.name!="独特") {
-            var gold = item.lv * item.quality.qualityCoefficient * 30
-            this.$store.commit("set_player_gold", parseInt(gold));
-            this.$store.commit("set_sys_info", {
-              msg: `
-                自动出售装备获得金币：${parseInt(gold)}
-              `,
-              type: 'trophy',
-            });
-          } else {
-            for (let i = 0; i < backpackPanel.grid.length; i++) {
-              if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-                this.$set(backpackPanel.grid, i, item)
-                break;
-              }
-            }
-          }
-        })
+      } else if (random <= 0.5 && random > 0.3) {
+        var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
+        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+        items.push(JSON.parse(item))
+      }else if (random <= 0.75 && random > 0.5) {
+        var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
+        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+        items.push(JSON.parse(item))
       } else {
-        var goldObtainRatio = 1
-        if (this.dungeons.type == 'endless') {
-          var endlessLv = this.$store.state.playerAttribute.endlessLv
-          goldObtainRatio = 2.6
-        }
-        this.$store.commit("set_sys_info", {
-          msg: `
-              获得了:金币${parseInt(event.trophy.gold * goldObtainRatio)}
-            `,
-          type: 'trophy',
-          equip: []
-        });
-        this.$store.commit("set_player_gold", parseInt(event.trophy.gold * goldObtainRatio));
+        var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
+        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+        items.push(JSON.parse(item))
       }
     }
+  }
+  
+  var trophy = event.trophy
+  var equip = trophy.equip
+  // 提高一般裝備掉落機率（4倍）
+  var adjustedEquip = equip.map(rate => Math.min(rate * timeCompensation, 1));
+  var total = adjustedEquip.reduce((a, b) => a + b, 0);
+  if (total > 1) {
+    adjustedEquip = adjustedEquip.map(rate => rate / total);
+  }
+  
+  var equipQua = -1;
+  var r = Math.random()
+  var cumulative = 0;
+  for (let i = 0; i < adjustedEquip.length; i++) {
+    cumulative += adjustedEquip[i];
+    if (r <= cumulative) {
+      equipQua = i;
+      break;
+    }
+  }
+  
+  if (equipQua != -1) {
+    var index = Math.floor((Math.random() * 4));
+    if (index == 0) {
+      var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
+      var item = b.createNewItem(equipQua, lv)
+    } else if (index == 1) {
+      var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
+      var item = b.createNewItem(equipQua, lv)
+    }else if (index == 2) {
+      var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
+      var item = b.createNewItem(equipQua, lv)
+    } else {
+      var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
+      var item = b.createNewItem(equipQua, lv)
+    }
+    items.push(JSON.parse(item))
+    var backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
+    var goldObtainRatio = 1
+    if (this.dungeons.type == 'endless') {
+      var endlessLv = this.$store.state.playerAttribute.endlessLv
+      goldObtainRatio = 1.5
+      items = []
+    }
+    // 金幣也提高 4 倍
+    let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
+    this.$store.commit("set_sys_info", {
+      msg: `
+          獲得了:金幣${finalGold}
+        `,
+      type: 'trophy',
+      equip: items
+    });
+    this.$store.commit("set_player_gold", finalGold);
+    if(this.dungeons.type == 'endless'){
+      return
+    }
+    items.map(item => {
+      if (backpackPanel.autoSell[equipQua]&&item.quality.name!="獨特") {
+        var gold = item.lv * item.quality.qualityCoefficient * 30
+        this.$store.commit("set_player_gold", parseInt(gold));
+        this.$store.commit("set_sys_info", {
+          msg: `
+            自動出售裝備獲得金幣：${parseInt(gold)}
+          `,
+          type: 'trophy',
+        });
+      } else {
+        for (let i = 0; i < backpackPanel.grid.length; i++) {
+          if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+            this.$set(backpackPanel.grid, i, item)
+            break;
+          }
+        }
+      }
+    })
+  } else {
+    var goldObtainRatio = 1
+    if (this.dungeons.type == 'endless') {
+      var endlessLv = this.$store.state.playerAttribute.endlessLv
+      goldObtainRatio = 2.6
+    }
+    let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
+    this.$store.commit("set_sys_info", {
+      msg: `
+          獲得了:金幣${finalGold}
+        `,
+      type: 'trophy',
+      equip: []
+    });
+    this.$store.commit("set_player_gold", finalGold);
+  }
+}
   }
 };
 </script>
