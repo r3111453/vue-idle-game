@@ -1111,7 +1111,7 @@ export default {
         
         if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
           isDead = true
-          this.dungeonsSimulator.perGetDamaged[i] = takeDmg
+          this.dungeonsSimulator.perGetDamaged[i] = 1  // 改為 1
           this.dungeonsSimulator.allGetDamaged += takeDmg
           for(let j = i + 1; j < this.dungeons.eventNum; j++){
             this.dungeonsSimulator.perGetDamaged[j] = 0
@@ -1144,7 +1144,7 @@ export default {
       }
       
       // 🛡️ 最後一道保險
-      if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999 || dmg === 1 || dmg > 0)){
+      if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 1 || dmg === 9999)){
         this.dungeonsSimulator.victory = false
       }
     },
