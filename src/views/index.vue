@@ -277,7 +277,7 @@
             <td>{{dungeons.totalHP}}</td>
             <td>/</td>
             <td>{{-dungeonsSimulator.allGetDamaged}}</td>
-            <td v-else>{{ dungeons.displayTotalGold }}</td>
+            <td>{{ dungeons.displayTotalGold }}</td>
           </tr>
         </table>
         <div class="info">
