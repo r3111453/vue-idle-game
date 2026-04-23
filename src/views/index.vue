@@ -1109,7 +1109,7 @@ export default {
     
     let remainingHP = playerHP + takeDmg
     
-    if(monsterDeadTime >= playerDeadTime || remainingHP <= 0){
+    if(monsterDeadTime >= playerDeadTime){
       isDead = true
       this.dungeonsSimulator.perGetDamaged[i] = 1  // 死亡標記
       this.dungeonsSimulator.allGetDamaged += takeDmg
