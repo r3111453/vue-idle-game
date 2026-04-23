@@ -300,27 +300,38 @@ export default {
       }, 100)
     },
     battleCom(event) {
-      let playerAttribute = this.$store.state.playerAttribute.attribute,
-        battleTime,
-        healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
-        reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
-        playerDPS = playerAttribute.DPS,
-        playerBLOC = playerAttribute.BLOC.value,
-        monsterAttribute = this.$deepCopy(event.attribute),
-        p = this.findComponentUpward(this, 'index')
+  let playerAttribute = this.$store.state.playerAttribute.attribute,
+    battleTime,
+    healthRecoverySpeed = this.$store.state.playerAttribute.healthRecoverySpeed,
+    reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
+    playerDPS = playerAttribute.DPS,
+    playerBLOC = playerAttribute.BLOC.value,
+    monsterAttribute = this.$deepCopy(event.attribute),
+    p = this.findComponentUpward(this, 'index')
 
-      var playerDeadTime = (playerAttribute.CURHP.value+playerBLOC) / reducedDamage / monsterAttribute.ATK,
-        monsterDeadTime = (monsterAttribute.HP / playerDPS)
+  var playerDeadTime = (playerAttribute.CURHP.value+playerBLOC) / reducedDamage / monsterAttribute.ATK,
+    monsterDeadTime = (monsterAttribute.HP / playerDPS)
 
-      if (monsterDeadTime < playerDeadTime) {
-        // 战斗胜利
-        battleTime = monsterDeadTime
-        var takeDmg = -battleTime * Number(monsterAttribute.ATK)
-        takeDmg = parseInt(takeDmg * reducedDamage)
-        takeDmg = takeDmg + playerBLOC
-        takeDmg = takeDmg>-1?-1:takeDmg
-        this.$store.commit('set_player_curhp', takeDmg)
+  // ========== 加入以下除錯資訊 ==========
+  console.log(`\n[實際戰鬥] 怪物: ${event.name}`)
+  console.log(`[實際戰鬥] 戰鬥前玩家HP: ${playerAttribute.CURHP.value}`)
+  console.log(`[實際戰鬥] 怪物攻擊力: ${monsterAttribute.ATK}, 怪物血量: ${monsterAttribute.HP}`)
+  console.log(`[實際戰鬥] 玩家死亡時間: ${playerDeadTime.toFixed(3)}秒, 怪物死亡時間: ${monsterDeadTime.toFixed(3)}秒`)
+  // ========== 除錯資訊結束 ==========
 
+  if (monsterDeadTime < playerDeadTime) {
+    // 战斗胜利
+    battleTime = monsterDeadTime
+    var takeDmg = -battleTime * Number(monsterAttribute.ATK)
+    takeDmg = parseInt(takeDmg * reducedDamage)
+    takeDmg = takeDmg + playerBLOC
+    takeDmg = takeDmg>-1?-1:takeDmg
+    
+    // ========== 加入以下除錯資訊 ==========
+    console.log(`[實際戰鬥] 勝利! 受到傷害: ${Math.abs(takeDmg)}, 剩餘HP: ${playerAttribute.CURHP.value + takeDmg}`)
+    // ========== 除錯資訊結束 ==========
+    
+    this.$store.commit('set_player_curhp', takeDmg)
         if (this.dungeons.type == 'endless') {
           this.$store.commit("set_sys_info", {
             msg: `
@@ -329,6 +340,7 @@ export default {
             type: 'win'
           });
         } else {
+          console.log(`[實際戰鬥] 失敗!`)
           this.$store.commit("set_sys_info", {
             msg: `
               击杀了${event.name}(lv${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
