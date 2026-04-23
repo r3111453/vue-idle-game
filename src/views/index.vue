@@ -1089,7 +1089,7 @@ export default {
           playerBLOC = playerAttribute.BLOC.value,
           playerMaxHP = playerAttribute.MAXHP.value,
           playerHP = playerAttribute.MAXHP.value,
-          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
+          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/10,
           perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000 + battleTime;
 
       // 👇 在這裡加上這一行 👇
@@ -1152,7 +1152,7 @@ console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttr
           playerBLOC = playerAttribute.BLOC.value,
           playerMaxHP = playerAttribute.MAXHP.value,
           playerHP = playerAttribute.MAXHP.value,
-          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
+          battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/10,
           perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000 + battleTime;
 
       // 👇 在這裡加上這一行 👇
