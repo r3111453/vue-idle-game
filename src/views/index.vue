@@ -1068,6 +1068,7 @@ export default {
     showDungeonsInfo(k) {
       // var b = this.findComponentDownward(this, 'dungeons')
       this.dungeons = this.dungeonsArr[k]
+      this.dungeons.moveTime = 200  // 👈 加上這行
       if (this.dungeons.difficulty != 1) {
         this.reChallenge = false
         this.reChallengeEx=false;
@@ -1129,6 +1130,7 @@ export default {
       this.reChallengeEx = false
       this.reChallengeExR = false
       this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
+      this.dungeons.moveTime = 200  // 👈 加上這行
       this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
       this.dungeons.type = 'endless'
       this.dungeonsSimulator.victory=true;
