@@ -1109,8 +1109,10 @@ export default {
         let monsterAttribute = this.dungeons.eventType[i].attribute
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
-        let rawDmg = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage + playerBLOC
-let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
+        // 按照實際戰鬥的計算順序（先取整再加格擋）
+let rawDamage = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage
+let takeDmg = parseInt(rawDamage) + playerBLOC
+takeDmg = takeDmg > -1 ? -1 : takeDmg
   
   // 加入這行 alert（只對第一隻怪顯示，避免彈出太多）
   //if(i === 0) {
@@ -1211,8 +1213,10 @@ let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
         let monsterAttribute = this.dungeons.eventType[i].attribute
         let playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
             monsterDeadTime = monsterAttribute.HP / playerDPS
-        let rawDmg = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage + playerBLOC
-let takeDmg = rawDmg > 0 ? -1 : Math.ceil(rawDmg)
+        // 按照實際戰鬥的計算順序（先取整再加格擋）
+let rawDamage = -monsterDeadTime * Number(monsterAttribute.ATK) * reducedDamage
+let takeDmg = parseInt(rawDamage) + playerBLOC
+takeDmg = takeDmg > -1 ? -1 : takeDmg
         
         let remainingHP = playerHP + takeDmg
         if(remainingHP <= 0){
