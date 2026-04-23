@@ -1090,7 +1090,7 @@ export default {
           playerMaxHP = playerAttribute.MAXHP.value,
           playerHP = playerAttribute.MAXHP.value,
           battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
-          let perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000 + battleTime;
+          perActionTime=0.4*(this.dungeons.moveTime+reincarnationAttribute.MOVESPEED)+battleTime;
 
       // 👇 在這裡加上這一行 👇
 console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttribute.MOVESPEED, 'battleTime:', battleTime, 'perActionTime:', perActionTime);
@@ -1153,7 +1153,7 @@ console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttr
           playerMaxHP = playerAttribute.MAXHP.value,
           playerHP = playerAttribute.MAXHP.value,
           battleTime = (this.dungeons.battleTime+reincarnationAttribute.BATTLESPEED)/1000,
-          let perActionTime = 0.4 * (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000 + battleTime;
+          perActionTime=0.4*(this.dungeons.moveTime+reincarnationAttribute.MOVESPEED)+battleTime;
 
       // 👇 在這裡加上這一行 👇
 console.log('moveTime:', this.dungeons.moveTime, 'MOVESPEED:', reincarnationAttribute.MOVESPEED, 'battleTime:', battleTime, 'perActionTime:', perActionTime);
