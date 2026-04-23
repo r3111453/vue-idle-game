@@ -1129,8 +1129,8 @@ export default {
       this.dungeonsSimulator.deathIndex = i
       let battleTime = playerDeadTime
       let rawDamage = -battleTime * Number(monsterAttribute.ATK) * reducedDamage
-      let takeDmg = parseInt(rawDamage) + playerBLOC
-      takeDmg = takeDmg > -1 ? -1 : takeDmg
+      let takeDmg = parseInt(rawDamage) - playerBLOC
+takeDmg = takeDmg < 1 ? 1 : takeDmg
       this.dungeonsSimulator.perGetDamaged[i] = takeDmg
       this.dungeonsSimulator.allGetDamaged += takeDmg
       for(let j = i + 1; j < this.dungeons.eventNum; j++){
@@ -1237,8 +1237,8 @@ export default {
       // 計算死亡時受到的傷害（取整）
       let battleTime = playerDeadTime
       let rawDamage = -battleTime * Number(monsterAttribute.ATK) * reducedDamage
-      let takeDmg = parseInt(rawDamage) + playerBLOC
-      takeDmg = takeDmg > -1 ? -1 : takeDmg
+      let takeDmg = parseInt(rawDamage) - playerBLOC
+takeDmg = takeDmg < 1 ? 1 : takeDmg
       this.dungeonsSimulator.perGetDamaged[i] = takeDmg
       this.dungeonsSimulator.allGetDamaged += takeDmg
       for(let j = i + 1; j < this.dungeons.eventNum; j++){
