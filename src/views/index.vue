@@ -1210,9 +1210,12 @@ takeDmg = takeDmg < 1 ? 1 : takeDmg
   for(let i = 0; i < this.dungeons.eventNum; i++){
     this.dungeonsSimulator.costTime += perActionTime
     if(i > 0){
-      let newHP = playerHP + playerMaxHP * 0.02 * Math.ceil(perActionTime)
-      playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
-    }
+  // 實際戰鬥中，每隻怪打完後有 battleTime 秒的等待時間（包含動畫）
+  let recoveryTime = battleTime + perActionTime  // 等待時間 + 移動時間
+  let newHP = playerHP + playerMaxHP * 0.03 * recoveryTime  // 每秒恢復 3%
+  playerHP = newHP < playerMaxHP ? newHP : playerMaxHP
+  console.log(`第 ${i} 隻怪打完後，恢復 ${(playerMaxHP * 0.03 * recoveryTime).toFixed(1)} HP，當前 HP: ${playerHP.toFixed(1)}`)
+}
     let monsterAttribute = this.dungeons.eventType[i].attribute
     
     // 使用與實際戰鬥相同的時間比較方式
