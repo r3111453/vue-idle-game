@@ -1124,7 +1124,7 @@ export default {
         playerHP = remainingHP
       }
       
-      if(isDead){
+            if(isDead){
         this.dungeonsSimulator.victory = false
         this.dungeonsSimulator.recoveryToMaxHP = false
         this.dungeonsSimulator.lastHP = 0
@@ -1141,6 +1141,11 @@ export default {
           playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
         }
         this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
+      }
+      
+      // 🛡️ 最後一道保險
+      if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999 || dmg === 1 || dmg > 0)){
+        this.dungeonsSimulator.victory = false
       }
     },
     showEndlessDungeonsInfo() {
@@ -1205,7 +1210,7 @@ for(let i = 0; i < this.dungeons.eventNum; i++){
 console.log('isDead:', isDead)
 console.log('victory 設定前:', this.dungeonsSimulator.victory)
 
-if(isDead){
+      if(isDead){
         console.log('進入死亡分支')
         this.dungeonsSimulator.victory = false
         console.log('victory 設為:', this.dungeonsSimulator.victory)
@@ -1223,11 +1228,18 @@ if(isDead){
             this.dungeonsSimulator.recoveryToMaxHP = true
             return
           }
-          console.log('最終 victory:', this.dungeonsSimulator.victory)
           playerHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
         }
         this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - playerHP))
       }
+      
+      // 🛡️ 最後一道保險：只要有任何一欄顯示「死亡」，就強制設為戰敗
+      if(this.dungeonsSimulator.perGetDamaged.some(dmg => dmg === 9999 || dmg === 1 || dmg > 0)){
+        this.dungeonsSimulator.victory = false
+        console.log('🛡️ 保險觸發：強制設定 victory = false')
+      }
+      
+      console.log('=== showEndlessDungeonsInfo 結束，最終 victory =', this.dungeonsSimulator.victory)
     },
     closeDungeonsInfo() {
       this.dungeons = ''
