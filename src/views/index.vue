@@ -1101,7 +1101,6 @@ export default {
   let playerAttribute = this.$store.state.playerAttribute.attribute,
     reincarnationAttribute = this.$store.state.reincarnationAttribute
   let reducedDamage = playerAttribute.REDUCDMG,
-    // 計算實際期望 DPS（考慮暴擊波動的正面影響）
     critMultiplier = 1 + (playerAttribute.CRIT.value / 100) * (playerAttribute.CRITDMG.value / 100 - 1),
     playerDPS = playerAttribute.ATK.value * critMultiplier,
     playerBLOC = playerAttribute.BLOC.value,
@@ -1112,14 +1111,14 @@ export default {
   
   this.dungeonsSimulator.perActionTime = perActionTime
   
-  // 獲取 dungeons 元件實例
+  // ✅ 新增：儲存每場戰鬥的實際時間
+  let actualTimes = []
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
   
   for(let i = 0; i < this.dungeons.eventNum; i++){
     this.dungeonsSimulator.costTime += perActionTime
     
-    // 回血：使用上一場的實際戰鬥時間
     if(i > 0 && previousBattleTime > 0){
       let healAmount = playerMaxHP * 0.03 * previousBattleTime
       playerHP = playerHP + healAmount
@@ -1127,8 +1126,6 @@ export default {
     }
     
     let monster = this.dungeons.eventType[i]
-    
-    // 直接呼叫實際戰鬥方法進行模擬，傳入 playerDPS
     let result = dungeonsComponent.battleCom(monster, playerHP, playerDPS)
     
     this.dungeonsSimulator.perGetDamaged[i] = result.takeDmg
@@ -1145,6 +1142,7 @@ export default {
     
     playerHP = result.remainingHP
     previousBattleTime = result.actualTime
+    actualTimes.push(result.actualTime)  // ✅ 儲存每場的實際時間
   }
   
   if(this.dungeonsSimulator.isPlayerDead){
@@ -1156,10 +1154,11 @@ export default {
     this.dungeonsSimulator.victory = true
     this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
     
+    // ✅ 使用 actualTimes 來計算 recoveryToMaxHP
     let canRecovery = false
     let tempHP = playerHP
-    for(let i = 0; i < this.dungeons.eventNum; i++){
-      let newHP = playerMaxHP * 0.03 * Math.floor(perActionTime) + tempHP
+    for(let i = 0; i < actualTimes.length; i++){
+      let newHP = playerMaxHP * 0.03 * Math.floor(actualTimes[i]) + tempHP
       if(newHP >= playerMaxHP){
         canRecovery = true
         break
@@ -1174,7 +1173,7 @@ export default {
     }
   }
 
-  // 計算正確的金幣總和（乘以4倍）
+  // 計算正確的金幣總和
   let totalGold = 0
   for(let i = 0; i < this.dungeons.eventNum; i++){
     let monster = this.dungeons.eventType[i]
@@ -1215,7 +1214,8 @@ export default {
   
   this.dungeonsSimulator.perActionTime = perActionTime
   
-  // 獲取 dungeons 元件實例
+  // ✅ 新增：儲存每場戰鬥的實際時間
+  let actualTimes = []
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
   
@@ -1248,6 +1248,7 @@ export default {
     
     playerHP = result.remainingHP
     previousBattleTime = result.actualTime
+    actualTimes.push(result.actualTime)  // ✅ 儲存每場的實際時間
   }
   
   if(this.dungeonsSimulator.isPlayerDead){
@@ -1259,10 +1260,11 @@ export default {
     this.dungeonsSimulator.victory = true
     this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
     
+    // ✅ 使用 actualTimes 來計算 recoveryToMaxHP
     let canRecovery = false
     let tempHP = playerHP
-    for(let i = 0; i < this.dungeons.eventNum; i++){
-      let newHP = playerMaxHP * 0.03 * Math.floor(perActionTime) + tempHP
+    for(let i = 0; i < actualTimes.length; i++){
+      let newHP = playerMaxHP * 0.03 * Math.floor(actualTimes[i]) + tempHP
       if(newHP >= playerMaxHP){
         canRecovery = true
         break
