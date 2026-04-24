@@ -611,7 +611,7 @@ export default {
   // 自动回血
   this.autoHealthRecovery = setInterval(() => {
     this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
-    if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+    if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
       if(this.reChallengeEx){
         this.eventBegin();
       }else{
@@ -832,7 +832,7 @@ export default {
         if (!this.autoHealthRecovery) {
           this.autoHealthRecovery = setInterval(() => {
             this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
-            if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+            if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
               if(this.reChallengeEx){
                 //console.log(new Date().getTime()/1000);
                 this.eventBegin();
@@ -850,7 +850,7 @@ export default {
       } else {
         this.autoHealthRecovery = setInterval(() => {
           this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
-          if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.02)){
+          if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
             if(this.reChallengeEx){
               //console.log(new Date().getTime()/1000);
               this.eventBegin();
@@ -1159,7 +1159,7 @@ export default {
     let canRecovery = false
     let tempHP = playerHP
     for(let i = 0; i < this.dungeons.eventNum; i++){
-      let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + tempHP
+      let newHP = playerMaxHP * 0.03 * Math.floor(perActionTime) + tempHP
       if(newHP >= playerMaxHP){
         canRecovery = true
         break
@@ -1262,7 +1262,7 @@ export default {
     let canRecovery = false
     let tempHP = playerHP
     for(let i = 0; i < this.dungeons.eventNum; i++){
-      let newHP = playerMaxHP * 0.02 * Math.floor(perActionTime) + tempHP
+      let newHP = playerMaxHP * 0.03 * Math.floor(perActionTime) + tempHP
       if(newHP >= playerMaxHP){
         canRecovery = true
         break
