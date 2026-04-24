@@ -263,9 +263,13 @@ export default {
         spent += oldAttr.BLOC / 2
         spent += oldAttr.MOVESPEED ? -(oldAttr.MOVESPEED / 0.06) : 0
         spent += oldAttr.BATTLESPEED ? -(oldAttr.BATTLESPEED / 3) : 0
-        const newRemain = this.$store.state.reincarnation.point + spent
-        
-        // 重置所有属性的点数为0
+    
+        // ✅ 最安全最公平：四捨五入取整數
+        spent = Math.round(spent)
+    
+        const newRemain = Math.round(this.$store.state.reincarnation.point + spent)
+    
+        // 重置所有屬性的點數為0
         this.attr.forEach(item => {
           item.point = 0
           this.updateCurrentValue(item)
