@@ -1131,7 +1131,7 @@ export default {
     }
     
     playerHP = result.remainingHP
-    previousBattleTime = perActionTime
+    previousBattleTime = result.actualTime  // 使用實際花費時間
   }
   
   if(this.dungeonsSimulator.isPlayerDead){
@@ -1232,7 +1232,7 @@ export default {
     }
     
     playerHP = result.remainingHP
-    previousBattleTime = perActionTime
+    previousBattleTime = result.actualTime  // 使用實際花費時間
   }
   
   if(this.dungeonsSimulator.isPlayerDead){
