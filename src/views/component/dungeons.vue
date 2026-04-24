@@ -462,7 +462,8 @@ battleCom(event, currentHP, customDPS) {
     var goldObtainRatio = 1
     if (this.dungeons.type == 'endless') {
       var endlessLv = this.$store.state.playerAttribute.endlessLv
-      goldObtainRatio = 1.5
+      // ✅ 修正：10層以上使用2.6倍，1-9層使用1.5倍
+    goldObtainRatio = (endlessLv >= 10) ? 2.6 : 1.5
       items = []
     }
     let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
@@ -522,7 +523,8 @@ battleCom(event, currentHP, customDPS) {
     var goldObtainRatio = 1
     if (this.dungeons.type == 'endless') {
       var endlessLv = this.$store.state.playerAttribute.endlessLv
-      goldObtainRatio = 2.6
+      // ✅ 修正：10層以上使用2.6倍，1-9層使用1.5倍
+    goldObtainRatio = (endlessLv >= 10) ? 2.6 : 1.5
     }
     let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
     this.$store.commit("set_sys_info", {
