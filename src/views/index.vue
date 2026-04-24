@@ -1105,16 +1105,16 @@ export default {
     playerDPS = playerAttribute.ATK.value * critMultiplier,
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
-    playerHP = playerAttribute.MAXHP.value,
-    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000
+    playerHP = playerAttribute.MAXHP.value
   
-  // 儲存每場戰鬥的實際時間
-  let actualTimes = []
-  let totalActualTime = 0
+  // 直接使用 dungeonsComponent 的 battleCom 來模擬
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
+  let totalActualTime = 0
+  let actualTimes = []
   
   for(let i = 0; i < this.dungeons.eventNum; i++){
+    // 回血：使用上一場的實際戰鬥時間
     if(i > 0 && previousBattleTime > 0){
       let healAmount = playerMaxHP * 0.03 * previousBattleTime
       playerHP = playerHP + healAmount
@@ -1139,11 +1139,10 @@ export default {
     playerHP = result.remainingHP
     previousBattleTime = result.actualTime
     actualTimes.push(result.actualTime)
-    // ✅ actualTime 已經包含移動+等待+戰鬥，直接累加
     totalActualTime += result.actualTime
   }
   
-  // 使用實際總時間
+  // 使用 battleCom 回傳的總時間
   this.dungeonsSimulator.costTime = totalActualTime
   
   if(this.dungeonsSimulator.isPlayerDead){
@@ -1210,14 +1209,13 @@ export default {
     playerDPS = playerAttribute.ATK.value * critMultiplier,
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
-    playerHP = playerAttribute.MAXHP.value,
-    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000
+    playerHP = playerAttribute.MAXHP.value
   
-  // 儲存每場戰鬥的實際時間
-  let actualTimes = []
-  let totalActualTime = 0
+  // 直接使用 dungeonsComponent 的 battleCom 來模擬
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
+  let totalActualTime = 0
+  let actualTimes = []
   
   for(let i = 0; i < this.dungeons.eventNum; i++){
     // 回血：使用上一場的實際戰鬥時間
@@ -1245,11 +1243,10 @@ export default {
     playerHP = result.remainingHP
     previousBattleTime = result.actualTime
     actualTimes.push(result.actualTime)
-    // ✅ actualTime 已經包含移動+等待+戰鬥，直接累加
     totalActualTime += result.actualTime
   }
   
-  // 使用實際總時間
+  // 使用 battleCom 回傳的總時間
   this.dungeonsSimulator.costTime = totalActualTime
   
   if(this.dungeonsSimulator.isPlayerDead){
@@ -1257,12 +1254,10 @@ export default {
     this.dungeonsSimulator.recoveryToMaxHP = false
     this.dungeonsSimulator.lastHP = 0
     this.dungeonsSimulator.maxFightCount = 0
-    // 更新 perActionTime 為實際平均戰鬥時間
     this.dungeonsSimulator.perActionTime = actualTimes.length > 0 ? totalActualTime / actualTimes.length : 0
   } else {
     this.dungeonsSimulator.victory = true
     this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-    // 更新 perActionTime 為實際平均戰鬥時間
     this.dungeonsSimulator.perActionTime = totalActualTime / actualTimes.length
     
     // 使用 actualTimes 來計算 recoveryToMaxHP
