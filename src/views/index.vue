@@ -1098,9 +1098,7 @@ export default {
   let playerAttribute = this.$store.state.playerAttribute.attribute,
     reincarnationAttribute = this.$store.state.reincarnationAttribute
   let reducedDamage = playerAttribute.REDUCDMG,
-    // 計算實際期望 DPS（考慮暴擊波動的正面影響）
-    critMultiplier = 1 + (playerAttribute.CRIT.value / 100) * (playerAttribute.CRITDMG.value / 100 - 1),
-    playerDPS = playerAttribute.ATK.value * critMultiplier,
+    playerDPS = playerAttribute.DPS,
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
     playerHP = playerAttribute.MAXHP.value,
@@ -1125,8 +1123,8 @@ export default {
     
     let monster = this.dungeons.eventType[i]
     
-    // 直接呼叫實際戰鬥方法進行模擬，傳入 playerDPS
-    let result = dungeonsComponent.battleCom(monster, playerHP, playerDPS)
+    // 直接呼叫實際戰鬥方法進行模擬
+    let result = dungeonsComponent.battleCom(monster, playerHP)
     
     this.dungeonsSimulator.perGetDamaged[i] = result.takeDmg
     this.dungeonsSimulator.allGetDamaged += result.takeDmg
@@ -1141,7 +1139,7 @@ export default {
     }
     
     playerHP = result.remainingHP
-    previousBattleTime = result.actualTime
+    previousBattleTime = result.actualTime  // 使用實際花費時間
   }
   
   if(this.dungeonsSimulator.isPlayerDead){
@@ -1201,9 +1199,7 @@ export default {
   let playerAttribute = this.$store.state.playerAttribute.attribute,
     reincarnationAttribute = this.$store.state.reincarnationAttribute
   let reducedDamage = playerAttribute.REDUCDMG,
-    // 計算實際期望 DPS（考慮暴擊波動的正面影響）
-    critMultiplier = 1 + (playerAttribute.CRIT.value / 100) * (playerAttribute.CRITDMG.value / 100 - 1),
-    playerDPS = playerAttribute.ATK.value * critMultiplier,
+    playerDPS = playerAttribute.DPS,
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
     playerHP = playerAttribute.MAXHP.value,
@@ -1228,8 +1224,8 @@ export default {
     
     let monster = this.dungeons.eventType[i]
     
-    // 直接呼叫實際戰鬥方法進行模擬，傳入 playerDPS
-    let result = dungeonsComponent.battleCom(monster, playerHP, playerDPS)
+    // 直接呼叫實際戰鬥方法進行模擬
+    let result = dungeonsComponent.battleCom(monster, playerHP)
     
     this.dungeonsSimulator.perGetDamaged[i] = result.takeDmg
     this.dungeonsSimulator.allGetDamaged += result.takeDmg
@@ -1244,7 +1240,7 @@ export default {
     }
     
     playerHP = result.remainingHP
-    previousBattleTime = result.actualTime
+    previousBattleTime = result.actualTime  // 使用實際花費時間
   }
   
   if(this.dungeonsSimulator.isPlayerDead){
