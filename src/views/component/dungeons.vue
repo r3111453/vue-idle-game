@@ -481,8 +481,12 @@ battleCom(event, currentHP, customDPS) {
     // ✅ 修正：逐件處理裝備，獨特裝備永不自動出售
     for (let idx = 0; idx < items.length; idx++) {
       const currentItem = items[idx];
-      // 判斷是否為獨特裝備（檢查品質名稱）
-      const isUnique = currentItem.quality && (currentItem.quality.name === "獨特" || currentItem.quality.name === "独特");
+      // 判斷是否為獨特裝備（檢查品質名稱或品質索引）
+      const isUnique = currentItem.quality && (
+        currentItem.quality.name === "獨特" || 
+        currentItem.quality.name === "独特" ||
+        currentItem.quality.index === 4
+      );
       
       if (isUnique) {
         // 獨特裝備：永不自動出售，直接放入背包
@@ -494,13 +498,17 @@ battleCom(event, currentHP, customDPS) {
         }
       } else {
         // 非獨特裝備：根據 autoSell 設定決定
-        const itemEquipQua = currentItem.quality ? currentItem.quality.index : equipQua;
-        if (backpackPanel.autoSell && backpackPanel.autoSell[itemEquipQua]) {
+        // 獲取品質索引（0=破旧,1=普通,2=神器,3=史诗）
+        const qualityIndex = currentItem.quality ? currentItem.quality.index : equipQua;
+        // 檢查 autoSell 陣列中該品質是否開啟
+        const isAutoSellEnabled = backpackPanel.autoSell && backpackPanel.autoSell[qualityIndex] === true;
+        
+        if (isAutoSellEnabled) {
           var gold = currentItem.lv * currentItem.quality.qualityCoefficient * 30 * timeCompensation
           this.$store.commit("set_player_gold", parseInt(gold));
           this.$store.commit("set_sys_info", {
             msg: `
-              自動出售裝備獲得金幣：${parseInt(gold)}
+              自動出售裝備獲得金幣：${parseInt(gold)}（${currentItem.quality.name}）
             `,
             type: 'trophy',
           });
