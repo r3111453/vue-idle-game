@@ -280,6 +280,17 @@
             <td>{{ dungeons.displayTotalGold }}</td>
           </tr>
         </table>
+        //<div class="info">
+  //<p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒
+    //<span :style="{color: dungeonsSimulator.victory ? (dungeonsSimulator.lastHP < attribute.MAXHP.value * 0.15 ? '#ffaa00' : '#2fe20f') : '#f90202'}">
+      //{{dungeonsSimulator.victory ? "胜利" : "战败"}}
+    //</span>
+    //<span v-if="dungeonsSimulator.victory && dungeonsSimulator.lastHP < attribute.MAXHP.value * 0.15" style="color:#ffaa00; margin-left:0.05rem;">
+      //（险胜，暴击波动可能失败）
+    //</span>
+    //<span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span>
+  //</p>
+//</div>
         <div class="info">
   <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒
     <span :style="{color: dungeonsSimulator.victory ? (dungeonsSimulator.lastHP < attribute.MAXHP.value * 0.15 ? '#ffaa00' : '#2fe20f') : '#f90202'}">
@@ -288,7 +299,7 @@
     <span v-if="dungeonsSimulator.victory && dungeonsSimulator.lastHP < attribute.MAXHP.value * 0.15" style="color:#ffaa00; margin-left:0.05rem;">
       （险胜，暴击波动可能失败）
     </span>
-    <span v-if="dungeons.type!='endless'"><span v-if="dungeonsSimulator.recoveryToMaxHP">后，还能在下一场战斗中血量完全恢复</span><span v-else-if="dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，普通重复挑战不超过{{dungeonsSimulator.maxFightCount}}轮之后将战败无法自动重复，请选择恢复后重复挑战（需耗时{{ ((attribute.MAXHP.value*(1-dungeonsSimulator.perActionTime*0.02)-dungeonsSimulator.lastHP)/attribute.MAXHP.value/0.02).toFixed(1)}}秒恢复足够血量）</span></span>
+    <span v-if="dungeons.type!='endless' && dungeonsSimulator.victory">后，剩余HP{{dungeonsSimulator.lastHP}}，需耗时{{ ((attribute.MAXHP.value - dungeonsSimulator.lastHP) / (attribute.MAXHP.value * 0.03)).toFixed(1) }}秒恢复满血</span>
   </p>
 </div>
 
