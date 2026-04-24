@@ -276,118 +276,121 @@ export default {
       }, 100)
     },
     // 修改後的 battleCom 方法：支援傳入 currentHP 並回傳結果
-    battleCom(event, currentHP) {
-      let playerAttribute = this.$store.state.playerAttribute.attribute,
-        battleTime,
-        reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
-        playerDPS = playerAttribute.DPS,
-        playerBLOC = playerAttribute.BLOC.value,
-        monsterAttribute = this.$deepCopy(event.attribute),
-        p = this.findComponentUpward(this, 'index')
-      
-      // 使用傳入的 currentHP 或當前的 CURHP
-      let playerHP = (currentHP !== undefined) ? currentHP : playerAttribute.CURHP.value
+    // 修改後的 battleCom 方法：支援傳入 currentHP 和 customDPS 並回傳結果
+battleCom(event, currentHP, customDPS) {
+  let playerAttribute = this.$store.state.playerAttribute.attribute,
+    battleTime,
+    reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
+    playerDPS = customDPS !== undefined ? customDPS : playerAttribute.DPS,
+    playerBLOC = playerAttribute.BLOC.value,
+    monsterAttribute = this.$deepCopy(event.attribute),
+    p = this.findComponentUpward(this, 'index')
+  
+  // 使用傳入的 currentHP 或當前的 CURHP
+  let playerHP = (currentHP !== undefined) ? currentHP : playerAttribute.CURHP.value
 
-      var playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-        monsterDeadTime = (monsterAttribute.HP / playerDPS)
+  var playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+    monsterDeadTime = (monsterAttribute.HP / playerDPS)
 
-      if (monsterDeadTime < playerDeadTime) {
-        // 战斗胜利
-        battleTime = monsterDeadTime
-        var takeDmg = -battleTime * Number(monsterAttribute.ATK)
-        takeDmg = parseInt(takeDmg * reducedDamage)
-        takeDmg = takeDmg + playerBLOC
-        takeDmg = takeDmg > -1 ? -1 : takeDmg
-        let remainingHP = playerHP + takeDmg
+  if (monsterDeadTime < playerDeadTime) {
+    // 战斗胜利
+    battleTime = monsterDeadTime
+    var takeDmg = -battleTime * Number(monsterAttribute.ATK)
+    takeDmg = parseInt(takeDmg * reducedDamage)
+    takeDmg = takeDmg + playerBLOC
+    takeDmg = takeDmg > -1 ? -1 : takeDmg
+    let remainingHP = playerHP + takeDmg
 
-        // 計算實際花費時間（戰鬥時間 + 移動時間 + 等待時間）
-        let actualTime = battleTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
-        
-        // 只有在實際戰鬥時才執行扣血和掉落（模擬時不執行）
-        if (currentHP === undefined) {
-          this.$store.commit('set_player_curhp', takeDmg)
-          if (this.dungeons.type == 'endless') {
-            this.$store.commit("set_sys_info", {
-              msg: `
-                击杀了${event.name}(无尽层数：${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
-              `,
-              type: 'win'
-            });
-          } else {
-            this.$store.commit("set_sys_info", {
-              msg: `
-                击杀了${event.name}(lv${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
-              `,
-              type: 'win'
-            });
-          }
-          this.caculateTrophy(event)
-          if(this.dungeons.lv>this.$store.state.playerAttribute.lv&&event.type=='boss'){
-            this.$store.commit("set_sys_info", {
-              msg: `
-                你升级了，可以刷新出更高等级的副本了。
-              `,
-              type: 'win'
-            });
-            this.$store.commit('set_player_lv', this.dungeons.lv)
-          }
-          if(this.dungeons.difficulty!=1){
-            p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
-          }
-        }
-        
-        return { victory: true, takeDmg: takeDmg, remainingHP: remainingHP }
+    // 計算實際花費時間（戰鬥時間 + 移動時間 + 等待時間）
+    let actualTime = battleTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
+    
+    // 只有在實際戰鬥時才執行扣血和掉落（模擬時不執行）
+    if (currentHP === undefined) {
+      this.$store.commit('set_player_curhp', takeDmg)
+      if (this.dungeons.type == 'endless') {
+        this.$store.commit("set_sys_info", {
+          msg: `
+            击杀了${event.name}(无尽层数：${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
+          `,
+          type: 'win'
+        });
       } else {
-        // 战斗失败
-        // 只有在實際戰鬥時才執行失敗處理
-        if (currentHP === undefined) {
-          if (this.dungeons && this.dungeons.type == 'endless') {
-            let oldLv = this.$store.state.playerAttribute.endlessLv;
-            let newLv = Math.max(1, oldLv - 1);
-            this.$store.commit('set_endless_lv', newLv);
-            this.$store.commit("set_sys_info", {
-              msg: `无尽挑战失败，层数从 ${oldLv} 降低至 ${newLv} 层。`,
-              type: 'warning'
-            });
-          }
-
-          if (p.upEChallenge) {
-            p.upEChallenge = false;
-            p.reEChallenge = false;
-            this.$store.commit("set_sys_info", {
-              msg: `向上挑战已中断。`,
-              type: 'warning'
-            });
-          }
-
-          clearInterval(this.pro);
-          clearTimeout(this.timeOut);
-          clearTimeout(this.battleComTime);
-          this.pro = {};
-          this.timeOut = {};
-          this.left = 0;
-          this.nextEvent = 1;
-          this.dungeons = {};
-          p.inDungeons = false;
-          this.$store.commit('set_player_curhp', 'dead');
-
-          var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
-          takeDmg = parseInt(takeDmg * reducedDamage)
-          takeDmg = takeDmg - playerBLOC
-          takeDmg = takeDmg < 1 ? 1 : takeDmg
-          this.$store.commit("set_sys_info", {
-            msg: `战斗失败！受到了${takeDmg}点伤害`,
-            type: 'warning'
-          });
-          this.$store.commit("set_sys_info", {
-            msg: `你可以尝试强化或者重铸装备之后再来挑战哦`,
-            type: 'warning'
-          });
-        }
-        
-        return { victory: false, takeDmg: 0, remainingHP: 0 }
+        this.$store.commit("set_sys_info", {
+          msg: `
+            击杀了${event.name}(lv${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
+          `,
+          type: 'win'
+        });
       }
-    },
+      this.caculateTrophy(event)
+      if(this.dungeons.lv>this.$store.state.playerAttribute.lv&&event.type=='boss'){
+        this.$store.commit("set_sys_info", {
+          msg: `
+            你升级了，可以刷新出更高等级的副本了。
+          `,
+          type: 'win'
+        });
+        this.$store.commit('set_player_lv', this.dungeons.lv)
+      }
+      if(this.dungeons.difficulty!=1){
+        p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
+      }
+    }
+    
+    return { victory: true, takeDmg: takeDmg, remainingHP: remainingHP, actualTime: actualTime }
+  } else {
+    // 战斗失败
+    let actualTime = playerDeadTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
+    
+    // 只有在實際戰鬥時才執行失敗處理
+    if (currentHP === undefined) {
+      if (this.dungeons && this.dungeons.type == 'endless') {
+        let oldLv = this.$store.state.playerAttribute.endlessLv;
+        let newLv = Math.max(1, oldLv - 1);
+        this.$store.commit('set_endless_lv', newLv);
+        this.$store.commit("set_sys_info", {
+          msg: `无尽挑战失败，层数从 ${oldLv} 降低至 ${newLv} 层。`,
+          type: 'warning'
+        });
+      }
+
+      if (p.upEChallenge) {
+        p.upEChallenge = false;
+        p.reEChallenge = false;
+        this.$store.commit("set_sys_info", {
+          msg: `向上挑战已中断。`,
+          type: 'warning'
+        });
+      }
+
+      clearInterval(this.pro);
+      clearTimeout(this.timeOut);
+      clearTimeout(this.battleComTime);
+      this.pro = {};
+      this.timeOut = {};
+      this.left = 0;
+      this.nextEvent = 1;
+      this.dungeons = {};
+      p.inDungeons = false;
+      this.$store.commit('set_player_curhp', 'dead');
+
+      var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
+      takeDmg = parseInt(takeDmg * reducedDamage)
+      takeDmg = takeDmg - playerBLOC
+      takeDmg = takeDmg < 1 ? 1 : takeDmg
+      this.$store.commit("set_sys_info", {
+        msg: `战斗失败！受到了${takeDmg}点伤害`,
+        type: 'warning'
+      });
+      this.$store.commit("set_sys_info", {
+        msg: `你可以尝试强化或者重铸装备之后再来挑战哦`,
+        type: 'warning'
+      });
+    }
+    
+    return { victory: false, takeDmg: 0, remainingHP: 0, actualTime: actualTime }
+  }
+},
     caculateTrophy(event) {
       var items = []
       var lv = this.dungeons.lv
