@@ -1106,18 +1106,15 @@ export default {
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
     playerHP = playerAttribute.MAXHP.value,
-    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
-    // 計算每場戰鬥的固定花費（移動時間 + 戰鬥動畫等待時間）
-    fixedTimePerBattle = (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000 + battleTime
+    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000
   
-  // 儲存每場戰鬥的實際戰鬥時間
+  // 儲存每場戰鬥的實際時間
   let actualTimes = []
   let totalActualTime = 0
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
   
   for(let i = 0; i < this.dungeons.eventNum; i++){
-    // 回血：使用上一場的實際戰鬥時間
     if(i > 0 && previousBattleTime > 0){
       let healAmount = playerMaxHP * 0.03 * previousBattleTime
       playerHP = playerHP + healAmount
@@ -1142,8 +1139,8 @@ export default {
     playerHP = result.remainingHP
     previousBattleTime = result.actualTime
     actualTimes.push(result.actualTime)
-    // 總時間 = 實際戰鬥時間 + 固定時間（移動 + 等待）
-    totalActualTime += result.actualTime + fixedTimePerBattle
+    // ✅ actualTime 已經包含移動+等待+戰鬥，直接累加
+    totalActualTime += result.actualTime
   }
   
   // 使用實際總時間
@@ -1154,12 +1151,10 @@ export default {
     this.dungeonsSimulator.recoveryToMaxHP = false
     this.dungeonsSimulator.lastHP = 0
     this.dungeonsSimulator.maxFightCount = 0
-    // 更新 perActionTime 為實際平均戰鬥時間（不含固定時間）
     this.dungeonsSimulator.perActionTime = actualTimes.length > 0 ? totalActualTime / actualTimes.length : 0
   } else {
     this.dungeonsSimulator.victory = true
     this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-    // 更新 perActionTime 為實際平均戰鬥時間（不含固定時間）
     this.dungeonsSimulator.perActionTime = totalActualTime / actualTimes.length
     
     // 使用 actualTimes 來計算 recoveryToMaxHP
@@ -1216,11 +1211,9 @@ export default {
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
     playerHP = playerAttribute.MAXHP.value,
-    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000,
-    // 計算每場戰鬥的固定花費（移動時間 + 戰鬥動畫等待時間）
-    fixedTimePerBattle = (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000 + battleTime
+    battleTime = (this.dungeons.battleTime + reincarnationAttribute.BATTLESPEED) / 1000
   
-  // 儲存每場戰鬥的實際戰鬥時間
+  // 儲存每場戰鬥的實際時間
   let actualTimes = []
   let totalActualTime = 0
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
@@ -1252,8 +1245,8 @@ export default {
     playerHP = result.remainingHP
     previousBattleTime = result.actualTime
     actualTimes.push(result.actualTime)
-    // 總時間 = 實際戰鬥時間 + 固定時間（移動 + 等待）
-    totalActualTime += result.actualTime + fixedTimePerBattle
+    // ✅ actualTime 已經包含移動+等待+戰鬥，直接累加
+    totalActualTime += result.actualTime
   }
   
   // 使用實際總時間
@@ -1264,12 +1257,12 @@ export default {
     this.dungeonsSimulator.recoveryToMaxHP = false
     this.dungeonsSimulator.lastHP = 0
     this.dungeonsSimulator.maxFightCount = 0
-    // 更新 perActionTime 為實際平均戰鬥時間（不含固定時間）
+    // 更新 perActionTime 為實際平均戰鬥時間
     this.dungeonsSimulator.perActionTime = actualTimes.length > 0 ? totalActualTime / actualTimes.length : 0
   } else {
     this.dungeonsSimulator.victory = true
     this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-    // 更新 perActionTime 為實際平均戰鬥時間（不含固定時間）
+    // 更新 perActionTime 為實際平均戰鬥時間
     this.dungeonsSimulator.perActionTime = totalActualTime / actualTimes.length
     
     // 使用 actualTimes 來計算 recoveryToMaxHP
