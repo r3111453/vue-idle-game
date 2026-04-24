@@ -618,7 +618,7 @@ export default {
         this.reChallengeExR=false;
       }
     }
-  }, 3000)
+  }, 1000)
 
   // 自动保存
   setInterval(() => {
@@ -840,7 +840,7 @@ export default {
                 this.reChallengeExR=false;
               }
             }
-          }, 3000)
+          }, 1000)
         }
         return
       }
@@ -858,7 +858,7 @@ export default {
               this.reChallengeExR=false;
             }
           }
-        }, 3000)
+        }, 1000)
       }
     },
     async saveGame(needInfo) {
