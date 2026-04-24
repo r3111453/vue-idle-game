@@ -290,7 +290,7 @@
     </span>
     <span v-if="dungeons.type!='endless' && dungeonsSimulator.victory">
       <span v-if="dungeonsSimulator.lastHP >= attribute.MAXHP.value">后，血量已满，可立即继续挑战</span>
-      <span v-else>后，剩余HP{{ dungeonsSimulator.lastHP }}，需耗时{{ ((attribute.MAXHP.value - dungeonsSimulator.lastHP) / (attribute.MAXHP.value * 0.03)).toFixed(1) }}秒恢复满血</span>
+      <span v-else>后，剩余HP{{ dungeonsSimulator.lastHP }}，需耗时{{ ((attribute.MAXHP.value - dungeonsSimulator.lastHP) / (attribute.MAXHP.value * 0.01)).toFixed(1) }}秒恢复满血</span>
     </span>
   </p>
 </div>
