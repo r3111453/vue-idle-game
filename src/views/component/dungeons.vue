@@ -477,33 +477,40 @@ battleCom(event, currentHP, customDPS) {
     if(this.dungeons.type == 'endless'){
       return
     }
-    // 修正：獨特裝備永不自動出售，其他品質根據 autoSell 設定判斷
-    const isUnique = (newItem.quality && newItem.quality.name === "獨特") || equipQua === 4;
     
-    if (isUnique) {
-      // 獨特裝備永不自動出售，直接放入背包
-      for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-          this.$set(backpackPanel.grid, i, newItem)
-          break;
+    // ✅ 修正：逐件處理裝備，獨特裝備永不自動出售
+    for (let idx = 0; idx < items.length; idx++) {
+      const currentItem = items[idx];
+      // 判斷是否為獨特裝備（檢查品質名稱）
+      const isUnique = currentItem.quality && (currentItem.quality.name === "獨特" || currentItem.quality.name === "独特");
+      
+      if (isUnique) {
+        // 獨特裝備：永不自動出售，直接放入背包
+        for (let i = 0; i < backpackPanel.grid.length; i++) {
+          if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+            this.$set(backpackPanel.grid, i, currentItem)
+            break;
+          }
         }
-      }
-    } else if (backpackPanel.autoSell && backpackPanel.autoSell[equipQua]) {
-      // 普通裝備且開啟自動出售
-      var gold = newItem.lv * newItem.quality.qualityCoefficient * 30 * timeCompensation
-      this.$store.commit("set_player_gold", parseInt(gold));
-      this.$store.commit("set_sys_info", {
-        msg: `
-          自動出售裝備獲得金幣：${parseInt(gold)}
-        `,
-        type: 'trophy',
-      });
-    } else {
-      // 普通裝備且未開啟自動出售，放入背包
-      for (let i = 0; i < backpackPanel.grid.length; i++) {
-        if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-          this.$set(backpackPanel.grid, i, newItem)
-          break;
+      } else {
+        // 非獨特裝備：根據 autoSell 設定決定
+        const itemEquipQua = currentItem.quality ? currentItem.quality.index : equipQua;
+        if (backpackPanel.autoSell && backpackPanel.autoSell[itemEquipQua]) {
+          var gold = currentItem.lv * currentItem.quality.qualityCoefficient * 30 * timeCompensation
+          this.$store.commit("set_player_gold", parseInt(gold));
+          this.$store.commit("set_sys_info", {
+            msg: `
+              自動出售裝備獲得金幣：${parseInt(gold)}
+            `,
+            type: 'trophy',
+          });
+        } else {
+          for (let i = 0; i < backpackPanel.grid.length; i++) {
+            if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+              this.$set(backpackPanel.grid, i, currentItem)
+              break;
+            }
+          }
         }
       }
     }
