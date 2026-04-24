@@ -151,30 +151,30 @@ export default {
       return (monster.trophy.equip[3] * 100) + '%';
     },
     evenHandle() {
-      let startEnent = () => {
-        if (this.left >= this.nextEvent * 100 / this.dungeons.eventNum) {
-          this.evenInExecution()
-          this.nextEvent++
-          if (this.nextEvent <= this.dungeons.eventNum) {
-            this.timeOut = setTimeout(() => {
-              this.pro = setInterval(() => {
-                startEnent()
-              }, this.moveTime+this.reincarnationAttribute.MOVESPEED)
-            }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
-          } else {
-            this.timeOut = setTimeout(() => {
-              this.eventEnd()
-            }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
-          }
-          clearInterval(this.pro)
-        }
-        this.left += 0.5
+  let startEnent = () => {
+    if (this.left >= this.nextEvent * 100 / this.dungeons.eventNum) {
+      this.evenInExecution()
+      this.nextEvent++
+      if (this.nextEvent <= this.dungeons.eventNum) {
+        this.timeOut = setTimeout(() => {
+          this.pro = setInterval(() => {
+            startEnent()
+          }, this.moveTime)  // ✅ 移除 + this.reincarnationAttribute.MOVESPEED
+        }, this.battleTime)   // ✅ 移除 + this.reincarnationAttribute.BATTLESPEED
+      } else {
+        this.timeOut = setTimeout(() => {
+          this.eventEnd()
+        }, this.battleTime)   // ✅ 移除 + this.reincarnationAttribute.BATTLESPEED
       }
-      this.eventBegin()
-      this.pro = setInterval(() => {
-        startEnent()
-      }, this.moveTime+this.reincarnationAttribute.MOVESPEED)
-    },
+      clearInterval(this.pro)
+    }
+    this.left += 0.5
+  }
+  this.eventBegin()
+  this.pro = setInterval(() => {
+    startEnent()
+  }, this.moveTime)  // ✅ 移除 + this.reincarnationAttribute.MOVESPEED
+},
     eventBegin() {
       this.$store.commit("set_sys_info", {
         msg: "你已进入" + (this.dungeons.type=="endless"?'无尽（lv'+this.dungeons.lv+'）':this.dungeons.name),
