@@ -299,6 +299,9 @@ export default {
         takeDmg = takeDmg + playerBLOC
         takeDmg = takeDmg > -1 ? -1 : takeDmg
         let remainingHP = playerHP + takeDmg
+
+        // 計算實際花費時間（戰鬥時間 + 移動時間 + 等待時間）
+        let actualTime = battleTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
         
         // 只有在實際戰鬥時才執行扣血和掉落（模擬時不執行）
         if (currentHP === undefined) {
