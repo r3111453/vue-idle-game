@@ -151,30 +151,30 @@ export default {
       return (monster.trophy.equip[3] * 100) + '%';
     },
     evenHandle() {
-  let startEnent = () => {
-    if (this.left >= this.nextEvent * 100 / this.dungeons.eventNum) {
-      this.evenInExecution()
-      this.nextEvent++
-      if (this.nextEvent <= this.dungeons.eventNum) {
-        this.timeOut = setTimeout(() => {
-          this.pro = setInterval(() => {
-            startEnent()
-          }, this.moveTime)  // ✅ 移除 + this.reincarnationAttribute.MOVESPEED
-        }, this.battleTime)   // ✅ 移除 + this.reincarnationAttribute.BATTLESPEED
-      } else {
-        this.timeOut = setTimeout(() => {
-          this.eventEnd()
-        }, this.battleTime)   // ✅ 移除 + this.reincarnationAttribute.BATTLESPEED
+      let startEnent = () => {
+        if (this.left >= this.nextEvent * 100 / this.dungeons.eventNum) {
+          this.evenInExecution()
+          this.nextEvent++
+          if (this.nextEvent <= this.dungeons.eventNum) {
+            this.timeOut = setTimeout(() => {
+              this.pro = setInterval(() => {
+                startEnent()
+              }, this.moveTime)
+            }, this.battleTime)
+          } else {
+            this.timeOut = setTimeout(() => {
+              this.eventEnd()
+            }, this.battleTime)
+          }
+          clearInterval(this.pro)
+        }
+        this.left += 0.5
       }
-      clearInterval(this.pro)
-    }
-    this.left += 0.5
-  }
-  this.eventBegin()
-  this.pro = setInterval(() => {
-    startEnent()
-  }, this.moveTime)  // ✅ 移除 + this.reincarnationAttribute.MOVESPEED
-},
+      this.eventBegin()
+      this.pro = setInterval(() => {
+        startEnent()
+      }, this.moveTime)
+    },
     eventBegin() {
       this.$store.commit("set_sys_info", {
         msg: "你已进入" + (this.dungeons.type=="endless"?'无尽（lv'+this.dungeons.lv+'）':this.dungeons.name),
@@ -203,7 +203,7 @@ export default {
           });
           this.battleComTime = setTimeout(() => {
             this.battleCom(event)
-          }, this.battleTime+this.reincarnationAttribute.BATTLESPEED)
+          }, this.battleTime)
           break;
         default:
           break;
@@ -275,268 +275,254 @@ export default {
         }
       }, 100)
     },
-    // 修改後的 battleCom 方法：支援傳入 currentHP 並回傳結果
-    // 修改後的 battleCom 方法：支援傳入 currentHP 和 customDPS 並回傳結果
-battleCom(event, currentHP, customDPS) {
-  let playerAttribute = this.$store.state.playerAttribute.attribute,
-    battleTime,
-    reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
-    playerDPS = customDPS !== undefined ? customDPS : playerAttribute.DPS,
-    playerBLOC = playerAttribute.BLOC.value,
-    monsterAttribute = this.$deepCopy(event.attribute),
-    p = this.findComponentUpward(this, 'index')
-  
-  // 使用傳入的 currentHP 或當前的 CURHP
-  let playerHP = (currentHP !== undefined) ? currentHP : playerAttribute.CURHP.value
-
-  var playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
-    monsterDeadTime = (monsterAttribute.HP / playerDPS)
-
-  if (monsterDeadTime < playerDeadTime) {
-    // 战斗胜利
-    battleTime = monsterDeadTime
-    var takeDmg = -battleTime * Number(monsterAttribute.ATK)
-    takeDmg = parseInt(takeDmg * reducedDamage)
-    takeDmg = takeDmg + playerBLOC
-    takeDmg = takeDmg > -1 ? -1 : takeDmg
-    let remainingHP = playerHP + takeDmg
-
-    // 計算實際花費時間（戰鬥時間 + 移動時間 + 等待時間）
-    let actualTime = battleTime + this.battleTime / 1000 + this.moveTime / 1000
-    
-    // 只有在實際戰鬥時才執行扣血和掉落（模擬時不執行）
-    if (currentHP === undefined) {
-      this.$store.commit('set_player_curhp', takeDmg)
-      if (this.dungeons.type == 'endless') {
-        this.$store.commit("set_sys_info", {
-          msg: `
-            击杀了${event.name}(无尽层数：${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
-          `,
-          type: 'win'
-        });
-      } else {
-        this.$store.commit("set_sys_info", {
-          msg: `
-            击杀了${event.name}(lv${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
-          `,
-          type: 'win'
-        });
-      }
-      this.caculateTrophy(event)
-      if(this.dungeons.lv>this.$store.state.playerAttribute.lv&&event.type=='boss'){
-        this.$store.commit("set_sys_info", {
-          msg: `
-            你升级了，可以刷新出更高等级的副本了。
-          `,
-          type: 'win'
-        });
-        this.$store.commit('set_player_lv', this.dungeons.lv)
-      }
-      if(this.dungeons.difficulty!=1){
-        p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
-      }
-    }
-    
-    return { victory: true, takeDmg: takeDmg, remainingHP: remainingHP, actualTime: actualTime }
-  } else {
-    // 战斗失败
-    let actualTime = playerDeadTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
-    
-    // 只有在實際戰鬥時才執行失敗處理
-    if (currentHP === undefined) {
-      if (this.dungeons && this.dungeons.type == 'endless') {
-        let oldLv = this.$store.state.playerAttribute.endlessLv;
-        let newLv = Math.max(1, oldLv - 1);
-        this.$store.commit('set_endless_lv', newLv);
-        this.$store.commit("set_sys_info", {
-          msg: `无尽挑战失败，层数从 ${oldLv} 降低至 ${newLv} 层。`,
-          type: 'warning'
-        });
-      }
-
-      if (p.upEChallenge) {
-        p.upEChallenge = false;
-        p.reEChallenge = false;
-        this.$store.commit("set_sys_info", {
-          msg: `向上挑战已中断。`,
-          type: 'warning'
-        });
-      }
-
-      clearInterval(this.pro);
-      clearTimeout(this.timeOut);
-      clearTimeout(this.battleComTime);
-      this.pro = {};
-      this.timeOut = {};
-      this.left = 0;
-      this.nextEvent = 1;
-      this.dungeons = {};
-      p.inDungeons = false;
-      this.$store.commit('set_player_curhp', 'dead');
-
-      var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
-      takeDmg = parseInt(takeDmg * reducedDamage)
-      takeDmg = takeDmg - playerBLOC
-      takeDmg = takeDmg < 1 ? 1 : takeDmg
-      this.$store.commit("set_sys_info", {
-        msg: `战斗失败！受到了${takeDmg}点伤害`,
-        type: 'warning'
-      });
-      this.$store.commit("set_sys_info", {
-        msg: `你可以尝试强化或者重铸装备之后再来挑战哦`,
-        type: 'warning'
-      });
-    }
-    
-    return { victory: false, takeDmg: 0, remainingHP: 0, actualTime: actualTime }
-  }
-},
-    caculateTrophy(event) {
-  var items = []
-  var lv = this.dungeons.lv
-  let timeCompensation = 4;
-  
-  if (event.type == 'boss' && this.dungeons.type != 'endless') {
-    var baseRate = 0.05 * ((this.dungeons.difficulty - 1) * 2 + 1);
-    var newRate = Math.min(baseRate * timeCompensation, 0.95);
-    var randow = 1 - newRate;
-    if (Math.random() > randow) {
-      var random = Math.random()
-      if (random <= 0.3 && random > 0) {
-        var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
-        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-        items.push(JSON.parse(item))
-      } else if (random <= 0.5 && random > 0.3) {
-        var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
-        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-        items.push(JSON.parse(item))
-      }else if (random <= 0.75 && random > 0.5) {
-        var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
-        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-        items.push(JSON.parse(item))
-      } else {
-        var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
-        var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
-        items.push(JSON.parse(item))
-      }
-    }
-  }
-  
-  var trophy = event.trophy
-  var equip = trophy.equip
-  var adjustedEquip = equip.map(rate => Math.min(rate * timeCompensation, 1));
-  var total = adjustedEquip.reduce((a, b) => a + b, 0);
-  if (total > 1) {
-    adjustedEquip = adjustedEquip.map(rate => rate / total);
-  }
-  
-  var equipQua = -1;
-  var r = Math.random()
-  var cumulative = 0;
-  for (let i = 0; i < adjustedEquip.length; i++) {
-    cumulative += adjustedEquip[i];
-    if (r <= cumulative) {
-      equipQua = i;
-      break;
-    }
-  }
-  
-  if (equipQua != -1) {
-    var index = Math.floor((Math.random() * 4));
-    if (index == 0) {
-      var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
-      var item = b.createNewItem(equipQua, lv)
-    } else if (index == 1) {
-      var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
-      var item = b.createNewItem(equipQua, lv)
-    }else if (index == 2) {
-      var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
-      var item = b.createNewItem(equipQua, lv)
-    } else {
-      var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
-      var item = b.createNewItem(equipQua, lv)
-    }
-    let newItem = JSON.parse(item)
-    items.push(newItem)
-    var backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
-    var goldObtainRatio = 1
-    if (this.dungeons.type == 'endless') {
-      var endlessLv = this.$store.state.playerAttribute.endlessLv
-      // ✅ 修正：10層以上使用2.6倍，1-9層使用1.5倍
-    goldObtainRatio = (endlessLv >= 10) ? 2.6 : 1.5
-      items = []
-    }
-    let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
-    this.$store.commit("set_sys_info", {
-      msg: `
-          獲得了:金幣${finalGold}
-        `,
-      type: 'trophy',
-      equip: items
-    });
-    this.$store.commit("set_player_gold", finalGold);
-    if(this.dungeons.type == 'endless'){
-      return
-    }
-    
-    // ✅ 修正：逐件處理裝備，獨特裝備永不自動出售
-    for (let idx = 0; idx < items.length; idx++) {
-      const currentItem = items[idx];
-      // 判斷是否為獨特裝備（檢查品質名稱）
-      const isUnique = currentItem.quality && (
-        currentItem.quality.name === "獨特" || 
-        currentItem.quality.name === "独特"
-      );
+    battleCom(event, currentHP, customDPS) {
+      let playerAttribute = this.$store.state.playerAttribute.attribute,
+        battleTime,
+        reducedDamage = this.$store.state.playerAttribute.attribute.REDUCDMG,
+        playerDPS = customDPS !== undefined ? customDPS : playerAttribute.DPS,
+        playerBLOC = playerAttribute.BLOC.value,
+        monsterAttribute = this.$deepCopy(event.attribute),
+        p = this.findComponentUpward(this, 'index')
       
-      if (isUnique) {
-        // 獨特裝備：永不自動出售，直接放入背包
-        for (let i = 0; i < backpackPanel.grid.length; i++) {
-          if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-            this.$set(backpackPanel.grid, i, currentItem)
-            break;
+      let playerHP = (currentHP !== undefined) ? currentHP : playerAttribute.CURHP.value
+
+      var playerDeadTime = (playerHP + playerBLOC) / reducedDamage / monsterAttribute.ATK,
+        monsterDeadTime = (monsterAttribute.HP / playerDPS)
+
+      if (monsterDeadTime < playerDeadTime) {
+        battleTime = monsterDeadTime
+        var takeDmg = -battleTime * Number(monsterAttribute.ATK)
+        takeDmg = parseInt(takeDmg * reducedDamage)
+        takeDmg = takeDmg + playerBLOC
+        takeDmg = takeDmg > -1 ? -1 : takeDmg
+        let remainingHP = playerHP + takeDmg
+
+        let actualTime = battleTime + this.battleTime / 1000 + this.moveTime / 1000
+        
+        if (currentHP === undefined) {
+          this.$store.commit('set_player_curhp', takeDmg)
+          if (this.dungeons.type == 'endless') {
+            this.$store.commit("set_sys_info", {
+              msg: `
+                击杀了${event.name}(无尽层数：${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
+              `,
+              type: 'win'
+            });
+          } else {
+            this.$store.commit("set_sys_info", {
+              msg: `
+                击杀了${event.name}(lv${this.dungeons.lv})，受到了${Math.abs(takeDmg)}点伤害
+              `,
+              type: 'win'
+            });
+          }
+          this.caculateTrophy(event)
+          if(this.dungeons.lv>this.$store.state.playerAttribute.lv&&event.type=='boss'){
+            this.$store.commit("set_sys_info", {
+              msg: `
+                你升级了，可以刷新出更高等级的副本了。
+              `,
+              type: 'win'
+            });
+            this.$store.commit('set_player_lv', this.dungeons.lv)
+          }
+          if(this.dungeons.difficulty!=1){
+            p.dungeonsArr = p.dungeonsArr.filter(({ id }) => id !== this.dungeons.id);
           }
         }
-      } else {
-        // 非獨特裝備：根據 autoSell 設定決定（直接使用 equipQua，因為獨特裝備已被過濾）
-        const isAutoSellEnabled = backpackPanel.autoSell && backpackPanel.autoSell[equipQua] === true;
         
-        if (isAutoSellEnabled) {
-          var gold = currentItem.lv * currentItem.quality.qualityCoefficient * 30 * timeCompensation
-          this.$store.commit("set_player_gold", parseInt(gold));
+        return { victory: true, takeDmg: takeDmg, remainingHP: remainingHP, actualTime: actualTime }
+      } else {
+        let actualTime = playerDeadTime + this.battleTime / 1000 + this.moveTime / 1000
+        
+        if (currentHP === undefined) {
+          if (this.dungeons && this.dungeons.type == 'endless') {
+            let oldLv = this.$store.state.playerAttribute.endlessLv;
+            let newLv = Math.max(1, oldLv - 1);
+            this.$store.commit('set_endless_lv', newLv);
+            this.$store.commit("set_sys_info", {
+              msg: `无尽挑战失败，层数从 ${oldLv} 降低至 ${newLv} 层。`,
+              type: 'warning'
+            });
+          }
+
+          if (p.upEChallenge) {
+            p.upEChallenge = false;
+            p.reEChallenge = false;
+            this.$store.commit("set_sys_info", {
+              msg: `向上挑战已中断。`,
+              type: 'warning'
+            });
+          }
+
+          clearInterval(this.pro);
+          clearTimeout(this.timeOut);
+          clearTimeout(this.battleComTime);
+          this.pro = {};
+          this.timeOut = {};
+          this.left = 0;
+          this.nextEvent = 1;
+          this.dungeons = {};
+          p.inDungeons = false;
+          this.$store.commit('set_player_curhp', 'dead');
+
+          var takeDmg = monsterDeadTime * Number(monsterAttribute.ATK)
+          takeDmg = parseInt(takeDmg * reducedDamage)
+          takeDmg = takeDmg - playerBLOC
+          takeDmg = takeDmg < 1 ? 1 : takeDmg
           this.$store.commit("set_sys_info", {
-            msg: `
-              自動出售裝備獲得金幣：${parseInt(gold)}（${currentItem.quality.name}）
-            `,
-            type: 'trophy',
+            msg: `战斗失败！受到了${takeDmg}点伤害`,
+            type: 'warning'
           });
+          this.$store.commit("set_sys_info", {
+            msg: `你可以尝试强化或者重铸装备之后再来挑战哦`,
+            type: 'warning'
+          });
+        }
+        
+        return { victory: false, takeDmg: 0, remainingHP: 0, actualTime: actualTime }
+      }
+    },
+    caculateTrophy(event) {
+      var items = []
+      var lv = this.dungeons.lv
+      let timeCompensation = 4;
+      
+      if (event.type == 'boss' && this.dungeons.type != 'endless') {
+        var baseRate = 0.05 * ((this.dungeons.difficulty - 1) * 2 + 1);
+        var newRate = Math.min(baseRate * timeCompensation, 0.95);
+        var randow = 1 - newRate;
+        if (Math.random() > randow) {
+          var random = Math.random()
+          if (random <= 0.3 && random > 0) {
+            var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
+            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+            items.push(JSON.parse(item))
+          } else if (random <= 0.5 && random > 0.3) {
+            var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
+            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+            items.push(JSON.parse(item))
+          }else if (random <= 0.75 && random > 0.5) {
+            var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
+            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+            items.push(JSON.parse(item))
+          } else {
+            var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
+            var item = b.createNewItem(4, parseInt(lv + Math.random() * 6))
+            items.push(JSON.parse(item))
+          }
+        }
+      }
+      
+      var trophy = event.trophy
+      var equip = trophy.equip
+      var adjustedEquip = equip.map(rate => Math.min(rate * timeCompensation, 1));
+      var total = adjustedEquip.reduce((a, b) => a + b, 0);
+      if (total > 1) {
+        adjustedEquip = adjustedEquip.map(rate => rate / total);
+      }
+      
+      var equipQua = -1;
+      var r = Math.random()
+      var cumulative = 0;
+      for (let i = 0; i < adjustedEquip.length; i++) {
+        cumulative += adjustedEquip[i];
+        if (r <= cumulative) {
+          equipQua = i;
+          break;
+        }
+      }
+      
+      if (equipQua != -1) {
+        var index = Math.floor((Math.random() * 4));
+        if (index == 0) {
+          var b = this.findBrothersComponents(this, 'weaponPanel', false)[0]
+          var item = b.createNewItem(equipQua, lv)
+        } else if (index == 1) {
+          var b = this.findBrothersComponents(this, 'armorPanel', false)[0]
+          var item = b.createNewItem(equipQua, lv)
+        }else if (index == 2) {
+          var b = this.findBrothersComponents(this, 'ringPanel', false)[0]
+          var item = b.createNewItem(equipQua, lv)
         } else {
-          for (let i = 0; i < backpackPanel.grid.length; i++) {
-            if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
-              this.$set(backpackPanel.grid, i, currentItem)
-              break;
+          var b = this.findBrothersComponents(this, 'neckPanel', false)[0]
+          var item = b.createNewItem(equipQua, lv)
+        }
+        let newItem = JSON.parse(item)
+        items.push(newItem)
+        var backpackPanel = this.findBrothersComponents(this, 'backpackPanel', false)[0]
+        var goldObtainRatio = 1
+        if (this.dungeons.type == 'endless') {
+          var endlessLv = this.$store.state.playerAttribute.endlessLv
+          goldObtainRatio = (endlessLv >= 10) ? 2.6 : 1.5
+          items = []
+        }
+        let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
+        this.$store.commit("set_sys_info", {
+          msg: `
+              獲得了:金幣${finalGold}
+            `,
+          type: 'trophy',
+          equip: items
+        });
+        this.$store.commit("set_player_gold", finalGold);
+        if(this.dungeons.type == 'endless'){
+          return
+        }
+        
+        for (let idx = 0; idx < items.length; idx++) {
+          const currentItem = items[idx];
+          const isUnique = currentItem.quality && (
+            currentItem.quality.name === "獨特" || 
+            currentItem.quality.name === "独特"
+          );
+          
+          if (isUnique) {
+            for (let i = 0; i < backpackPanel.grid.length; i++) {
+              if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+                this.$set(backpackPanel.grid, i, currentItem)
+                break;
+              }
+            }
+          } else {
+            const isAutoSellEnabled = backpackPanel.autoSell && backpackPanel.autoSell[equipQua] === true;
+            
+            if (isAutoSellEnabled) {
+              var gold = currentItem.lv * currentItem.quality.qualityCoefficient * 30 * timeCompensation
+              this.$store.commit("set_player_gold", parseInt(gold));
+              this.$store.commit("set_sys_info", {
+                msg: `
+                  自動出售裝備獲得金幣：${parseInt(gold)}（${currentItem.quality.name}）
+                `,
+                type: 'trophy',
+              });
+            } else {
+              for (let i = 0; i < backpackPanel.grid.length; i++) {
+                if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
+                  this.$set(backpackPanel.grid, i, currentItem)
+                  break;
+                }
+              }
             }
           }
         }
+      } else {
+        var goldObtainRatio = 1
+        if (this.dungeons.type == 'endless') {
+          var endlessLv = this.$store.state.playerAttribute.endlessLv
+          goldObtainRatio = (endlessLv >= 10) ? 2.6 : 1.5
+        }
+        let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
+        this.$store.commit("set_sys_info", {
+          msg: `
+              獲得了:金幣${finalGold}
+            `,
+          type: 'trophy',
+          equip: []
+        });
+        this.$store.commit("set_player_gold", finalGold);
       }
     }
-  } else {
-    var goldObtainRatio = 1
-    if (this.dungeons.type == 'endless') {
-      var endlessLv = this.$store.state.playerAttribute.endlessLv
-      // ✅ 修正：10層以上使用2.6倍，1-9層使用1.5倍
-    goldObtainRatio = (endlessLv >= 10) ? 2.6 : 1.5
-    }
-    let finalGold = parseInt(event.trophy.gold * goldObtainRatio * timeCompensation);
-    this.$store.commit("set_sys_info", {
-      msg: `
-          獲得了:金幣${finalGold}
-        `,
-      type: 'trophy',
-      equip: []
-    });
-    this.$store.commit("set_player_gold", finalGold);
-  }
-}
   }
 };
 </script>
