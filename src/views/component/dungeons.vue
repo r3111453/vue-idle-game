@@ -159,12 +159,12 @@ export default {
             this.timeOut = setTimeout(() => {
               this.pro = setInterval(() => {
                 startEnent()
-              }, this.moveTime)
-            }, this.battleTime)
+              }, this.moveTime + this.reincarnationAttribute.MOVESPEED)
+            }, this.battleTime + this.reincarnationAttribute.BATTLESPEED)
           } else {
             this.timeOut = setTimeout(() => {
               this.eventEnd()
-            }, this.battleTime)
+            }, this.battleTime + this.reincarnationAttribute.BATTLESPEED)
           }
           clearInterval(this.pro)
         }
@@ -173,7 +173,7 @@ export default {
       this.eventBegin()
       this.pro = setInterval(() => {
         startEnent()
-      }, this.moveTime)
+      }, this.moveTime + this.reincarnationAttribute.MOVESPEED)
     },
     eventBegin() {
       this.$store.commit("set_sys_info", {
@@ -203,7 +203,7 @@ export default {
           });
           this.battleComTime = setTimeout(() => {
             this.battleCom(event)
-          }, this.battleTime)
+          }, this.battleTime + this.reincarnationAttribute.BATTLESPEED)
           break;
         default:
           break;
@@ -297,7 +297,7 @@ export default {
         takeDmg = takeDmg > -1 ? -1 : takeDmg
         let remainingHP = playerHP + takeDmg
 
-        let actualTime = battleTime + this.battleTime / 1000 + this.moveTime / 1000
+        let actualTime = battleTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
         
         if (currentHP === undefined) {
           this.$store.commit('set_player_curhp', takeDmg)
@@ -333,7 +333,7 @@ export default {
         
         return { victory: true, takeDmg: takeDmg, remainingHP: remainingHP, actualTime: actualTime }
       } else {
-        let actualTime = playerDeadTime + this.battleTime / 1000 + this.moveTime / 1000
+        let actualTime = playerDeadTime + (this.battleTime + this.reincarnationAttribute.BATTLESPEED) / 1000 + (this.moveTime + this.reincarnationAttribute.MOVESPEED) / 1000
         
         if (currentHP === undefined) {
           if (this.dungeons && this.dungeons.type == 'endless') {
