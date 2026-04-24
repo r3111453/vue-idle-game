@@ -16,7 +16,6 @@
           <p class="info">* 成功挑战首领时会提升等级</p>
           <p class="info">* 超过30级时可以转生获取更强力的初始属性</p>
         </template>
-
       </cTooltip>
 
       <cTooltip placement="bottom">
@@ -33,16 +32,7 @@
           <p class="info">* 每秒会回复3%的最大生命值</p>
           <p class="info">最大生命值=200+({{attribute.MAXHP.info[1]}}+{{attribute.MAXHP.info[0]}})*{{100+attribute.MAXHP.info[2]}}%</p>
         </template>
-
       </cTooltip>
-
-      <!-- <cTooltip placement="bottom">
-        <template v-slot:content>
-        </template>
-        <template v-slot:tip>
-          <p class="info">* </p>
-        </template>
-      </cTooltip> -->
 
       <div class="other">
         <cTooltip placement="bottom">
@@ -110,22 +100,6 @@
           </template>
         </cTooltip>
 
-        <!-- <cTooltip placement="bottom">
-          <template v-slot:content>
-            <div class="item">
-              <img src="../assets/icons/S_EVA.png" alt="">
-              <div class="value">
-                {{attribute.EVA.showValue}}
-              </div>
-            </div>
-          </template>
-          <template v-slot:tip>
-            <p class="info">* 角色闪避几率</p>
-            <p class="info">* 闪避几率采用非线性计算</p>
-            <p class="info">* 多个闪避来源自身乘法叠加</p>
-          </template>
-        </cTooltip> -->
-
         <cTooltip placement="bottom">
           <template v-slot:content>
             <div class="item">
@@ -141,9 +115,9 @@
             <p class="info">=({{attribute.BLOC.info[1]}}+{{attribute.BLOC.info[0]}})*{{100+attribute.BLOC.info[2]}}%</p>
           </template>
         </cTooltip>
-
       </div>
     </div>
+
     <div class="user-item">
       <div class="uii">
         <cTooltip placement="bottom">
@@ -170,10 +144,8 @@
             <p class="info">* 在这里，钱就是万能的</p>
           </template>
         </cTooltip>
-
       </div>
 
-      <!-- 武器槽：添加右键脱下事件 -->
       <div class="weapon" @mouseover="showItemInfo($event,'weapon',playerWeapon,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('weapon', $event)">
         <div class="title" v-if="playerWeapon && playerWeapon.type">
           <div class='icon' :class="{'red-flash':playerWeapon.enchantlvl>=13,unique:playerWeapon.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerWeapon.quality.color}">
@@ -182,7 +154,6 @@
           <div class='name' :style="{color:playerWeapon.quality.color}">{{playerWeapon.type.name}} {{playerWeapon.enchantlvl?'(+'+playerWeapon.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 防具槽 -->
       <div class="armor" @mouseover="showItemInfo($event,'armor',playerArmor,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('armor', $event)">
         <div class="title" v-if="playerArmor && playerArmor.type">
           <div class='icon' :class="{'red-flash':playerArmor.enchantlvl>=13,unique:playerArmor.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px  '+playerArmor.quality.color}">
@@ -191,7 +162,6 @@
           <div class='name' :style="{color:playerArmor.quality.color}">{{playerArmor.type.name}} {{playerArmor.enchantlvl?'(+'+playerArmor.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 项链槽 -->
       <div class="neck" @mouseover="showItemInfo($event,'neck',playerNeck,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('neck', $event)">
         <div class="title" v-if="playerNeck && playerNeck.type">
           <div class='icon' :class="{'red-flash':playerNeck.enchantlvl>=13,unique:playerNeck.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerNeck.quality.color}">
@@ -200,7 +170,6 @@
           <div class='name' :style="{color:playerNeck.quality.color}">{{playerNeck.type.name}} {{playerNeck.enchantlvl?'(+'+playerNeck.enchantlvl+')':''}}</div>
         </div>
       </div>
-      <!-- 戒指槽 -->
       <div class="ring" @mouseover="showItemInfo($event,'ring',playerRing,false)" @mouseleave="closeItemInfo" @contextmenu.prevent="unequipItem('ring', $event)">
         <div class="title" v-if="playerRing && playerRing.type">
           <div class='icon' :class="{'red-flash':playerRing.enchantlvl>=13,unique:playerRing.quality.name=='独特'}" :style="{'box-shadow':'inset 0 0 7px 2px '+playerRing.quality.color}">
@@ -210,6 +179,7 @@
         </div>
       </div>
     </div>
+
     <div class="sys-info">
       <div class="clear" @click="clearSysInfo">清除信息</div>
       <div id='sysInfo'>
@@ -219,6 +189,7 @@
         </div>
       </div>
     </div>
+
     <div class="map">
       <div class="plan" v-show='inDungeons'>
         <dungeons></dungeons>
@@ -268,32 +239,20 @@
             <td>{{m.name}}</td>
             <td>{{m.attribute.HP}}({{m.attribute.HPStrength}})</td>
             <td>{{m.attribute.ATK}}({{m.attribute.ATKStrength}})</td>
-            <td v-if="dungeonsSimulator.isPlayerDead && i >= dungeonsSimulator.deathIndex">死亡</td>
-            <td v-else>{{ dungeonsSimulator.perGetDamaged[i] > 0 ? dungeonsSimulator.perGetDamaged[i] : -dungeonsSimulator.perGetDamaged[i] }}</td>
+            <td>未知</td>
             <td>{{ getDisplayGoldForIndex(m) }}</td>
           </tr>
           <tr>
             <td>合计</td>
             <td>{{dungeons.totalHP}}</td>
             <td>/</td>
-            <td>{{-dungeonsSimulator.allGetDamaged}}</td>
+            <td>未知</td>
             <td>{{ dungeons.displayTotalGold }}</td>
           </tr>
         </table>
         <div class="info">
-  <p>这场战斗花费{{dungeonsSimulator.costTime.toFixed(1)}}秒
-    <span :style="{color: dungeonsSimulator.victory ? (dungeonsSimulator.lastHP < attribute.MAXHP.value * 0.15 ? '#ffaa00' : '#2fe20f') : '#f90202'}">
-      {{dungeonsSimulator.victory ? "胜利" : "战败"}}
-    </span>
-    <span v-if="dungeonsSimulator.victory && dungeonsSimulator.lastHP < attribute.MAXHP.value * 0.15" style="color:#ffaa00; margin-left:0.05rem;">
-      （险胜，暴击波动可能失败）
-    </span>
-    <span v-if="dungeons.type!='endless' && dungeonsSimulator.victory">
-      <span v-if="dungeonsSimulator.lastHP >= attribute.MAXHP.value">后，血量已满，可立即继续挑战</span>
-      <span v-else>后，剩余HP{{ dungeonsSimulator.lastHP }}，需耗时{{ ((attribute.MAXHP.value - dungeonsSimulator.lastHP) / (attribute.MAXHP.value * 0.03)).toFixed(1) }}秒恢复满血</span>
-    </span>
-  </p>
-</div>
+          <p>挑战后才知道结果哦~ 祝你好运！</p>
+        </div>
 
         <div class="handle">
           <div v-if="dungeons.type!='endless'" style="flex-direction:column;margin-left:0.2rem">
@@ -315,8 +274,8 @@
       </div>
       <div class="event-icon endless" v-if="endlessLv&&playerLv>=10" @click="showEndlessDungeonsInfo()" v-show='!inDungeons' style="top: 6%;left: 16%;"><i class="icon-image"></i><span>无尽</span></div>
     </div>
-    <div class="menu">
 
+    <div class="menu">
       <cTooltip :placement="'top'">
         <template v-slot:content>
           <div class="Backpack" @click="openMenuPanel('backpack')">
@@ -408,8 +367,8 @@
           <p class="info">* 幸运抽奖</p>
         </template>
       </cTooltip>
-
     </div>
+
     <div class="dialog" :style='itemDialogStyle'>
       <weaponPanel :item="weapon" v-show="weaponShow"></weaponPanel>
       <weaponPanel :item="playerWeapon" v-show="weaponShow&&needComparison"></weaponPanel>
@@ -423,6 +382,7 @@
         关闭对比
       </div>
     </div>
+
     <div class="dialog-backpackPanel" v-show="backpackPanelOpened">
       <div class="title">
         <span>背包</span>
@@ -457,7 +417,6 @@
         <i class="close" @click="closePanel"></i>
       </div>
       <div class="body"><textarea id="imSavedata" class="savedata-textarea" v-model="saveDateString"></textarea></div>
-
       <div class="footer">
         <div class="button" @click="copySavaData">复制文本到剪贴板</div>
       </div>
@@ -469,12 +428,12 @@
       </div>
       <div class="body">
         <span class="prompt-message">* 手机用户长按没有粘贴请尝试使用输入法剪贴板功能</span>
-        <textarea id="exSavadata" class="savedata-textarea" @focus="saveDateString = ''" v-model="saveDateString" placeholder="清先输入存档数据"></textarea></div>
+        <textarea id="exSavadata" class="savedata-textarea" @focus="saveDateString = ''" v-model="saveDateString" placeholder="清先输入存档数据"></textarea>
+      </div>
       <div class="footer">
         <div class="button" @click="importSaveData">导入</div>
       </div>
     </div>
-    <!-- 每小时抽抽乐面板（替换原 GM 面板） -->
     <div class="dialog-backpackPanel gm-panel" v-if="GMOpened">
       <div class="title">
         <span>🎲 每小时抽抽乐</span>
@@ -505,6 +464,7 @@
     <setting></setting>
   </div>
 </template>
+
 <script>
 import weaponPanel from './component/weaponPanel'
 import armorPanel from './component/armorPanel'
@@ -522,12 +482,13 @@ import cTooltip from './uiComponent/tooltip'
 import { assist } from '../assets/js/assist';
 import { Base64 } from 'js-base64';
 import handle from '../assets/js/handle'
+
 export default {
   name: "index",
   mixins: [assist],
   data() {
     return {
-      GMmodel: true,  // 原本为 false
+      GMmodel: true,
       time: '00:00:00',
       sysInfo: {},
       weaponShow: false,
@@ -537,7 +498,7 @@ export default {
       equiShow: false,
       autoHealthRecovery: '',
       weapon: {},
-      inDungeons: false,  //是否在副本进程中
+      inDungeons: false,
       reChallenge: false,
       reChallengeEx: false,
       reChallengeExR: false,
@@ -545,17 +506,17 @@ export default {
       reEChallenge: false,
       dungeons: '',
       dungeonsArr: [],
-      dungeonsTime: '', //刷新副本计时器
-      dungeonsTimeO: 30, //刷新副本时间间隔 单位：S
+      dungeonsTime: '',
+      dungeonsTimeO: 30,
       dungeonsSimulator:{
-        victory:false,
-        recoveryToMaxHP:false,
-        costTime:0,
-        perGetDamaged:[0,0,0,0,0],
-        allGetDamaged:0,
-        lastHP:0,
-        maxFightCount:0,
-        perActionTime:0,
+        victory: false,
+        recoveryToMaxHP: false,
+        costTime: 0,
+        perGetDamaged: [0, 0, 0, 0, 0],
+        allGetDamaged: 0,
+        lastHP: 0,
+        maxFightCount: 0,
+        perActionTime: 0,
         isPlayerDead: false,
         deathIndex: -1
       },
@@ -577,18 +538,16 @@ export default {
       needComparison: true,
       saveData: {},
       saveDateString: '',
-      debounceTime: {},  //防抖计时器
-      // 抽抽乐相关
-      lastDrawTimestamp: 0,        // 上次抽奖的时间戳（毫秒）
-      drawCooldownSeconds: 3600,   // 冷却时间（秒）
-      drawCooldownRemaining: 0,    // 剩余冷却秒数
-      drawCooldownTimer: null,     // 定时器句柄
-      lastDrawReward: '',          // 上次抽奖结果文本
+      debounceTime: {},
+      lastDrawTimestamp: 0,
+      drawCooldownSeconds: 3600,
+      drawCooldownRemaining: 0,
+      drawCooldownTimer: null,
+      lastDrawReward: '',
     };
   },
   components: { weaponPanel, armorPanel, ringPanel, neckPanel, dungeons, backpackPanel, shopPanel, cTooltip, strengthenEquipment, extras, qa, setting, reinPanel },
   created() {
-    // 窗口自适应
     window.onresize = () => {
       if (this.debounceTime) {
         clearTimeout(this.debounceTime);
@@ -597,69 +556,58 @@ export default {
         this.debounceTime = null;
         this.initial()
       }, 200);
-
     };
     this.initial()
-
-    // 监听当前窗口是否处于后台状态
     document.addEventListener("visibilitychange", e => {
       this.windowVisibilitychange()
     });
-
   },
   mounted() {
-  // 自动回血
-  this.autoHealthRecovery = setInterval(() => {
-    this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
-    if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
-      if(this.reChallengeEx){
-        this.eventBegin();
-      }else{
-        this.reChallengeExR=false;
+    this.autoHealthRecovery = setInterval(() => {
+      this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+      if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
+        if(this.reChallengeEx){
+          this.eventBegin();
+        }else{
+          this.reChallengeExR=false;
+        }
       }
+    }, 1000)
+
+    setInterval(() => {
+      this.saveGame()
+    }, 5 * 60 * 1000)
+
+    this.sysInfo = this.$store.state.sysInfo
+    this.weapon = this.playerWeapon
+    this.armor = this.playerArmor
+    this.ring = this.playerRing
+    this.neck = this.playerNeck
+
+    {
+      this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
+      this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
+      this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
+      this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
     }
-  }, 1000)
+    var sd = localStorage.getItem('_sd')
+    this.loadGame(sd)
+    this.createdDungeons()
+    this.initDrawCooldown()
 
-  // 自动保存
-  setInterval(() => {
-    this.saveGame()
-  }, 5 * 60 * 1000)
-
-  this.sysInfo = this.$store.state.sysInfo
-  this.weapon = this.playerWeapon
-  this.armor = this.playerArmor
-  this.ring = this.playerRing
-  this.neck = this.playerNeck
-
-  //TODO:重新装备一次来解决不显示装备对比信息不显示的bug
-  {
-    this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
-    this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
-    this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
-    this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
-  }
-  var sd = localStorage.getItem('_sd')
-  this.loadGame(sd)
-  //生成随机副本
-  this.createdDungeons()
-  // 初始化抽奖冷却
-  this.initDrawCooldown()
-
-  // ========== 新增：每周备份提醒 ==========
-  const lastBackupReminder = localStorage.getItem('lastBackupReminder');
-  const now = Date.now();
-  const oneWeek = 7 * 24 * 60 * 60 * 1000; // 一週
-
-  if (!lastBackupReminder || now - lastBackupReminder > oneWeek) {
-    this.$message({
-      message: '為了避免存檔遺失，建議您定期點擊「導出存檔」進行備份。',
-      title: '備份提醒',
-      closeBtnText: '稍後',
-      confirmBtnText: '我知道了',
-    });
-    localStorage.setItem('lastBackupReminder', now);
-  }
-},
+    const lastBackupReminder = localStorage.getItem('lastBackupReminder');
+    const now = Date.now();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    if (!lastBackupReminder || now - lastBackupReminder > oneWeek) {
+      this.$message({
+        message: '為了避免存檔遺失，建議您定期點擊「導出存檔」進行備份。',
+        title: '備份提醒',
+        closeBtnText: '稍後',
+        confirmBtnText: '我知道了',
+      });
+      localStorage.setItem('lastBackupReminder', now);
+    }
+  },
   beforeDestroy() {
     if (this.drawCooldownTimer) {
       clearInterval(this.drawCooldownTimer);
@@ -680,7 +628,6 @@ export default {
   watch: {
     sysInfo() {
       var element = document.getElementById('sysInfo')
-      //渲染完成后滚至最下端
       this.$nextTick(() => {
         element.scrollTop = element.scrollHeight + 20
       })
@@ -704,17 +651,11 @@ export default {
     navToGithub() {
       window.open('https://github.com/Couy69/vue-idle-game', '_blank');
     },
-    /**
-     * 刷新副本
-     * constraint 强制刷新
-     */
     createdDungeons(constraint) {
       if (!constraint) {
         if (this.dungeonsTime) {
           this.$store.commit("set_sys_info", {
-            msg: `
-                    刚刚才刷新过了，需要等待${this.dungeonsTimeO}秒才能刷新哦。
-                  `,
+            msg: `刚刚才刷新过了，需要等待${this.dungeonsTimeO}秒才能刷新哦。`,
             type: 'wrning'
           });
           return
@@ -732,11 +673,8 @@ export default {
       this.dungeonsArr = []
       let Co = [0.85, 0.1, 0.05]
       for (let i = this.playerLv - 1; i > this.playerLv - 5; i--) {
-        if (i < 1) {
-          break
-        }
+        if (i < 1) break
         let difficulty = 1, r = Math.random()
-        // 生成普通副本时有几率刷新高难度副本
         if (r <= Co[0]) {
           difficulty = 1
         } else if (r < Co[1] + Co[0] && r >= Co[0]) {
@@ -756,7 +694,6 @@ export default {
       }
       for (let i = this.playerLv; i < this.playerLv + 6; i++) {
         let difficulty = 1, r = Math.random()
-        // 生成普通副本时有几率刷新高难度副本
         if (r <= Co[0]) {
           difficulty = 1
         } else if (r < Co[1] + Co[0] && r >= Co[0]) {
@@ -777,24 +714,13 @@ export default {
     },
     copySavaData() {
       var imSavadataTextArea = document.getElementById("imSavedata");
-      imSavadataTextArea.select(); // 选中文本
-      document.execCommand("copy"); // 执行浏览器复制命令
-      this.$store.commit("set_sys_info", {
-        msg: `
-                已经复制存档了，建议保存到备忘录
-              `,
-        type: 'win'
-      });
+      imSavadataTextArea.select();
+      document.execCommand("copy");
+      this.$store.commit("set_sys_info", { msg: `已经复制存档了，建议保存到备忘录`, type: 'win' });
       this.closePanel()
     },
-    pasteSaveData() {
-
-    },
     exportSavedata() {
-      let backpackPanel = this.findComponentDownward(
-        this,
-        "backpackPanel",
-      );
+      let backpackPanel = this.findComponentDownward(this, "backpackPanel");
       this.exportSaveDataPanelOpened = true
       var data = {
         playerEquipment: {
@@ -817,12 +743,7 @@ export default {
     },
     importSaveData() {
       if (!this.saveDateString) {
-        this.$store.commit("set_sys_info", {
-          msg: `
-                清先输入存档数据！
-              `,
-          type: 'warning'
-        });
+        this.$store.commit("set_sys_info", { msg: `请先输入存档数据！`, type: 'warning' });
       }
       this.loadGame(this.saveDateString)
       this.closePanel()
@@ -834,7 +755,6 @@ export default {
             this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
             if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
               if(this.reChallengeEx){
-                //console.log(new Date().getTime()/1000);
                 this.eventBegin();
               }else{
                 this.reChallengeExR=false;
@@ -852,7 +772,6 @@ export default {
           this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
           if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
             if(this.reChallengeEx){
-              //console.log(new Date().getTime()/1000);
               this.eventBegin();
             }else{
               this.reChallengeExR=false;
@@ -863,14 +782,8 @@ export default {
     },
     async saveGame(needInfo) {
       var data = {}
-      var backpackPanel = this.findComponentDownward(
-        this,
-        "backpackPanel",
-      );
-      var shopPanel = this.findComponentDownward(
-          this,
-          "shop",
-      );
+      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
+      var shopPanel = this.findComponentDownward(this, "shop");
       data = {
         playerEquipment: {
           playerWeapon: this.$store.state.playerAttribute.weapon,
@@ -896,89 +809,47 @@ export default {
       }
       var saveData = Base64.encode(Base64.encode(JSON.stringify(data)))
       localStorage.setItem('_sd', saveData)
-
-      needInfo && this.$store.commit("set_sys_info", {
-        msg: `
-              游戏进度已经保存了。
-            `,
-        type: 'win'
-      });
+      needInfo && this.$store.commit("set_sys_info", { msg: `游戏进度已经保存了。`, type: 'win' });
     },
     loadGame(sd) {
       try {
         if (sd) {
-          //兼容存档
           var saveDataStr = Base64.decode(Base64.decode(sd))
           saveDataStr = saveDataStr.replace(/playerAcc/gi, 'playerRing')
           saveDataStr = saveDataStr.replace(/acc/gi, "ring")
           this.saveData = JSON.parse(saveDataStr)
           if (!this.saveData.r) {
-            this.saveData.r = {
-              count: 0,
-              point: 0,
-            }
+            this.saveData.r = { count: 0, point: 0 }
           }
           if (!this.saveData.ra) {
             this.saveData.ra = {
-              'HP': 0,
-              'ATK': 0,
-              'CRIT': 0,
-              'CRITDMG': 0,
-              'DEF': 0,
-              'BLOC': 0,
-              'MOVESPEED': 0,
-              'BATTLESPEED': 0,
+              'HP': 0, 'ATK': 0, 'CRIT': 0, 'CRITDMG': 0,
+              'DEF': 0, 'BLOC': 0, 'MOVESPEED': 0, 'BATTLESPEED': 0,
             }
           }
           this.saveData.lv = this.saveData.lv ? this.saveData.lv : 1
-          var backpackPanel = this.findComponentDownward(
-            this,
-            "backpackPanel",
-          );
-          var shopPanel = this.findComponentDownward(
-              this,
-              "shop",
-          );
+          var backpackPanel = this.findComponentDownward(this, "backpackPanel");
+          var shopPanel = this.findComponentDownward(this, "shop");
           if (JSON.stringify(this.saveData) != '{}') {
             backpackPanel.grid = this.saveData.backpackEquipment
             if(this.saveData.backpackAutoSell!=undefined) {
               backpackPanel.autoSell = this.saveData.backpackAutoSell;
             }
             if(this.saveData.autoBuyAttributes!=undefined){
-              shopPanel.autoBuyLevel=this.saveData.autoBuyAttributes.autoBuyLevel;
-              shopPanel.autoBuyStrength=this.saveData.autoBuyAttributes.autoBuyStrength;
-              shopPanel.autoBuyPriceTimes=this.saveData.autoBuyAttributes.autoBuyPriceTimes;
+              shopPanel.autoBuyLevel = this.saveData.autoBuyAttributes.autoBuyLevel;
+              shopPanel.autoBuyStrength = this.saveData.autoBuyAttributes.autoBuyStrength;
+              shopPanel.autoBuyPriceTimes = this.saveData.autoBuyAttributes.autoBuyPriceTimes;
             }
           }
           if (!this.saveData.playerEquipment.playerNeck) {
             this.saveData.playerEquipment.playerNeck = {
-              "lv": 1,
-              itemType: 'neck',
-              "quality": {
-                name: '破旧',
-                qualityCoefficient: 0.7,
-                probability: '0.25',
-                color: '#a1a1a1',
-                extraEntryNum: 1,
-              },
+              "lv": 1, itemType: 'neck',
+              "quality": { name: '破旧', qualityCoefficient: 0.7, probability: '0.25', color: '#a1a1a1', extraEntryNum: 1 },
               "type": {
-                "name": "新手项坠",
-                "des": "一个普通的指环",
-                "iconSrc": "./icons/Ac_3.png",
-                "entry": [{
-                  "valCoefficient": 0.9,
-                  "value": 20,
-                  "showVal": "+20",
-                  "type": "HP",
-                  "name": "生命值"
-                }]
+                "name": "新手项坠", "des": "一个普通的指环", "iconSrc": "./icons/Ac_3.png",
+                "entry": [{ "valCoefficient": 0.9, "value": 20, "showVal": "+20", "type": "HP", "name": "生命值" }]
               },
-              "extraEntry": [{
-                "type": "CRIT",
-                "value": 10,
-                "showVal": "+10%",
-                "name": "暴击率"
-              }]
+              "extraEntry": [{ "type": "CRIT", "value": 10, "showVal": "+10%", "name": "暴击率" }]
             }
           }
           this.$store.commit('set_player_ring', this.$deepCopy(this.saveData.playerEquipment.playerRing))
@@ -1001,21 +872,10 @@ export default {
           this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
           this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
         }
-
-        this.$store.commit("set_sys_info", {
-          msg: `
-                读取存档成功
-              `,
-          type: 'win'
-        });
+        this.$store.commit("set_sys_info", { msg: `读取存档成功`, type: 'win' });
       } catch (error) {
         console.log(error)
-        this.$store.commit("set_sys_info", {
-          msg: `
-              糟糕，存档坏了！
-            `,
-          type: 'warning'
-        });
+        this.$store.commit("set_sys_info", { msg: `糟糕，存档坏了！`, type: 'warning' });
       }
     },
     clearSysInfo() {
@@ -1027,10 +887,7 @@ export default {
       var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
       this.$store.commit('set_player_lv', this.GMPlayerLv)
-      var backpackPanel = this.findComponentDownward(
-        this,
-        "backpackPanel",
-      );
+      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
       for (let i = 0; i < backpackPanel.grid.length; i++) {
         if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
           this.$set(backpackPanel.grid, i, item);
@@ -1040,10 +897,7 @@ export default {
       var b = this.findComponentDownward(this, "armorPanel");
       var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
-      var backpackPanel = this.findComponentDownward(
-        this,
-        "backpackPanel",
-      );
+      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
       for (let i = 0; i < backpackPanel.grid.length; i++) {
         if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
           this.$set(backpackPanel.grid, i, item);
@@ -1053,24 +907,17 @@ export default {
       var b = this.findComponentDownward(this, "ringPanel");
       var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
-      var backpackPanel = this.findComponentDownward(
-        this,
-        "backpackPanel",
-      );
+      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
       for (let i = 0; i < backpackPanel.grid.length; i++) {
         if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
           this.$set(backpackPanel.grid, i, item);
           break;
         }
       }
-
       var b = this.findComponentDownward(this, "neckPanel");
       var item = b.createNewItem(this.GMEquipQu, this.GMEquipLv);
       item = JSON.parse(item);
-      var backpackPanel = this.findComponentDownward(
-        this,
-        "backpackPanel",
-      );
+      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
       for (let i = 0; i < backpackPanel.grid.length; i++) {
         if (JSON.stringify(backpackPanel.grid[i]).length < 3) {
           this.$set(backpackPanel.grid, i, item);
@@ -1081,219 +928,65 @@ export default {
       this.GMOpened = false
     },
     showDungeonsInfo(k) {
-  this.dungeons = this.dungeonsArr[k]
-  this.dungeons.moveTime = 200
-  if (this.dungeons.difficulty != 1) {
-    this.reChallenge = false
-    this.reChallengeEx = false
-    this.reChallengeExR = false
-  }
-  this.dungeonsSimulator.victory = true
-  this.dungeonsSimulator.recoveryToMaxHP = false
-  this.dungeonsSimulator.costTime = 0
-  this.dungeonsSimulator.lastHP = 0
-  this.dungeonsSimulator.maxFightCount = 0
-  this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
-  this.dungeonsSimulator.allGetDamaged = 0
-  this.dungeonsSimulator.isPlayerDead = false
-  this.dungeonsSimulator.deathIndex = -1
-  
-  let playerAttribute = this.$store.state.playerAttribute.attribute,
-    reincarnationAttribute = this.$store.state.reincarnationAttribute
-  let reducedDamage = playerAttribute.REDUCDMG,
-    critMultiplier = 1 + (playerAttribute.CRIT.value / 100) * (playerAttribute.CRITDMG.value / 100 - 1),
-    playerDPS = playerAttribute.ATK.value * critMultiplier,
-    playerBLOC = playerAttribute.BLOC.value,
-    playerMaxHP = playerAttribute.MAXHP.value,
-    playerHP = playerAttribute.MAXHP.value,
-    // 移動時間（秒）- 用於修正多算的第一場移動
-    moveTimeSec = (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000
-  
-  // 儲存每場戰鬥的實際時間
-  let actualTimes = []
-  let totalActualTime = 0
-  let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
-  let previousBattleTime = 0
-  
-  for(let i = 0; i < this.dungeons.eventNum; i++){
-    // 回血：使用上一場的實際戰鬥時間
-    if(i > 0 && previousBattleTime > 0){
-      let healAmount = playerMaxHP * 0.03 * previousBattleTime
-      playerHP = playerHP + healAmount
-      if(playerHP > playerMaxHP) playerHP = playerMaxHP
-    }
-    
-    let monster = this.dungeons.eventType[i]
-    let result = dungeonsComponent.battleCom(monster, playerHP, playerDPS)
-    
-    this.dungeonsSimulator.perGetDamaged[i] = result.takeDmg
-    this.dungeonsSimulator.allGetDamaged += result.takeDmg
-    
-    if(!result.victory){
-      this.dungeonsSimulator.isPlayerDead = true
-      this.dungeonsSimulator.deathIndex = i
-      for(let j = i + 1; j < this.dungeons.eventNum; j++){
-        this.dungeonsSimulator.perGetDamaged[j] = 0
+      this.dungeons = this.dungeonsArr[k]
+      this.dungeons.moveTime = 200
+      if (this.dungeons.difficulty != 1) {
+        this.reChallenge = false
+        this.reChallengeEx = false
+        this.reChallengeExR = false
       }
-      break
-    }
-    
-    playerHP = result.remainingHP
-    previousBattleTime = result.actualTime
-    actualTimes.push(result.actualTime)
-    totalActualTime += result.actualTime
-  }
-  
-  // ✅ 修正：減去多算的第一場移動時間
-  this.dungeonsSimulator.costTime = totalActualTime - moveTimeSec
-  
-  if(this.dungeonsSimulator.isPlayerDead){
-    this.dungeonsSimulator.victory = false
-    this.dungeonsSimulator.recoveryToMaxHP = false
-    this.dungeonsSimulator.lastHP = 0
-    this.dungeonsSimulator.maxFightCount = 0
-    this.dungeonsSimulator.perActionTime = actualTimes.length > 0 ? totalActualTime / actualTimes.length : 0
-  } else {
-    this.dungeonsSimulator.victory = true
-    this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-    this.dungeonsSimulator.perActionTime = totalActualTime / actualTimes.length
-    
-    // 使用 actualTimes 來計算 recoveryToMaxHP
-    let canRecovery = false
-    let tempHP = playerHP
-    for(let i = 0; i < actualTimes.length; i++){
-      let newHP = playerMaxHP * 0.03 * Math.floor(actualTimes[i]) + tempHP
-      if(newHP >= playerMaxHP){
-        canRecovery = true
-        break
-      }
-      tempHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
-    }
-    
-    if(canRecovery){
-      this.dungeonsSimulator.recoveryToMaxHP = true
-    } else {
-      this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - tempHP))
-    }
-  }
+      // 重置模擬資料為預設值（不進行估算）
+      this.dungeonsSimulator.victory = false
+      this.dungeonsSimulator.recoveryToMaxHP = false
+      this.dungeonsSimulator.costTime = 0
+      this.dungeonsSimulator.lastHP = 0
+      this.dungeonsSimulator.maxFightCount = 0
+      this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
+      this.dungeonsSimulator.allGetDamaged = 0
+      this.dungeonsSimulator.isPlayerDead = false
+      this.dungeonsSimulator.deathIndex = -1
+      this.dungeonsSimulator.perActionTime = 0
 
-  // 計算正確的金幣總和
-  let totalGold = 0
-  for(let i = 0; i < this.dungeons.eventNum; i++){
-    let monster = this.dungeons.eventType[i]
-    let baseGold = monster.trophy.gold * 4
-    totalGold += baseGold
-  }
-  this.dungeons.displayTotalGold = totalGold
-},
+      // 計算正確的金幣總和
+      let totalGold = 0
+      for(let i = 0; i < this.dungeons.eventNum; i++){
+        let monster = this.dungeons.eventType[i]
+        let baseGold = monster.trophy.gold * 4
+        totalGold += baseGold
+      }
+      this.dungeons.displayTotalGold = totalGold
+    },
     showEndlessDungeonsInfo() {
-  this.reChallenge = false
-  this.reChallengeEx = false
-  this.reChallengeExR = false
-  this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
-  this.dungeons.moveTime = 200
-  this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
-  this.dungeons.type = 'endless'
-  this.dungeonsSimulator.victory = true
-  this.dungeonsSimulator.recoveryToMaxHP = false
-  this.dungeonsSimulator.costTime = 0
-  this.dungeonsSimulator.lastHP = 0
-  this.dungeonsSimulator.maxFightCount = 0
-  this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
-  this.dungeonsSimulator.allGetDamaged = 0
-  this.dungeonsSimulator.isPlayerDead = false
-  this.dungeonsSimulator.deathIndex = -1
-  
-  let playerAttribute = this.$store.state.playerAttribute.attribute,
-    reincarnationAttribute = this.$store.state.reincarnationAttribute
-  let reducedDamage = playerAttribute.REDUCDMG,
-    critMultiplier = 1 + (playerAttribute.CRIT.value / 100) * (playerAttribute.CRITDMG.value / 100 - 1),
-    playerDPS = playerAttribute.ATK.value * critMultiplier,
-    playerBLOC = playerAttribute.BLOC.value,
-    playerMaxHP = playerAttribute.MAXHP.value,
-    playerHP = playerAttribute.MAXHP.value,
-    // 移動時間（秒）- 用於修正多算的第一場移動
-    moveTimeSec = (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000
-  
-  // 儲存每場戰鬥的實際時間
-  let actualTimes = []
-  let totalActualTime = 0
-  let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
-  let previousBattleTime = 0
-  
-  for(let i = 0; i < this.dungeons.eventNum; i++){
-    // 回血：使用上一場的實際戰鬥時間
-    if(i > 0 && previousBattleTime > 0){
-      let healAmount = playerMaxHP * 0.03 * previousBattleTime
-      playerHP = playerHP + healAmount
-      if(playerHP > playerMaxHP) playerHP = playerMaxHP
-    }
-    
-    let monster = this.dungeons.eventType[i]
-    let result = dungeonsComponent.battleCom(monster, playerHP, playerDPS)
-    
-    this.dungeonsSimulator.perGetDamaged[i] = result.takeDmg
-    this.dungeonsSimulator.allGetDamaged += result.takeDmg
-    
-    if(!result.victory){
-      this.dungeonsSimulator.isPlayerDead = true
-      this.dungeonsSimulator.deathIndex = i
-      for(let j = i + 1; j < this.dungeons.eventNum; j++){
-        this.dungeonsSimulator.perGetDamaged[j] = 0
-      }
-      break
-    }
-    
-    playerHP = result.remainingHP
-    previousBattleTime = result.actualTime
-    actualTimes.push(result.actualTime)
-    totalActualTime += result.actualTime
-  }
-  
-  // ✅ 修正：減去多算的第一場移動時間
-  this.dungeonsSimulator.costTime = totalActualTime - moveTimeSec
-  
-  if(this.dungeonsSimulator.isPlayerDead){
-    this.dungeonsSimulator.victory = false
-    this.dungeonsSimulator.recoveryToMaxHP = false
-    this.dungeonsSimulator.lastHP = 0
-    this.dungeonsSimulator.maxFightCount = 0
-    this.dungeonsSimulator.perActionTime = actualTimes.length > 0 ? totalActualTime / actualTimes.length : 0
-  } else {
-    this.dungeonsSimulator.victory = true
-    this.dungeonsSimulator.lastHP = playerHP.toFixed(1)
-    this.dungeonsSimulator.perActionTime = totalActualTime / actualTimes.length
-    
-    // 使用 actualTimes 來計算 recoveryToMaxHP
-    let canRecovery = false
-    let tempHP = playerHP
-    for(let i = 0; i < actualTimes.length; i++){
-      let newHP = playerMaxHP * 0.03 * Math.floor(actualTimes[i]) + tempHP
-      if(newHP >= playerMaxHP){
-        canRecovery = true
-        break
-      }
-      tempHP = newHP + (this.dungeonsSimulator.perGetDamaged[i] > 0 ? this.dungeonsSimulator.perGetDamaged[i] : 0)
-    }
-    
-    if(canRecovery){
-      this.dungeonsSimulator.recoveryToMaxHP = true
-    } else {
-      this.dungeonsSimulator.maxFightCount = Math.ceil(this.dungeonsSimulator.lastHP / (this.dungeonsSimulator.lastHP - tempHP))
-    }
-  }
+      this.reChallenge = false
+      this.reChallengeEx = false
+      this.reChallengeExR = false
+      this.dungeons = handle.createRandomDungeons(this.$store.state.playerAttribute.endlessLv * 5, 3)
+      this.dungeons.moveTime = 200
+      this.dungeons.lv = this.$store.state.playerAttribute.endlessLv
+      this.dungeons.type = 'endless'
+      // 重置模擬資料為預設值（不進行估算）
+      this.dungeonsSimulator.victory = false
+      this.dungeonsSimulator.recoveryToMaxHP = false
+      this.dungeonsSimulator.costTime = 0
+      this.dungeonsSimulator.lastHP = 0
+      this.dungeonsSimulator.maxFightCount = 0
+      this.dungeonsSimulator.perGetDamaged = [0, 0, 0, 0, 0]
+      this.dungeonsSimulator.allGetDamaged = 0
+      this.dungeonsSimulator.isPlayerDead = false
+      this.dungeonsSimulator.deathIndex = -1
+      this.dungeonsSimulator.perActionTime = 0
 
-  // 計算正確的金幣總和（無盡模式需要乘以倍率）
-  let totalGold = 0
-  let endlessLv = this.$store.state.playerAttribute.endlessLv
-  let ratio = (endlessLv >= 10) ? 2.6 : 1.5
-  for(let i = 0; i < this.dungeons.eventNum; i++){
-    let monster = this.dungeons.eventType[i]
-    let baseGold = monster.trophy.gold * 4
-    totalGold += Math.floor(baseGold * ratio)
-  }
-  this.dungeons.displayTotalGold = totalGold
-},
+      // 計算正確的金幣總和（無盡模式需要乘以倍率）
+      let totalGold = 0
+      let endlessLv = this.$store.state.playerAttribute.endlessLv
+      let ratio = (endlessLv >= 10) ? 2.6 : 1.5
+      for(let i = 0; i < this.dungeons.eventNum; i++){
+        let monster = this.dungeons.eventType[i]
+        let baseGold = monster.trophy.gold * 4
+        totalGold += Math.floor(baseGold * ratio)
+      }
+      this.dungeons.displayTotalGold = totalGold
+    },
     closeDungeonsInfo() {
       this.dungeons = ''
     },
@@ -1301,7 +994,6 @@ export default {
       var b = this.findComponentDownward(this, 'dungeons')
       b.dungeons = this.dungeons
       b.evenHandle()
-      // this.dungeons = ''
       this.inDungeons = true
       this.reChallengeExR = this.reChallengeEx
     },
@@ -1309,19 +1001,9 @@ export default {
       this.inDungeons = false
       this.reChallengeEx = false
       this.dungeons = ''
-
       var b = this.findComponentDownward(this, 'dungeons')
       b.forcedToStopEvent()
-
-      this.$store.commit("set_sys_info", {
-        msg: `
-              手动中断了挑战
-            `,
-        type: 'warning'
-      })
-      setTimeout(() => {
-
-      })
+      this.$store.commit("set_sys_info", { msg: `手动中断了挑战`, type: 'warning' })
     },
     resetEndlessLv() {
       this.$message({
@@ -1331,55 +1013,35 @@ export default {
         onClose: () => {
           this.$store.commit("set_endless_lv", 1);
           this.closeDungeonsInfo()
-          this.$store.commit("set_sys_info", {
-            msg: `
-              无尽挑战层数重置到了1级。
-            `,
-            type: 'win'
-          });
+          this.$store.commit("set_sys_info", { msg: `无尽挑战层数重置到了1级。`, type: 'win' });
         }
       })
     },
     openMenuPanel(type) {
       this.backpackPanelOpened = this.shopPanelOpened = false
       switch (type) {
-        case 'backpack':
-          this.backpackPanelOpened = !this.backpackPanelOpened
-          break
-        case 'shop':
-          this.shopPanelOpened = !this.shopPanelOpened
-          break
-        case 'rein':
-          this.reinPanelOpened = !this.reinPanelOpened
-          break
-        default:
-          break
+        case 'backpack': this.backpackPanelOpened = !this.backpackPanelOpened; break;
+        case 'shop': this.shopPanelOpened = !this.shopPanelOpened; break;
+        case 'rein': this.reinPanelOpened = !this.reinPanelOpened; break;
+        default: break;
       }
     },
     closePanel() {
       this.backpackPanelOpened = this.shopPanelOpened = this.importSaveDataPanelOpened = this.exportSaveDataPanelOpened = this.strengthenEquipmentPanelOpened = this.reinPanelOpened = false
       this.GMOpened = false
       this.saveDateString = ''
-
-      let equimentPanel = this.findComponentDownward(
-        this,
-        "equimentPanel",
-      )
+      let equimentPanel = this.findComponentDownward(this, "equimentPanel");
       equimentPanel.stopAutoStreng()
     },
-
     getDisplayGoldForIndex(monster) {
       let baseGold = monster.trophy.gold * 4
-      
       if (this.dungeons && this.dungeons.type == 'endless') {
         let endlessLv = this.$store.state.playerAttribute.endlessLv
         let ratio = (endlessLv >= 10) ? 2.6 : 1.5
         return Math.floor(baseGold * ratio)
       }
-      
       return baseGold
     },
-
     initial() {
       let html = document.documentElement
       let wW = html.clientHeight
@@ -1389,16 +1051,13 @@ export default {
       }
       let rem = (wW * 100) / designSize
       document.documentElement.style.fontSize = rem + "px"
-
       if (document.documentElement.clientWidth < 768) {
         this.$store.commit('set_operator_schema', true)
       } else {
         this.$store.commit('set_operator_schema', false)
       }
     },
-    contextmenu(e) {
-      // 鼠标右键
-    },
+    contextmenu(e) {},
     showItemInfo(e, type, item, needComparison) {
       if (needComparison === false) {
         this.needComparison = false
@@ -1407,37 +1066,16 @@ export default {
       }
       let x = e.pageX, y = e.pageY, maxH = window.innerHeight
       if (y < window.innerHeight / 2) {
-        this.itemDialogStyle = {
-          display: 'flex',
-          'top': y + 20 + 'px',
-          'left': x + 20 + 'px',
-        }
+        this.itemDialogStyle = { display: 'flex', 'top': y + 20 + 'px', 'left': x + 20 + 'px' }
       } else {
-        this.itemDialogStyle = {
-          display: 'flex',
-          'bottom': maxH - y + 20 + 'px',
-          'left': x + 20 + 'px',
-        }
+        this.itemDialogStyle = { display: 'flex', 'bottom': maxH - y + 20 + 'px', 'left': x + 20 + 'px' }
       }
       switch (type) {
-        case 'weapon':
-          this.weapon = item
-          this.weaponShow = true
-          break
-        case 'armor':
-          this.armor = item
-          this.armorShow = true
-          break
-        case 'ring':
-          this.ring = item
-          this.ringShow = true
-          break
-        case 'neck':
-          this.neck = item
-          this.neckShow = true
-          break
-        default:
-          break
+        case 'weapon': this.weapon = item; this.weaponShow = true; break;
+        case 'armor': this.armor = item; this.armorShow = true; break;
+        case 'ring': this.ring = item; this.ringShow = true; break;
+        case 'neck': this.neck = item; this.neckShow = true; break;
+        default: break;
       }
     },
     closeItemInfo() {
@@ -1445,12 +1083,7 @@ export default {
       this.weaponShow = this.armorShow = this.ringShow = this.neckShow = false
     },
     setSysInfo() {
-      this.$store.commit("set_sys_info", {
-        msg: `
-              副本探索成功！
-            `,
-        type: 'win'
-      })
+      this.$store.commit("set_sys_info", { msg: `副本探索成功！`, type: 'win' })
     },
     initDrawCooldown() {
       const saved = localStorage.getItem('lastDrawTimestamp')
@@ -1493,10 +1126,7 @@ export default {
       if (rand < 0.25) {
         const points = Math.floor(Math.random() * 50) + 1
         const currentRein = this.$store.state.reincarnation
-        this.$store.commit('set_player_rein', {
-          count: currentRein.count,
-          point: currentRein.point + points
-        })
+        this.$store.commit('set_player_rein', { count: currentRein.count, point: currentRein.point + points })
         rewardMsg = `转生点数 +${points}`
       } else if (rand < 0.5) {
         const levels = Math.floor(Math.random() * 5) + 1
@@ -1587,10 +1217,7 @@ export default {
           case 'neck': this.$store.commit('set_player_neck', {}); break
         }
         this.saveGame(false)
-        this.$store.commit("set_sys_info", {
-          msg: `已卸下 ${currentEquipment.type.name}，放入背包。`,
-          type: "win",
-        })
+        this.$store.commit("set_sys_info", { msg: `已卸下 ${currentEquipment.type.name}，放入背包。`, type: "win" })
       } catch (err) {
         console.error("卸下装备出错:", err)
         this.$store.commit("set_sys_info", { msg: "卸下装备失败，请重试。", type: "warning" })
@@ -1599,6 +1226,7 @@ export default {
   }
 }
 </script>
+
 <style lang="scss" scoped>
 /* 样式保持不变（与原文件相同） */
 * {
@@ -1780,7 +1408,6 @@ a {
     width: 8.1rem;
     bottom: 0.1rem;
     left: 0.1rem;
-
     transition: 0.2s;
     padding: 0.2rem;
     .clear {
@@ -1863,12 +1490,6 @@ a {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      // transform: translate(-50%, -50%);
-      // background-image: url(../assets/icons/icon_81.png);
-      // background-repeat: no-repeat;
-      // background-position: top center;
-      // background-color: rgba(245, 54, 54, 0.7);
-      // background-size: 30px 29px;
       .icon-image {
         width: 0.45rem;
         height: 0.45rem;
@@ -1880,10 +1501,6 @@ a {
         background-size: 30px 29px;
       }
       span {
-        // position: absolute;
-        // top: 100%;
-        // left: 50%;
-        // transform: translateX(-50%);
         text-shadow: 1px 1px 3px rgb(0, 0, 0);
         white-space: nowrap;
         width: 100%;
@@ -1894,8 +1511,6 @@ a {
       }
     }
     .low-level {
-      // background-image: url(../assets/icons/menu/d1.png);
-      // background-color: rgba(100, 255, 36, 0.7);
     }
     .h-level {
       box-shadow: 0 0 4px 4px rgba(245, 241, 0, 0.5);
@@ -1906,8 +1521,6 @@ a {
       span {
         border-top: 1px solid rgba(245, 241, 0, 0.6);
       }
-      // background-image: url(../assets/icons/menu/d2.png);
-      // background-color: rgba(245, 241, 0, 0.7);
     }
     .boss {
       box-shadow: 0 0 4px 4px rgba(245, 54, 54, 0.5);
@@ -1918,7 +1531,6 @@ a {
       span {
         border-top: 1px solid rgba(245, 54, 54, 0.6);
       }
-      // background-image: url(../assets/icons/menu/d3.png);
     }
     .endless {
       box-shadow: 0 0 4px 4px rgba(245, 69, 0, 0.5);
