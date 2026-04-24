@@ -1105,13 +1105,15 @@ export default {
     playerDPS = playerAttribute.ATK.value * critMultiplier,
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
-    playerHP = playerAttribute.MAXHP.value
+    playerHP = playerAttribute.MAXHP.value,
+    // 移動時間（秒）- 用於修正多算的第一場移動
+    moveTimeSec = (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000
   
-  // 直接使用 dungeonsComponent 的 battleCom 來模擬
+  // 儲存每場戰鬥的實際時間
+  let actualTimes = []
+  let totalActualTime = 0
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
-  let totalActualTime = 0
-  let actualTimes = []
   
   for(let i = 0; i < this.dungeons.eventNum; i++){
     // 回血：使用上一場的實際戰鬥時間
@@ -1142,8 +1144,8 @@ export default {
     totalActualTime += result.actualTime
   }
   
-  // 使用 battleCom 回傳的總時間
-  this.dungeonsSimulator.costTime = totalActualTime
+  // ✅ 修正：減去多算的第一場移動時間
+  this.dungeonsSimulator.costTime = totalActualTime - moveTimeSec
   
   if(this.dungeonsSimulator.isPlayerDead){
     this.dungeonsSimulator.victory = false
@@ -1209,13 +1211,15 @@ export default {
     playerDPS = playerAttribute.ATK.value * critMultiplier,
     playerBLOC = playerAttribute.BLOC.value,
     playerMaxHP = playerAttribute.MAXHP.value,
-    playerHP = playerAttribute.MAXHP.value
+    playerHP = playerAttribute.MAXHP.value,
+    // 移動時間（秒）- 用於修正多算的第一場移動
+    moveTimeSec = (this.dungeons.moveTime + reincarnationAttribute.MOVESPEED) / 1000
   
-  // 直接使用 dungeonsComponent 的 battleCom 來模擬
+  // 儲存每場戰鬥的實際時間
+  let actualTimes = []
+  let totalActualTime = 0
   let dungeonsComponent = this.findComponentDownward(this, 'dungeons')
   let previousBattleTime = 0
-  let totalActualTime = 0
-  let actualTimes = []
   
   for(let i = 0; i < this.dungeons.eventNum; i++){
     // 回血：使用上一場的實際戰鬥時間
@@ -1246,8 +1250,8 @@ export default {
     totalActualTime += result.actualTime
   }
   
-  // 使用 battleCom 回傳的總時間
-  this.dungeonsSimulator.costTime = totalActualTime
+  // ✅ 修正：減去多算的第一場移動時間
+  this.dungeonsSimulator.costTime = totalActualTime - moveTimeSec
   
   if(this.dungeonsSimulator.isPlayerDead){
     this.dungeonsSimulator.victory = false
