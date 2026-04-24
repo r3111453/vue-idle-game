@@ -36,7 +36,7 @@ export default {
       battleComTime: {},
       nextEvent: 1,
       battleTime:2000,
-      moveTime: 200,
+      moveTime: 50,
       dungeons: {
         battleTime: 2000,
         name: '史莱姆森林',
