@@ -598,7 +598,7 @@ var savedHp = localStorage.getItem('savedCurrentHp')
 if (savedHp !== null) {
   let hp = parseInt(savedHp)
   if (!isNaN(hp) && hp > 0) {
-    this.$store.commit('set_player_curhp_value', hp)
+    this.$store.state.playerAttribute.attribute.CURHP.value = hp
   }
 }
   
