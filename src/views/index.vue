@@ -592,6 +592,15 @@ export default {
   }
   var sd = localStorage.getItem('_sd')
   this.loadGame(sd)
+
+    // ✅ 讀取儲存的血量（在 loadGame 之後）
+var savedHp = localStorage.getItem('savedCurrentHp')
+if (savedHp !== null) {
+  let hp = parseInt(savedHp)
+  if (!isNaN(hp) && hp > 0) {
+    this.$store.commit('set_player_curhp_value', hp)
+  }
+}
   
   // ✅ 嘗試從 localStorage 讀取儲存的副本
   var savedDungeons = localStorage.getItem('savedDungeonsArr')
@@ -821,6 +830,8 @@ export default {
     savedDungeonsArr: this.dungeonsArr  // ✅ 新增：儲存副本
   }
   var saveData = Base64.encode(Base64.encode(JSON.stringify(data)))
+      // ✅ 儲存當前血量
+localStorage.setItem('savedCurrentHp', this.attribute.CURHP.value)
   localStorage.setItem('_sd', saveData)
   needInfo && this.$store.commit("set_sys_info", { msg: `游戏进度已经保存了。`, type: 'win' });
 },
