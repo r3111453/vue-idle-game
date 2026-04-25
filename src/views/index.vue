@@ -563,51 +563,59 @@ export default {
     });
   },
   mounted() {
-    this.autoHealthRecovery = setInterval(() => {
-      this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
-      if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
-        if(this.reChallengeEx){
-          this.eventBegin();
-        }else{
-          this.reChallengeExR=false;
-        }
+  this.autoHealthRecovery = setInterval(() => {
+    this.$store.commit('set_player_curhp', this.healthRecoverySpeed * (this.attribute.MAXHP.value / 50))
+    if(!this.inDungeons&&this.reChallengeExR&&this.dungeons!=undefined&&this.attribute.CURHP.value>=this.attribute.MAXHP.value*(1-this.dungeonsSimulator.perActionTime*0.03)){
+      if(this.reChallengeEx){
+        this.eventBegin();
+      }else{
+        this.reChallengeExR=false;
       }
-    }, 1000)
-
-    setInterval(() => {
-      this.saveGame()
-    }, 5 * 60 * 1000)
-
-    this.sysInfo = this.$store.state.sysInfo
-    this.weapon = this.playerWeapon
-    this.armor = this.playerArmor
-    this.ring = this.playerRing
-    this.neck = this.playerNeck
-
-    {
-      this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
-      this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
-      this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
-      this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
     }
-    var sd = localStorage.getItem('_sd')
-    this.loadGame(sd)
+  }, 1000)
+
+  setInterval(() => {
+    this.saveGame()
+  }, 5 * 60 * 1000)
+
+  this.sysInfo = this.$store.state.sysInfo
+  this.weapon = this.playerWeapon
+  this.armor = this.playerArmor
+  this.ring = this.playerRing
+  this.neck = this.playerNeck
+
+  {
+    this.$store.commit('set_player_ring', this.$deepCopy(this.playerRing))
+    this.$store.commit('set_player_weapon', this.$deepCopy(this.playerWeapon))
+    this.$store.commit('set_player_armor', this.$deepCopy(this.playerArmor))
+    this.$store.commit('set_player_neck', this.$deepCopy(this.playerNeck))
+  }
+  var sd = localStorage.getItem('_sd')
+  this.loadGame(sd)
+  
+  // ✅ 嘗試從 localStorage 讀取儲存的副本
+  var savedDungeons = localStorage.getItem('savedDungeonsArr')
+  if (savedDungeons && JSON.parse(savedDungeons).length > 0) {
+    this.dungeonsArr = JSON.parse(savedDungeons)
+  } else {
     this.createdDungeons()
-    this.initDrawCooldown()
+  }
+  
+  this.initDrawCooldown()
 
-    const lastBackupReminder = localStorage.getItem('lastBackupReminder');
-    const now = Date.now();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    if (!lastBackupReminder || now - lastBackupReminder > oneWeek) {
-      this.$message({
-        message: '為了避免存檔遺失，建議您定期點擊「導出存檔」進行備份。',
-        title: '備份提醒',
-        closeBtnText: '稍後',
-        confirmBtnText: '我知道了',
-      });
-      localStorage.setItem('lastBackupReminder', now);
-    }
-  },
+  const lastBackupReminder = localStorage.getItem('lastBackupReminder');
+  const now = Date.now();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  if (!lastBackupReminder || now - lastBackupReminder > oneWeek) {
+    this.$message({
+      message: '為了避免存檔遺失，建議您定期點擊「導出存檔」進行備份。',
+      title: '備份提醒',
+      closeBtnText: '稍後',
+      confirmBtnText: '我知道了',
+    });
+    localStorage.setItem('lastBackupReminder', now);
+  }
+},
   beforeDestroy() {
     if (this.drawCooldownTimer) {
       clearInterval(this.drawCooldownTimer);
@@ -652,66 +660,69 @@ export default {
       window.open('https://github.com/Couy69/vue-idle-game', '_blank');
     },
     createdDungeons(constraint) {
-      if (!constraint) {
-        if (this.dungeonsTime) {
-          this.$store.commit("set_sys_info", {
-            msg: `刚刚才刷新过了，需要等待${this.dungeonsTimeO}秒才能刷新哦。`,
-            type: 'wrning'
-          });
-          return
-        }
-        this.dungeonsTime = setInterval(() => {
-          this.dungeonsTimeO--
-          if (this.dungeonsTimeO <= 0) {
-            clearInterval(this.dungeonsTime)
-            this.dungeonsTime = ''
-            this.dungeonsTimeO = 30
-          }
-        }, 1000)
+  if (!constraint) {
+    if (this.dungeonsTime) {
+      this.$store.commit("set_sys_info", {
+        msg: `刚刚才刷新过了，需要等待${this.dungeonsTimeO}秒才能刷新哦。`,
+        type: 'wrning'
+      });
+      return
+    }
+    this.dungeonsTime = setInterval(() => {
+      this.dungeonsTimeO--
+      if (this.dungeonsTimeO <= 0) {
+        clearInterval(this.dungeonsTime)
+        this.dungeonsTime = ''
+        this.dungeonsTimeO = 30
       }
+    }, 1000)
+  }
 
-      this.dungeonsArr = []
-      let Co = [0.85, 0.1, 0.05]
-      for (let i = this.playerLv - 1; i > this.playerLv - 5; i--) {
-        if (i < 1) break
-        let difficulty = 1, r = Math.random()
-        if (r <= Co[0]) {
-          difficulty = 1
-        } else if (r < Co[1] + Co[0] && r >= Co[0]) {
-          difficulty = 2
-        } else {
-          difficulty = 3
-        }
-        if (i > 100) {
-          var lv = Math.floor(this.playerLv * (100 - (this.playerLv - i)) / 100)
-        } else {
-          var lv = i
-        }
-        this.dungeonsArr.push(handle.createRandomDungeons(lv, 1))
-        if (difficulty != 1) {
-          this.dungeonsArr.push(handle.createRandomDungeons(i, difficulty))
-        }
-      }
-      for (let i = this.playerLv; i < this.playerLv + 6; i++) {
-        let difficulty = 1, r = Math.random()
-        if (r <= Co[0]) {
-          difficulty = 1
-        } else if (r < Co[1] + Co[0] && r >= Co[0]) {
-          difficulty = 2
-        } else {
-          difficulty = 3
-        }
-        if (i > 100) {
-          var lv = Math.floor(this.playerLv * (100 + (i - this.playerLv)) / 100)
-        } else {
-          var lv = i
-        }
-        this.dungeonsArr.push(handle.createRandomDungeons(lv, 1))
-        if (difficulty != 1) {
-          this.dungeonsArr.push(handle.createRandomDungeons(lv, difficulty))
-        }
-      }
-    },
+  this.dungeonsArr = []
+  let Co = [0.85, 0.1, 0.05]
+  for (let i = this.playerLv - 1; i > this.playerLv - 5; i--) {
+    if (i < 1) break
+    let difficulty = 1, r = Math.random()
+    if (r <= Co[0]) {
+      difficulty = 1
+    } else if (r < Co[1] + Co[0] && r >= Co[0]) {
+      difficulty = 2
+    } else {
+      difficulty = 3
+    }
+    if (i > 100) {
+      var lv = Math.floor(this.playerLv * (100 - (this.playerLv - i)) / 100)
+    } else {
+      var lv = i
+    }
+    this.dungeonsArr.push(handle.createRandomDungeons(lv, 1))
+    if (difficulty != 1) {
+      this.dungeonsArr.push(handle.createRandomDungeons(i, difficulty))
+    }
+  }
+  for (let i = this.playerLv; i < this.playerLv + 6; i++) {
+    let difficulty = 1, r = Math.random()
+    if (r <= Co[0]) {
+      difficulty = 1
+    } else if (r < Co[1] + Co[0] && r >= Co[0]) {
+      difficulty = 2
+    } else {
+      difficulty = 3
+    }
+    if (i > 100) {
+      var lv = Math.floor(this.playerLv * (100 + (i - this.playerLv)) / 100)
+    } else {
+      var lv = i
+    }
+    this.dungeonsArr.push(handle.createRandomDungeons(lv, 1))
+    if (difficulty != 1) {
+      this.dungeonsArr.push(handle.createRandomDungeons(lv, difficulty))
+    }
+  }
+  
+  // ✅ 儲存副本到 localStorage
+  localStorage.setItem('savedDungeonsArr', JSON.stringify(this.dungeonsArr))
+},
     copySavaData() {
       var imSavadataTextArea = document.getElementById("imSavedata");
       imSavadataTextArea.select();
@@ -720,27 +731,28 @@ export default {
       this.closePanel()
     },
     exportSavedata() {
-      let backpackPanel = this.findComponentDownward(this, "backpackPanel");
-      this.exportSaveDataPanelOpened = true
-      var data = {
-        playerEquipment: {
-          playerWeapon: this.$store.state.playerAttribute.weapon,
-          playerArmor: this.$store.state.playerAttribute.armor,
-          playerRing: this.$store.state.playerAttribute.ring,
-          playerNeck: this.$store.state.playerAttribute.neck,
-        },
-        lv: this.$store.state.playerAttribute.lv,
-        backpackEquipment: backpackPanel.grid,
-        gold: this.$store.state.playerAttribute.GOLD,
-        endlessLv: this.$store.state.playerAttribute.endlessLv,
-        rA: this.$store.state.reincarnationAttribute,
-        r: {
-          count: this.$store.state.reincarnation.count,
-          point: this.$store.state.reincarnation.point,
-        }
-      }
-      this.saveDateString = Base64.encode(Base64.encode(JSON.stringify(data)))
+  let backpackPanel = this.findComponentDownward(this, "backpackPanel");
+  this.exportSaveDataPanelOpened = true
+  var data = {
+    playerEquipment: {
+      playerWeapon: this.$store.state.playerAttribute.weapon,
+      playerArmor: this.$store.state.playerAttribute.armor,
+      playerRing: this.$store.state.playerAttribute.ring,
+      playerNeck: this.$store.state.playerAttribute.neck,
     },
+    lv: this.$store.state.playerAttribute.lv,
+    backpackEquipment: backpackPanel.grid,
+    gold: this.$store.state.playerAttribute.GOLD,
+    endlessLv: this.$store.state.playerAttribute.endlessLv,
+    rA: this.$store.state.reincarnationAttribute,
+    r: {
+      count: this.$store.state.reincarnation.count,
+      point: this.$store.state.reincarnation.point,
+    },
+    savedDungeonsArr: this.dungeonsArr  // ✅ 新增：儲存副本
+  }
+  this.saveDateString = Base64.encode(Base64.encode(JSON.stringify(data)))
+},
     importSaveData() {
       if (!this.saveDateString) {
         this.$store.commit("set_sys_info", { msg: `请先输入存档数据！`, type: 'warning' });
@@ -781,36 +793,37 @@ export default {
       }
     },
     async saveGame(needInfo) {
-      var data = {}
-      var backpackPanel = this.findComponentDownward(this, "backpackPanel");
-      var shopPanel = this.findComponentDownward(this, "shop");
-      data = {
-        playerEquipment: {
-          playerWeapon: this.$store.state.playerAttribute.weapon,
-          playerArmor: this.$store.state.playerAttribute.armor,
-          playerRing: this.$store.state.playerAttribute.ring,
-          playerNeck: this.$store.state.playerAttribute.neck,
-        },
-        backpackEquipment: backpackPanel.grid,
-        backpackAutoSell: backpackPanel.autoSell,
-        lv: this.$store.state.playerAttribute.lv,
-        gold: this.$store.state.playerAttribute.GOLD,
-        endlessLv: this.$store.state.playerAttribute.endlessLv,
-        rA: this.$store.state.reincarnationAttribute,
-        r: {
-          count: this.$store.state.reincarnation.count,
-          point: this.$store.state.reincarnation.point,
-        },
-        autoBuyAttributes:{
-          autoBuyLevel:shopPanel.autoBuyLevel,
-          autoBuyStrength:shopPanel.autoBuyStrength,
-          autoBuyPriceTimes:shopPanel.autoBuyPriceTimes
-        }
-      }
-      var saveData = Base64.encode(Base64.encode(JSON.stringify(data)))
-      localStorage.setItem('_sd', saveData)
-      needInfo && this.$store.commit("set_sys_info", { msg: `游戏进度已经保存了。`, type: 'win' });
+  var data = {}
+  var backpackPanel = this.findComponentDownward(this, "backpackPanel");
+  var shopPanel = this.findComponentDownward(this, "shop");
+  data = {
+    playerEquipment: {
+      playerWeapon: this.$store.state.playerAttribute.weapon,
+      playerArmor: this.$store.state.playerAttribute.armor,
+      playerRing: this.$store.state.playerAttribute.ring,
+      playerNeck: this.$store.state.playerAttribute.neck,
     },
+    backpackEquipment: backpackPanel.grid,
+    backpackAutoSell: backpackPanel.autoSell,
+    lv: this.$store.state.playerAttribute.lv,
+    gold: this.$store.state.playerAttribute.GOLD,
+    endlessLv: this.$store.state.playerAttribute.endlessLv,
+    rA: this.$store.state.reincarnationAttribute,
+    r: {
+      count: this.$store.state.reincarnation.count,
+      point: this.$store.state.reincarnation.point,
+    },
+    autoBuyAttributes:{
+      autoBuyLevel:shopPanel.autoBuyLevel,
+      autoBuyStrength:shopPanel.autoBuyStrength,
+      autoBuyPriceTimes:shopPanel.autoBuyPriceTimes
+    },
+    savedDungeonsArr: this.dungeonsArr  // ✅ 新增：儲存副本
+  }
+  var saveData = Base64.encode(Base64.encode(JSON.stringify(data)))
+  localStorage.setItem('_sd', saveData)
+  needInfo && this.$store.commit("set_sys_info", { msg: `游戏进度已经保存了。`, type: 'win' });
+},
     loadGame(sd) {
       try {
         if (sd) {
@@ -839,6 +852,11 @@ export default {
               shopPanel.autoBuyLevel = this.saveData.autoBuyAttributes.autoBuyLevel;
               shopPanel.autoBuyStrength = this.saveData.autoBuyAttributes.autoBuyStrength;
               shopPanel.autoBuyPriceTimes = this.saveData.autoBuyAttributes.autoBuyPriceTimes;
+            }
+            // ✅ 讀取儲存的副本
+            if(this.saveData.savedDungeonsArr && this.saveData.savedDungeonsArr.length > 0) {
+              this.dungeonsArr = this.saveData.savedDungeonsArr
+              localStorage.setItem('savedDungeonsArr', JSON.stringify(this.dungeonsArr))
             }
           }
           if (!this.saveData.playerEquipment.playerNeck) {
